@@ -24,6 +24,7 @@
     zip
     tree
     nnn
+    gh
 
     # System
     bazaar
