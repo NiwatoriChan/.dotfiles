@@ -29,6 +29,7 @@
     # System
     bazaar
     distrobox
+    mission-center
 
     # Apps (shared across machines)
     discord
