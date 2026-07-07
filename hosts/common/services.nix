@@ -29,6 +29,9 @@
   # Printing
   services.printing.enable = true;
 
+  # SSD TRIM (weekly via systemd timer)
+  services.fstrim.enable = true;
+
   # Flatpak
   services.flatpak.enable = true;
   systemd.services.flatpak-repo = {
