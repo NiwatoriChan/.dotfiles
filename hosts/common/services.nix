@@ -34,6 +34,10 @@
 
   # Flatpak
   services.flatpak.enable = true;
+  # Symlink /usr/bin/flatpak for apps that hardcode the FHS path
+  systemd.tmpfiles.rules = [
+    "L+ /usr/bin/flatpak - - - - ${pkgs.flatpak}/bin/flatpak"
+  ];
   systemd.services.flatpak-repo = {
     wantedBy = [ "multi-user.target" ];
     path = [ pkgs.flatpak ];
