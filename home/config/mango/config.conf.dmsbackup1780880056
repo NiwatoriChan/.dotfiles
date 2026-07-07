@@ -1,0 +1,80 @@
+# ==============================================================================
+# MangoWM Configuration File
+# Save this to ~/.config/mango/config.conf
+# ==============================================================================
+
+# --- Environment & Autostart ---
+exec-once = dms run
+
+# --- Window Effects & Theme ---
+border_radius = 12
+blur = 1
+
+# --- Layout Configuration ---
+# MangoWM supports per-tag layout assignments.
+# To resemble Niri's workflow, force the "scroller" layout on your active tags:
+tagrule = id:1,layout_name:scroller
+tagrule = id:2,layout_name:scroller
+tagrule = id:3,layout_name:scroller
+
+# --- Scroller Layout Sizing Rules ---
+# New windows take up exactly 50% of screen width
+scroller_default_proportion = 0.5
+# The first window opens full screen
+scroller_default_proportion_single = 1.0
+# Presets you can cycle through dynamically
+scroller_proportion_preset = 0.5,0.8,1.0
+
+# --- Keybindings ---
+# Format: bind = MODIFIERS, KEY, ACTION, ARGUMENTS
+
+# Application Launchers
+bind = SUPER, space, spawn, dms ipc call spotlight toggle
+bind = SUPER, T, spawn, kitty
+bind = SUPER, B, spawn, firefox
+
+# Window Actions
+bind = SUPER, X, killclient
+bind = SUPER, F, togglefullscreen
+# Force an app to take up the whole screen (keeps decoration/bar)
+bind = SUPER, M, togglemaximizescreen
+bind = SUPER, G, togglefloating
+
+# Window Resizing (Horizontal)
+# Shrink window width horizontally
+bind = SUPER+SHIFT, Left, resizewin, -50, 0
+# Expand window width horizontally
+bind = SUPER+SHIFT, Right, resizewin, 50, 0
+
+# Tag/Workspace Navigation & Window Moving (Vertical Emulation)
+bind = CTRL+ALT, Up, viewtoleft, 0
+bind = CTRL+ALT, Down, viewtoright, 0
+# Move focused window to previous workspace
+bind = CTRL+ALT+SHIFT, Up, tagtoleft, 0
+# Move focused window to next workspace
+bind = CTRL+ALT+SHIFT, Down, tagtoright, 0
+
+# Column/Window Focus & Window Moving (Horizontal)
+bind = CTRL+ALT, Left, focusstack, prev
+bind = CTRL+ALT, Right, focusstack, next
+# Move window left inside the workspace
+bind = CTRL+ALT+SHIFT, Left, exchange_client, left
+# Move window right inside the workspace
+bind = CTRL+ALT+SHIFT, Right, exchange_client, right
+
+# Scroller Sizing Tweaks (Niri-Style)
+# Cycle a window between 50%, 80%, and 100% width
+bind = ALT, X, switch_proportion_preset
+
+# Configuration Management
+# Reload this configuration file on the fly
+bind = SUPER, R, reload_config
+
+# Screenshots
+bind = none, Print, spawn, dms screenshot
+bind = CTRL, Print, spawn, dms screenshot full
+bind = ALT, Print, spawn, dms screenshot window
+
+# --- Sub-configurations ---
+# Replaces Niri's include directive
+#source = ~/.config/mango/dms/cursor.conf

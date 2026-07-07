@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>niwatorichan // Dotfiles Documentation</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Prism.js (Syntax Highlighting CSS) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --bg-card: rgba(22, 28, 45, 0.4);
+      --bg-card-hover: rgba(30, 41, 59, 0.6);
+      --border-color: rgba(148, 163, 184, 0.1);
+      --border-color-active: rgba(82, 119, 195, 0.4);
+      --primary: #5277c3;
+      --primary-glow: rgba(82, 119, 195, 0.15);
+      --secondary: #7ebae4;
+      --accent: #2e8ec0;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --sidebar-width: 320px;
+      --shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.2);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+
+    /* Layout */
+    #sidebar {
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: rgba(11, 15, 25, 0.8);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border-color);
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+    }
+
+    #main-content {
+      margin-left: var(--sidebar-width);
+      flex-grow: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: var(--transition);
+    }
+
+    /* Sidebar Content */
+    .sidebar-header {
+      padding: 2rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .nix-logo {
+      width: 40px;
+      height: 40px;
+      color: var(--secondary);
+      filter: drop-shadow(0 0 8px var(--primary-glow));
+      animation: spin 20s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .sidebar-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, var(--text-main) 30%, var(--secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sidebar-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .search-box {
+      padding: 1.25rem 1.5rem;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: var(--transition);
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 2.25rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+
+    .sidebar-nav {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .nav-section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin: 1.5rem 0 0.5rem 0.5rem;
+      font-weight: 700;
+    }
+
+    .nav-section-title:first-child {
+      margin-top: 0.5rem;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: var(--transition);
+      border: 1px solid transparent;
+    }
+
+    .nav-link:hover {
+      color: var(--text-main);
+      background: var(--bg-card-hover);
+      transform: translateX(4px);
+    }
+
+    .nav-link.active {
+      color: var(--text-main);
+      background: var(--bg-card);
+      border-color: var(--border-color-active);
+      box-shadow: inset 4px 0 0 -1px var(--secondary);
+    }
+
+    .sidebar-footer {
+      padding: 1.5rem;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Main Container Styles */
+    .header-bar {
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 3rem;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(11, 15, 25, 0.4);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 90;
+    }
+
+    .breadcrumbs {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .breadcrumbs span {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+
+    .action-btn:hover {
+      color: var(--text-main);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .hamburger {
+      display: none;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .doc-container {
+      max-width: 880px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 3rem 2rem 6rem 2rem;
+      flex-grow: 1;
+      opacity: 1;
+      transition: opacity 0.25s ease-in-out;
+    }
+
+    .doc-container.fade-out {
+      opacity: 0;
+    }
+
+    /* Premium Markdown Styles */
+    .markdown-body {
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    .markdown-body h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #ffffff 40%, var(--secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
+    }
+
+    .markdown-body h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-top: 2.5rem;
+      margin-bottom: 1.25rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .markdown-body h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+      color: var(--text-main);
+    }
+
+    .markdown-body p {
+      margin-bottom: 1.25rem;
+      color: #cbd5e1;
+    }
+
+    .markdown-body a {
+      color: var(--secondary);
+      text-decoration: none;
+      border-bottom: 1px dashed var(--secondary);
+      transition: var(--transition);
+    }
+
+    .markdown-body a:hover {
+      color: var(--text-main);
+      border-bottom-style: solid;
+    }
+
+    .markdown-body hr {
+      border: 0;
+      height: 1px;
+      background: var(--border-color);
+      margin: 2rem 0;
+    }
+
+    .markdown-body ul, .markdown-body ol {
+      margin-bottom: 1.25rem;
+      padding-left: 1.75rem;
+      color: #cbd5e1;
+    }
+
+    .markdown-body li {
+      margin-bottom: 0.5rem;
+    }
+
+    .markdown-body code {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9em;
+      background: rgba(30, 41, 59, 0.5);
+      padding: 0.2rem 0.4rem;
+      border-radius: 6px;
+      color: #e2e8f0;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .markdown-body pre {
+      margin-bottom: 1.5rem;
+      padding: 1.25rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      background: #111827 !important;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+    }
+
+    .markdown-body pre code {
+      background: none;
+      padding: 0;
+      border: none;
+      font-size: 0.9rem;
+      color: inherit;
+    }
+
+    /* GitHub Alert styling inside MD */
+    .markdown-body blockquote {
+      margin: 1.5rem 0;
+      padding: 1rem 1.25rem;
+      background: rgba(30, 41, 59, 0.3);
+      border-left: 4px solid var(--primary);
+      border-radius: 0 12px 12px 0;
+      color: #cbd5e1;
+    }
+
+    .markdown-body blockquote p {
+      margin: 0;
+    }
+
+    /* Specific alerts (Matches GitHub format) */
+    .markdown-body blockquote.note {
+      border-left-color: #5277c3;
+      background: rgba(82, 119, 195, 0.08);
+    }
+    .markdown-body blockquote.tip {
+      border-left-color: #10b981;
+      background: rgba(16, 185, 129, 0.08);
+    }
+    .markdown-body blockquote.warning {
+      border-left-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    /* Table styling */
+    .markdown-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .markdown-body th {
+      background: rgba(30, 41, 59, 0.5);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    .markdown-body td {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-color);
+      color: #cbd5e1;
+    }
+
+    .markdown-body tr:nth-child(even) td {
+      background: rgba(30, 41, 59, 0.15);
+    }
+
+    /* Mode Banner */
+    .mode-banner {
+      display: none;
+      background: linear-gradient(90deg, rgba(82, 119, 195, 0.2), rgba(126, 186, 228, 0.2));
+      border: 1px solid var(--border-color-active);
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+
+    .mode-banner i {
+      color: var(--secondary);
+      font-size: 1.1rem;
+    }
+
+    /* Search Results Layer */
+    .search-results-container {
+      display: none;
+    }
+
+    .search-result-item {
+      padding: 1.25rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .search-result-item:hover {
+      border-color: var(--border-color-active);
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+    }
+
+    .search-result-title {
+      font-weight: 700;
+      color: var(--secondary);
+      margin-bottom: 0.25rem;
+      font-size: 1.1rem;
+    }
+
+    .search-result-section {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .search-result-snippet {
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .search-result-snippet mark {
+      background: rgba(254, 240, 138, 0.3);
+      color: #fff;
+      padding: 0.1rem 0.2rem;
+      border-radius: 3px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      #sidebar {
+        transform: translateX(-100%);
+      }
+
+      #sidebar.open {
+        transform: translateX(0);
+        box-shadow: 0 0 50px rgba(0,0,0,0.8);
+      }
+
+      #main-content {
+        margin-left: 0;
+      }
+
+      .hamburger {
+        display: block;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .header-bar {
+        padding: 0 1.5rem;
+      }
+
+      .doc-container {
+        padding: 2rem 1.25rem;
+      }
+
+      .markdown-body h1 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <!-- NixOS Hex Snowflake style icon -->
+      <svg class="nix-logo" viewBox="0 0 220 220" fill="currentColor">
+        <path d="M104.3 10.5c.6-.9 1.6-1.5 2.7-1.5h6c1.1 0 2.1.6 2.7 1.5l27 45c.6 1 .6 2.2 0 3.2L127 86.8c-.8 1.4-2.6 1.9-4 .1L99 64.3c-.6-.6-.9-1.4-.9-2.2v-6.6c0-1.1.6-2.1 1.5-2.7zm38.1 40c-.7 1-1.9 1.5-3.1 1.2c-1.2-.3-2.1-1.3-2.3-2.5l-2.4-15c-.2-1.1.3-2.2 1.3-2.8l26.4-15.6c.9-.5 2.1-.5 3 0l11.4 6.7c.9.5 1.5 1.5 1.5 2.6V61c0 1.1-.6 2.1-1.5 2.7l-26 15.3c-.9.5-2.1.5-3 0zm43.3 25c.6.9.6 2.2 0 3.2l-27 45c-.6 1-1.6 1.5-2.7 1.5h-6c-1.1 0-2.1-.6-2.7-1.5l-27-45c-.6-1-.6-2.2 0-3.2l15.7-28.1c.8-1.4 2.6-1.9 4-.1l24 22.6c.6.6.9 1.4.9 2.2v6.6c0 1.1-.6 2.1-1.5 2.7zm-27.2 46.5c1 .7 1.5 1.9 1.2 3.1c-.3 1.2-1.3 2.1-2.5 2.3l-15 2.4c-1.1.2-2.2-.3-2.8-1.3l-15.6-26.4c-.5-.9-.5-2.1 0-3l6.7-11.4c.5-.9 1.5-1.5 2.6-1.5H182c1.1 0 2.1.6 2.7 1.5l15.3 26c.5.9.5 2.1 0 3zm-22.3 43.3c.9-.6 2.2-.6 3.2 0l45 27c1 .6 1.5 1.6 1.5 2.7v6c0 1.1-.6 2.1-1.5 2.7l-45 27c-1 .6-2.2.6-3.2 0l-28.1-15.7c-1.4-.8-1.9-2.6-.1-4l22.6-24c.6-.6 1.4-.9 2.2-.9h6.6c1.1 0 2.1-.6 2.7-1.5zm-46.5-27.2c.7-1 1.9-1.5 3.1-1.2c1.2.3 2.1 1.3 2.3 2.5l2.4 15c.2 1.1-.3 2.2-1.3 2.8L121 199.3c-.9.5-2.1.5-3 0l-11.4-6.7c-.9-.5-1.5-1.5-1.5-2.6v-35.9c0-1.1.6-2.1 1.5-2.7l26-15.3c.9-.5 2.1-.5 3 0zm-53.8 21.9c-.6.9-1.6 1.5-2.7 1.5h-6c-1.1 0-2.1-.6-2.7-1.5l-27-45c-.6-1-.6-2.2 0-3.2L31 113.2c.8-1.4 2.6-1.9 4-.1l24 22.6c.6.6.9 1.4.9 2.2v6.6c0 1.1.6 2.1 1.5 2.7zm-38.1-40c.7-1 1.9-1.5 3.1-1.2c1.2.3 2.1 1.3 2.3 2.5l2.4 15c.2 1.1-.3 2.2-1.3 2.8L38.4 179c-.9.5-2.1.5-3 0l-11.4-6.7c-.9-.5-1.5-1.5-1.5-2.6V134c0-1.1.6-2.1 1.5-2.7l26-15.3c.9-.5 2.1-.5 3 0zm-43.3-25c-.6-.9-.6-2.2 0-3.2l27-45c.6-1 1.6-1.5 2.7-1.5h6c1.1 0 2.1.6 2.7 1.5l27 45c.6 1 .6 2.2 0 3.2L77.3 125c-.8 1.4-2.6 1.9-4 .1l-24-22.6c-.6-.6-.9-1.4-.9-2.2v-6.6c0-1.1.6-2.1 1.5-2.7zm27.2-46.5c-1-.7-1.5-1.9-1.2-3.1c.3-1.2 1.3-2.1 2.5-2.3l15-2.4c1.1-.2 2.2.3 2.8 1.3L77 78.4c.5.9.5 2.1 0 3l-6.7 11.4c-.5.9-1.5 1.5-2.6 1.5H38c-1.1 0-2.1-.6-2.7-1.5L20 66.8c-.5-.9-.5-2.1 0-3zm22.3-43.3c-.9.6-2.2.6-3.2 0l-45-27C31 38.3 30.5 37.3 30.5 36.2v-6c0-1.1.6-2.1 1.5-2.7l45-27c1-.6 2.2-.6 3.2 0l28.1 15.7c1.4.8 1.9 2.6.1 4l-22.6 24c-.6.6-1.4.9-2.2.9h-6.6c-1.1 0-2.1.6-2.7 1.5zm46.5 27.2c-.7 1-1.9 1.5-3.1 1.2c-1.2-.3-2.1-1.3-2.3-2.5l-2.4-15c-.2-1.1.3-2.2 1.3-2.8l15.6-26.4c.9-.5 2.1-.5 3 0l11.4 6.7c.9.5 1.5 1.5 1.5 2.6v35.9c0 1.1-.6 2.1-1.5 2.7l-26 15.3c-.9.5-2.1.5-3 0zm43.3 21.9c.9-.5 2.2-.5 3.2 0l27 45c.6.6.6 1.8 0 2.8l-15.7 28.1c-.8 1.4-2.6 1.9-4 .1L134.3 93c-.6-.6-.9-1.4-.9-2.2v-6.6c0-1.1.6-2.1 1.5-2.7zm-21.9 53.8c1 .6 1.5 1.6 1.5 2.7v6c0 1.1-.6 2.1-1.5 2.7l-45 27c-.9.5-2.1.5-3 0l-6.7-11.4c-.5-.9-.5-2.1 0-3l15.3-26c.5-.9 1.5-1.5 2.7-1.5h35.9c1.1 0 2.1.6 2.7 1.5zm-53.8-21.9c-.9.5-2.2.5-3.2 0l-27-45c-.6-.6-.6-1.8 0-2.8l15.7-28.1c.8-1.4 2.6-1.9 4-.1l22.6 24c.6.6.9 1.4.9 2.2v6.6c0 1.1-.6 2.1-1.5 2.7zm21.9-53.8c-1-.6-1.5-1.6-1.5-2.7v-6c0-1.1.6-2.1 1.5-2.7l45-27c.9-.5 2.1-.5 3 0l6.7 11.4c.5.9.5 2.1 0 3l-15.3 26c-.5.9-1.5 1.5-2.7 1.5h-35.9c-1.1 0-2.1-.6-2.7-1.5z" />
+      </svg>
+      <div>
+        <div class="sidebar-title">niwatorichan</div>
+        <div class="sidebar-subtitle">dotfiles config</div>
+      </div>
+    </div>
+
+    <!-- Search Box -->
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" class="search-input" id="search-bar" placeholder="Search config...">
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Documentation</div>
+      <a href="#introduction" class="nav-link active" data-page="introduction">
+        <i class="fa-solid fa-book-open"></i> Introduction
+      </a>
+      <a href="#nixos" class="nav-link" data-page="nixos">
+        <i class="fa-solid fa-server"></i> NixOS Configuration
+      </a>
+      <a href="#home-manager" class="nav-link" data-page="home-manager">
+        <i class="fa-solid fa-house-user"></i> Home Manager
+      </a>
+      <a href="#mangowm" class="nav-link" data-page="mangowm">
+        <i class="fa-solid fa-cubes"></i> MangoWM
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div>Config Version 26.05</div>
+      <div style="margin-top:4px; opacity:0.6;">Antigravity Doc System</div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main id="main-content">
+    <header class="header-bar">
+      <button class="hamburger" id="hamburger-toggle">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="breadcrumbs">
+        docs / <span id="current-breadcrumb">Introduction</span>
+      </div>
+      <div class="header-actions">
+        <button class="action-btn" id="theme-toggle" title="Toggle Visual Style">
+          <i class="fa-solid fa-circle-half-stroke"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="doc-container">
+      <!-- CORS Fallback banner -->
+      <div class="mode-banner" id="fallback-banner">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div>
+          <strong>Local Fallback Active:</strong> Browser security blocks direct loading of markdown files via the <code>file://</code> protocol. We are serving content from the embedded database copy.
+        </div>
+      </div>
+
+      <!-- Main Render Target -->
+      <article class="markdown-body" id="doc-render-area">
+        <!-- Markdown content goes here -->
+      </article>
+
+      <!-- Search Results Target -->
+      <div class="search-results-container" id="search-results-area">
+        <h1>Search Results</h1>
+        <div id="search-results-list"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Marked.js (Markdown parser) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+  
+  <!-- Prism.js (Syntax Highlighting) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+  <script>
+    // Embedded copy of the markdown contents to support direct local file:// opening
+    const docsDatabase = {
+      "home-manager": `# Home Manager Configuration
+
+This page outlines the user-level configuration managed via Home Manager in the \`home/\` folder. Home Manager handles personal package management, user environments, git credentials, shell configs, and desktop theming.
+
+---
+
+## 📂 Structure & Profile Baseline
+
+In \`home/common/default.nix\`, the user environment is defined for username \`niwatorichan\` targeting \`/home/niwatorichan\`:
+
+- **Home Manager**: Enabled to manage itself (\`programs.home-manager.enable = true\`).
+- **State Version**: Set to \`26.05\`.
+- **Modularity**: Imports git, shell, and user packages.
+
+---
+
+## 🐚 Zsh & Powerlevel10k Setup
+
+Defined in \`home/common/shell.nix\`, the shell config is a modern, fully-featured Zsh environment:
+
+### Features & Addons
+- **Completion**: Enabled natively (\`enableCompletion = true\`).
+- **Autosuggestions**: Enabled (\`autosuggestion.enable = true\`) to show commands as you type.
+- **Syntax Highlighting**: Enabled (\`syntaxHighlighting.enable = true\`) to colorize commands.
+- **History Tuning**: Keeps up to 10,000 entries, saving to \`~/.zsh_history\` while ignoring all sequential duplicates.
+
+### 🎨 Powerlevel10k Theme
+The interactive Powerlevel10k prompt is integrated directly via the Nix package manager:
+- Package: \`pkgs.zsh-powerlevel10k\`
+- Configuration: Sourced dynamically from \`./home/common/p10k.zsh\` mapped to \`~/.p10k.zsh\`.
+
+### ⌨️ Shell Aliases
+Quick-command aliases are defined to speed up common tasks:
+\`\`\`zsh
+alias ll="ls -l"                      # Long listing format
+alias edit="sudo -e"                  # Securely edit files as root
+alias update="sudo nixos-rebuild switch"  # Rebuild the NixOS configuration
+\`\`\`
+
+---
+
+## 🐙 Git Configuration
+
+Defined in \`home/common/git.nix\`, global Git variables are declared cleanly:
+
+\`\`\`nix
+programs.git = {
+  enable = true;
+  settings = {
+    user = {
+      name = "niwatorichan";
+      email = "charloslivro2@gmail.com";
+    };
+    init.defaultBranch = "main";
+    pull.rebase = true;
+  };
+};
+\`\`\`
+
+- **Rebase Pulls**: Configured by default (\`pull.rebase = true\`) to keep git history linear.
+- **Default Branch**: Set to \`main\` for new repositories.
+
+---
+
+## 📦 User Packages
+
+Located in \`home/common/packages.nix\`, this file provides an empty slot for user-level packages. 
+> [!TIP]
+> Use this file to install CLI utilities or user-specific graphical apps that you want isolated to your user account without modifying the system-level packages in \`/hosts/common/packages.nix\`.
+`,
+      "introduction": `# Welcome to the Dotfiles Documentation
+
+This documentation details the system and environment configurations for **niwatorichan**'s NixOS machines. The configuration is fully declarative, flake-based, and modularized.
+
+---
+
+## 📂 Repository Structure
+
+The configuration files are organized as follows:
+
+\`\`\`text
+.dotfiles/
+├── flake.nix             # System configurations and inputs entry point
+├── flake.lock            # Lock file for Nix inputs pinning versions
+├── docs/                 # Documentation (this portal)
+│   ├── index.html        # Interactive documentation viewer
+│   └── *.md              # Section-specific markdown documents
+├── modules/              # Unified system + user modules (Hyprland, MangoWM, KDE, Server, Gaming)
+├── hosts/                # Machine-specific NixOS configurations
+│   ├── common/           # Shared system settings, packages, and services
+│   ├── potatomonster/    # Config for PotatoMonster (MangoWM system)
+│   ├── pwpoulet/         # Config for PwPoulet (KDE Plasma 6 system)
+│   ├── jeff/             # Config for jeff (headless server profile)
+│   └── petitepatate/     # Config for PetitePatate (Pinebook Pro ARM64 system)
+├── home/                 # User-specific Home Manager configurations
+│   ├── common/           # Shared user packages, shell (zsh/p10k), and git
+│   ├── config/           # User configuration files (doom, waybar, hypr, mango, etc.)
+│   ├── potatomonster.nix # User environment for PotatoMonster (MangoWM configs)
+│   ├── pwpoulet.nix      # User environment for PwPoulet (KDE wrapper)
+│   └── petitepatate.nix  # User environment for PetitePatate (ARM64 configs)
+\`\`\`
+
+---
+
+## 🖥️ System Profiles
+
+The configurations define three target machines and one headless server:
+
+| Machine Name | Device Type | Window Manager / DE | NixOS Host Config | Home Manager Profile |
+| :--- | :--- | :--- | :--- | :--- |
+| **PotatoMonster** | Laptop (x86_64) | MangoWM / Hyprland | \`hosts/potatomonster\` | \`home/potatomonster.nix\` |
+| **PwPoulet** | Desktop (x86_64) | KDE Plasma 6 (Unstable) | \`hosts/pwpoulet\` | \`home/pwpoulet.nix\` |
+| **PetitePatate** | Pinebook Pro (aarch64) | Hyprland | \`hosts/petitepatate\` | \`home/petitepatate.nix\` |
+| **jeff** | Headless Server (x86_64) | *None (CLI)* | \`hosts/jeff\` | \`home/jeff.nix\` |
+
+---
+
+## 🚀 Helper CLI Tool (\`./nu\`)
+
+A helper script \`./nu\` is included at the root of the repository to manage updates, rebuilds, configuration backups, and secrets initialization:
+
+### Rebuilding NixOS
+To rebuild and apply system configuration switch (defaults to current hostname if omitted):
+\`\`\`bash
+./nu rebuild [hostname]
+\`\`\`
+
+### Updating & Rebuilding
+To update flake inputs and rebuild the system:
+\`\`\`bash
+./nu update [hostname]
+\`\`\`
+
+### Initializing Secrets
+To automatically generate a user SSH key if missing and write the public key into the secrets configuration:
+\`\`\`bash
+./nu init-secrets
+\`\`\`
+
+### Rebuilding Documentation
+To compile markdown files into the \`docs/index.html\` portal:
+\`\`\`bash
+./nu docs
+\`\`\`
+
+### Storage Cleanup
+To delete old generation symlinks, collect garbage, and optimize the Nix store:
+\`\`\`bash
+./nu clean
+\`\`\`
+`,
+      "mangowm": `# MangoWM Configuration
+
+This page details the custom tiled window manager setup configured in \`home/config/mango/config.conf\`. Used on the **PotatoMonster** profile, this desktop uses the scroll-tiling behavior of **MangoWM**.
+
+---
+
+## 🥭 MangoWM Window Manager Settings
+
+Managed in \`home/config/mango/config.conf\`, MangoWM handles tiling layout structures, window focus, trackpad gestures, and keybindings.
+
+### 📐 Gaps & Visual Effects
+- **Border Radius**: Curved corners set to \`12px\` to fit modern aesthetics.
+- **Inner Gaps**: \`4px\` horizontal and vertical spacing between adjacent windows.
+- **Outer Gaps**: \`6px\` padding between windows and screen borders.
+- **Smart Gaps**: Enabled (\`smartgaps=1\`), removing gaps when only a single window is open on a workspace.
+- **Window Blur**: High-quality frosted glass background blur enabled with optimized caching:
+  - Radius: \`6\`
+  - Passes: \`2\`
+
+### 📜 Scroller Layout (Niri-Style Tiling)
+MangoWM is set up to emulate Niri's signature scroller-tiling:
+- Windows are organized into horizontal columns.
+- **Proportion rules**: 
+  - Single windows open at \`100%\` width.
+  - Subsequent windows open at \`50%\` width by default.
+  - A sizing preset configures columns to cycle through \`50%\`, \`80%\`, and \`100%\` widths (\`scroller_proportion_preset = 0.5,0.8,1.0\`).
+
+### 🪟 Custom Window Opacity Rules
+Global windows have custom transparency thresholds, customized specifically for Dolphin and Zed:
+- **Dolphin File Manager**: \`85%\` focused opacity, \`75%\` unfocused opacity.
+- **Zed Editor**: \`90%\` focused opacity, \`80%\` unfocused opacity.
+
+### 🎨 Qt & Dolphin Dark Mode
+To ensure Qt applications (like Dolphin) open in Dark Mode under MangoWM (which has no built-in DE settings daemon), we map your shared KDE Plasma configuration files directly:
+- **KDE Globals**: \`~/.config/kdeglobals\` is symlinked to \`home/kde-config/kdeglobals\` to apply the Breeze-Dark color palette.
+- **Dolphin Config**: \`~/.config/dolphinrc\` is symlinked to \`home/kde-config/dolphinrc\` to preserve file manager specific settings.
+
+---
+
+## ⌨️ MangoWM Keybindings
+
+The keyboard controls map to high-speed desktop navigation:
+
+### General & Applications
+- **Launch Fuzzel (App Search)**: \`Super + Space\`
+- **Launch Kitty Terminal**: \`Super + T\`
+- **Launch Firefox Browser**: \`Super + B\`
+- **Reload Configuration**: \`Super + R\`
+- **Kill Active Window**: \`Super + X\`
+- **Toggle Fullscreen**: \`Super + F\`
+- **Toggle Floating Status**: \`Super + G\`
+
+### Window Navigation & Column Resizing
+- **Switch Column Focus**: \`Ctrl + Alt + Left\` / \`Right\`
+- **Move Window within Workspace**: \`Ctrl + Alt + Shift + Left\` / \`Right\`
+- **Shift Workspace (Vertical Navigation)**: \`Ctrl + Alt + Up\` / \`Down\`
+- **Move Window to Workspace**: \`Ctrl + Alt + Shift + Up\` / \`Down\`
+- **Resize Window Width**: \`Super + Shift + Left\` / \`Right\`
+- **Cycle Column Widths (50% / 80% / 100%)**: \`Super + M\`
+
+### Gestures & Media
+- **Trackpad (3-Finger Swipes)**: Focus left/right columns on horizontal swipe; change workspaces on vertical swipe.
+- **Volume**: Media keys call \`amixer\` to toggle mute or alter volume levels in \`5%\` steps.
+- **Backlight**: Brightness keys run \`brightnessctl\`.
+- **Screenshots**:
+  - \`Print\`: Region selection to copy to clipboard (\`grim -g "$(slurp)" - | wl-copy\`)
+  - \`Ctrl + Print\`: Full monitor capture to clipboard (\`grim - | wl-copy\`)
+  - \`Alt + Print\`: Focused window capture to clipboard (\`grim\` window capture)
+`,
+      "nixarr": `# 🎬 Nixarr Media Stack
+
+The **Nixarr** stack is a declarative media server configuration implemented using the \`nixarr\` NixOS module flake. It consolidates a suite of media management and downloading services into a unified, self-hosted deployment.
+
+The stack is activated globally on the headless server configuration (**jeff**) via the server module entrypoint (\`modules/server/default.nix\`).
+
+---
+
+## 🏗️ Stack Architecture & Directories
+
+All services in the Nixarr stack share a common storage layout to ensure seamless integration and file-sharing:
+
+- **Media Directory**: \`/data/media\`  
+  This is the root directory where downloaded movies, TV shows, and torrent data are organized.
+- **State Directory**: \`/data/media/.state/nixarr\`  
+  This directory persists the internal database, settings, and state of each individual service.
+
+---
+
+## 🔌 Service Catalog & Network Ports
+
+Each service in the stack runs on its default port and is exposed through the host's firewall to allow access across the local area network (LAN).
+
+| Service | Purpose | Port | Firewall Protocol |
+| :--- | :--- | :--- | :--- |
+| **Jellyfin** | Media streaming, transcribing, and client playback | \`8096\` | TCP (Allowed) |
+| **Sonarr** | Automated TV show finder, organizer, and tracker | \`8989\` | TCP (Allowed) |
+| **Radarr** | Automated movie finder, organizer, and tracker | \`7878\` | TCP (Allowed) |
+| **Prowlarr** | Torrent and Usenet indexer integration manager | \`9696\` | TCP (Allowed) |
+| **Transmission** | Torrent downloader client (RPC interface) | \`9091\` | TCP (Allowed) |
+| **Transmission Peer** | Torrent network peer connection traffic | \`50000\` | TCP (Managed by Nixarr) |
+
+> [!NOTE]
+> All services are registered on the **Homepage** dashboard (\`modules/server/homepage.nix\`) under the **Media Stack** group for easy management and quick navigation.
+
+---
+
+## ⚙️ Declarative NixOS Configuration
+
+The stack is defined in \`modules/server/nixarr.nix\` and leverages the \`nixarr\` flake input.
+
+### Nixarr Module Configuration
+The base activation imports the flake input module and defines the state and media paths:
+\`\`\`nix
+nixarr = {
+  enable = true;
+  mediaDir = "/data/media";
+  stateDir = "/data/media/.state/nixarr";
+
+  jellyfin.enable = true;
+  sonarr.enable = true;
+  radarr.enable = true;
+  prowlarr.enable = true;
+
+  transmission = {
+    enable = true;
+    peerPort = 50000;
+  };
+};
+\`\`\`
+
+### Transmission LAN Override
+To facilitate access to Transmission's web interface from other devices on the LAN, the standard Nixarr security restrictions are bypassed via system-level overrides:
+\`\`\`nix
+services.transmission = {
+  openRPCPort = lib.mkForce true;
+  settings = {
+    rpc-bind-address = lib.mkForce "0.0.0.0";
+    rpc-port = lib.mkForce 9091;
+    rpc-whitelist-enabled = lib.mkForce false; # Disable LAN IP restrictions
+  };
+};
+\`\`\`
+
+> [!WARNING]
+> Disabling \`rpc-whitelist-enabled\` allows any device on the local network to access the Transmission torrent client without authentication unless additional username/password controls are configured.
+
+---
+
+## 🚀 Accessing the Stack
+
+Once the **jeff** host is running and the system is rebuilt, you can access the services:
+
+1. **Via Dashboard**: Open the Server Dashboard at \`http://<jeff-ip>:8082\` to see status widgets and click direct links.
+2. **Direct Connection**: Navigate directly to any of the service URLs:
+   - Jellyfin: \`http://<jeff-ip>:8096\`
+   - Sonarr: \`http://<jeff-ip>:8989\`
+   - Radarr: \`http://<jeff-ip>:7878\`
+   - Prowlarr: \`http://<jeff-ip>:9696\`
+   - Transmission: \`http://<jeff-ip>:9091\`
+`,
+      "nixos": `# NixOS System-Level Configuration
+
+This page outlines the system-level configuration of the dotfiles repo, managed inside the \`hosts/\` folder. All desktop systems import a set of common settings, services, and packages, then extend them with host-specific hardware and program choices.
+
+---
+
+## ⚙️ Core System Settings
+
+Located in \`hosts/common/default.nix\`, these are the system-wide baselines:
+
+- **Bootloader**: Configured to use \`systemd-boot\` with EFI support (\`boot.loader.efi.canTouchEfiVariables = true\`).
+- **Locales & Timezone**:
+  - Timezone: \`America/Toronto\`
+  - Locale: \`en_CA.UTF-8\`
+  - Keymap: French Canadian (\`ca\`) layout for both virtual console and X11/Wayland servers.
+- **Experimental Features**: Enabled \`nix-command\` and \`flakes\` by default.
+- **AppImage Support**: Enabled via \`programs.appimage\` with binfmt registrations.
+- **Containerization**: Podman is enabled with Docker compatibility (\`dockerCompat = true\`).
+
+---
+
+## 🛠️ Shared System Packages
+
+Defined in \`hosts/common/packages.nix\`, these are installed globally on all desktops:
+
+### Applications & Games
+- **Browsers**: \`Firefox\` (declaratively enabled), \`Helium\` (via custom flake).
+- **Communication & Editors**: \`Discord\`, \`Zed Editor\`.
+- **Gaming Clients**: \`Lutris\`, \`Heroic Games Launcher\`, \`Steam\` (enabled via \`programs.steam.enable = true\`).
+
+### CLI Utilities & Theming
+- **Utilities**: \`vim\`, \`wget\`, \`git\`, \`curl\`, \`jq\`, \`bat\`, \`gnumake\`, \`fastfetch\`.
+- **Terminals**: \`kitty\`, \`alacritty\`.
+- **Theming**: \`papirus-icon-theme\`, \`sddm-astronaut\`.
+- **Special Helper**: \`antigravity\`.
+
+---
+
+## 🔌 System Services
+
+Defined in \`hosts/common/services.nix\`, the core background services include:
+
+### 🖥️ Display Manager (SDDM)
+We use SDDM in Wayland mode using the elegant Astronaut theme:
+- Theme: \`sddm-astronaut-theme\` (provided by \`sddm-astronaut\` packages)
+- Autologin/Display settings are customized through it.
+
+### 🎵 Audio (PipeWire)
+PulseAudio is disabled in favor of PipeWire:
+- RTKit is enabled for real-time scheduling.
+- Support enabled for \`alsa\`, \`alsa.support32Bit\`, and \`pulse\` emulation.
+
+### 📶 Connectivity & Hardware
+- **Bluetooth**: Enabled with power-on-boot support (\`hardware.bluetooth.powerOnBoot = true\`).
+- **Printing**: CUPS is enabled via \`services.printing.enable = true\`.
+
+### 📦 Flatpak Integration
+Flatpak is enabled, and a systemd service automatically registers the Flathub repository on boot:
+\`\`\`nix
+systemd.services.flatpak-repo = {
+  wantedBy = [ "multi-user.target" ];
+  path = [ pkgs.flatpak ];
+  script = ''
+    flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  '';
+};
+\`\`\`
+---
+
+## 🖥️ Host Modules
+
+Specific system host modules override or add system services:
+
+### 1. PotatoMonster (\`hosts/potatomonster\`)
+- **Programs**: MangoWM (\`programs.mango.enable = true\`).
+- **Packages**: \`alsa-utils\`, \`brightnessctl\` (for managing volume and backlight).
+- **Hardware**: Imports \`hosts/potatomonster/hardware.nix\` and system-specific hardware parameters.
+
+### 2. PwPoulet (\`hosts/pwpoulet\`)
+- **Kernel**: Configured to use the performance-optimized **CachyOS kernel** (\\\`boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest\\\`).
+- **Services**: KDE Plasma 6 (\\\`services.desktopManager.plasma6.enable = true\\\`). Configured modularly via \\\`modules/kde.nix\\\` to use an overlay replacing \\\`kdePackages\\\` with the latest unstable releases (\\\`pkgs-unstable.kdePackages\\\`).
+- **Packages**: Dolphin (\\\`kdePackages.dolphin\\\`) and Qt Multimedia support (\\\`kdePackages.qtmultimedia\\\`).
+- **Hardware**: Configured with standard desktop x86_64 hardware modules.
+
+### 3. PetitePatate (\`hosts/petitepatate\`)
+- **Device/Architecture**: Pinebook Pro (aarch64 ARM64).
+- **Kernel/Hardware**: Integrates custom NixOS hardware modules alongside device tree overlay overrides for CPU/GPU overclocking (up to 2.08GHz) and stable undervolting.
+- **Graphical Environment**: Enables and configures Hyprland (\`modules/hyprland.nix\`).
+
+### 4. jeff (\`hosts/jeff\`)
+- **Type**: Headless Server.
+- **Services**: Imports core server modules (\`modules/server/default.nix\`) enabling declarative Samba storage sharing, OpenVPN tunneling, the Homepage portal, and the Nixarr stack.
+
+---
+
+## 🌐 Server & Network Services
+
+Unified server services are managed modularly under \`modules/server/\`:
+
+- **Homepage Dashboard** (\`homepage.nix\`): Launches a system dashboard on port \`8082\`. It displays server resources and custom service widgets for network apps.
+- **OpenVPN Client** (\`openvpn.nix\`): Manages tunnel configuration to secure networks using credential keys.
+- **Samba Sharing** (\`samba.nix\`): Configures secure SMB folder sharing across the local network for system users.
+- **Nixarr Media Stack** (\`nixarr.nix\`): Automates Jellyfin, Sonarr, Radarr, Prowlarr, and Transmission with specialized local network RPC overrides (refer to [Nixarr Stack](#nixarr) for dedicated details).
+
+---
+
+## 🔐 Secrets Management (Agenix)
+
+System secrets (such as API keys, passwords, and server credentials) are encrypted and managed using **[Agenix](https://github.com/ryantm/agenix)**:
+
+- **Git Ignored Store**: The local \`/secrets\` directory is ignored by Git to store raw keys and unencrypted credentials safely.
+- **Encrypted Store**: Encrypted secret definitions (ending in \`.age\`) reside in the root \`secrets/\` directory and are safe to commit.
+- **Authentication**: Decryption relies on system or user SSH keys defined in \`secrets/secrets.nix\`.
+
+### Usage Workflow
+
+1. **Initialize SSH Keys**: Run the helper command to map your public key to the secrets configurations:
+   \`\`\`bash
+   ./nu init-secrets
+   \`\`\`
+2. **Create/Edit Secret**: Use the agenix CLI runner to open or update a secure secret file:
+   \`\`\`bash
+   nix run github:ryantm/agenix -- -e secrets/my-secret.age
+   \`\`\`
+3. **Reference in Configuration**: Map the encrypted file to your NixOS environment:
+   \`\`\`nix
+   age.secrets.my-secret.file = ../../secrets/my-secret.age;
+   \`\`\`
+   At boot, Agenix decrypts the files and exposes them securely to processes at \`/run/agenix/my-secret\`.
+`,
+
+    };
+
+    let currentMode = 'dynamic'; // 'dynamic' (fetch) or 'fallback' (embedded)
+    let activePage = 'introduction';
+
+    // Configure Marked.js options
+    marked.setOptions({
+      gfm: true,
+      breaks: true,
+      headerIds: true,
+      highlight: function(code, lang) {
+        return code; // Highlighted dynamically after rendering using Prism autoloader
+      }
+    });
+
+    // Custom Alert Parser block extension for Marked
+    const originalRendererBlockquote = marked.Renderer.prototype.blockquote;
+    marked.use({
+      renderer: {
+        blockquote(quote) {
+          const text = quote.trim();
+          
+          // Match GitHub alerts [!NOTE], [!TIP], [!IMPORTANT], [!WARNING], [!CAUTION]
+          const alertRegex = /^<p>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(?:<br\s*\/?>)?/i;
+          const match = text.match(alertRegex);
+          
+          if (match) {
+            const type = match[1].toLowerCase();
+            const cleanContent = text.replace(alertRegex, '<p>');
+            return `<blockquote class="${type}">${cleanContent}</blockquote>`;
+          }
+          
+          return `<blockquote>${quote}</blockquote>`;
+        }
+      }
+    });
+
+    // DOM Elements
+    const docRenderArea = document.getElementById('doc-render-area');
+    const searchResultsArea = document.getElementById('search-results-area');
+    const searchBar = document.getElementById('search-bar');
+    const fallbackBanner = document.getElementById('fallback-banner');
+    const breadcrumbSpan = document.getElementById('current-breadcrumb');
+    const sidebar = document.getElementById('sidebar');
+    const hamburgerToggle = document.getElementById('hamburger-toggle');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const themeToggle = document.getElementById('theme-toggle');
+
+    // Navigation page names dictionary
+    const pageTitles = {
+      "introduction": "Introduction",
+      "nixos": "NixOS Configuration",
+      "home-manager": "Home Manager",
+      "mangowm": "MangoWM"
+    };
+
+    // Load a Page
+    async function loadPage(pageName, pushToHistory = true) {
+      if (!docsDatabase[pageName]) return;
+      activePage = pageName;
+      
+      // Update UI Classes
+      navLinks.forEach(link => {
+        if (link.getAttribute('data-page') === pageName) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+      });
+      
+      // Close mobile sidebar if open
+      sidebar.classList.remove('open');
+
+      // Update Breadcrumbs & Title
+      breadcrumbSpan.innerText = pageTitles[pageName];
+      document.title = `${pageTitles[pageName]} // niwatorichan Dotfiles`;
+
+      // Search state reset if search bar is cleared
+      if (searchBar.value === '') {
+        docRenderArea.style.display = 'block';
+        searchResultsArea.style.display = 'none';
+      }
+
+      // Add fade animation
+      docRenderArea.classList.add('fade-out');
+
+      let markdownContent = "";
+
+      // Try Fetching first (Dynamic Mode)
+      if (currentMode === 'dynamic') {
+        try {
+          const response = await fetch(`${pageName}.md`);
+          if (!response.ok) throw new Error("Fetch failed");
+          markdownContent = await response.text();
+          fallbackBanner.style.display = 'none';
+        } catch (e) {
+          console.warn("CORS/Fetch issue detected, switching to local database fallback: ", e);
+          currentMode = 'fallback';
+          markdownContent = docsDatabase[pageName];
+          fallbackBanner.style.display = 'flex';
+        }
+      } else {
+        // Direct Fallback mode
+        markdownContent = docsDatabase[pageName];
+        fallbackBanner.style.display = 'flex';
+      }
+
+      // Render Markdown to HTML
+      docRenderArea.innerHTML = marked.parse(markdownContent);
+      
+      // Highlight Code blocks
+      Prism.highlightAllUnder(docRenderArea);
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      setTimeout(() => {
+        docRenderArea.classList.remove('fade-out');
+      }, 50);
+
+      // Sync History State
+      if (pushToHistory && window.location.hash !== `#${pageName}`) {
+        history.pushState({page: pageName}, "", `#${pageName}`);
+      }
+    }
+
+    // Full-text Search
+    function performSearch(query) {
+      if (!query) {
+        docRenderArea.style.display = 'block';
+        searchResultsArea.style.display = 'none';
+        return;
+      }
+
+      docRenderArea.style.display = 'none';
+      searchResultsArea.style.display = 'block';
+
+      const resultsList = document.getElementById('search-results-list');
+      resultsList.innerHTML = '';
+
+      const searchRegex = new RegExp(query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
+      let matchCount = 0;
+
+      for (const [key, markdown] of Object.entries(docsDatabase)) {
+        // Strip markdown structures briefly for search text
+        const plainText = markdown.replace(/[#*`\[\]\(\)\-\|]/g, ' ');
+        
+        if (plainText.toLowerCase().includes(query.toLowerCase())) {
+          matchCount++;
+          
+          // Find context snippet around first match
+          const index = plainText.toLowerCase().indexOf(query.toLowerCase());
+          const start = Math.max(0, index - 80);
+          const end = Math.min(plainText.length, index + query.length + 80);
+          let snippet = plainText.substring(start, end).trim();
+          
+          if (start > 0) snippet = '...' + snippet;
+          if (end < plainText.length) snippet = snippet + '...';
+
+          // Highlight the search query inside the snippet
+          const highlightedSnippet = snippet.replace(searchRegex, match => `<mark>${match}</mark>`);
+
+          const resultItem = document.createElement('div');
+          resultItem.className = 'search-result-item';
+          resultItem.innerHTML = `
+            <div class="search-result-section">${pageTitles[key]}</div>
+            <div class="search-result-title">${pageTitles[key]} Section</div>
+            <div class="search-result-snippet">${highlightedSnippet}</div>
+          `;
+          
+          resultItem.addEventListener('click', () => {
+            searchBar.value = '';
+            loadPage(key);
+          });
+
+          resultsList.appendChild(resultItem);
+        }
+      }
+
+      if (matchCount === 0) {
+        resultsList.innerHTML = `
+          <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+            <i class="fa-regular fa-face-frown" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+            No matching configuration parameters found for "<strong>${query}</strong>"
+          </div>
+        `;
+      }
+    }
+
+    // Event Listeners
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const page = link.getAttribute('data-page');
+        searchBar.value = '';
+        loadPage(page);
+      });
+    });
+
+    searchBar.addEventListener('input', (e) => {
+      performSearch(e.target.value.trim());
+    });
+
+    hamburgerToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+
+    // Theme Toggle (Pure visual styles swap)
+    let isDefaultStyle = true;
+    themeToggle.addEventListener('click', () => {
+      isDefaultStyle = !isDefaultStyle;
+      if (!isDefaultStyle) {
+        // Modern Neon Accent Swap
+        document.documentElement.style.setProperty('--primary', '#98ccf9');
+        document.documentElement.style.setProperty('--secondary', '#ffffff');
+        document.documentElement.style.setProperty('--accent', '#ffb4ab');
+        document.documentElement.style.setProperty('--bg-dark', '#020617');
+      } else {
+        // Standard Nix Dark theme
+        document.documentElement.style.setProperty('--primary', '#5277c3');
+        document.documentElement.style.setProperty('--secondary', '#7ebae4');
+        document.documentElement.style.setProperty('--accent', '#2e8ec0');
+        document.documentElement.style.setProperty('--bg-dark', '#0b0f19');
+      }
+    });
+
+    // Window back/forward history handling
+    window.addEventListener('popstate', (e) => {
+      if (e.state && e.state.page) {
+        loadPage(e.state.page, false);
+      } else if (window.location.hash) {
+        const hash = window.location.hash.substring(1);
+        if (docsDatabase[hash]) loadPage(hash, false);
+      }
+    });
+
+    // Initialize Page
+    document.addEventListener('DOMContentLoaded', () => {
+      const hash = window.location.hash.substring(1);
+      if (hash && docsDatabase[hash]) {
+        loadPage(hash);
+      } else {
+        loadPage('introduction');
+      }
+    });
+  </script>
+</body>
+</html>

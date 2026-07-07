@@ -1,0 +1,13 @@
+# Ignore configuration backup zip archives
+*.zip
+
+# Ignore backup files
+*.bck
+*~
+*.swp
+
+# Ignore test desktop entries
+test.desktop
+
+# Exclude secrets directory from Git
+/secrets/

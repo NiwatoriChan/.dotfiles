@@ -1,0 +1,148 @@
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
+
+    nixos-hardware = {
+      url = "github:NixOS/nixos-hardware/master";
+    };
+
+    mangowm = {
+      url = "github:mangowm/mango";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    helium = {
+      url = "github:schembriaiden/helium-browser-nix-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nixarr = {
+      url = "github:nix-media-server/nixarr";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = { self, nixpkgs, nixpkgs-unstable, nix-cachyos-kernel, home-manager, nixos-hardware, ... }@inputs:
+    let
+      sharedArgsFor = system:
+        let
+          pkgs-unstable = import nixpkgs-unstable {
+            inherit system;
+            config.allowUnfree = true;
+          };
+        in {
+          heliumPkg = if inputs.helium.packages ? ${system}
+                      then inputs.helium.packages.${system}.default
+                      else pkgs-unstable.writeShellScriptBin "helium" "echo 'Helium browser is not supported on ${system}'";
+          inherit inputs pkgs-unstable;
+        };
+
+      sharedKernelAndCache = { pkgs, ... }: {
+        nixpkgs.overlays = [
+          nix-cachyos-kernel.overlays.default
+        ];
+
+        #boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest;
+        boot.kernelPackages = pkgs.linuxPackages_latest;
+
+        # Binary cache
+        nix.settings.extra-substituters = [ "https://attic.xuyh0120.win/lantian" ];
+        nix.settings.extra-trusted-public-keys = [ "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc=" ];
+      };
+    in
+    {
+      nixosConfigurations = {
+
+        # --- PotatoMonster — MangoWM Desktop ---
+        PotatoMonster = nixpkgs.lib.nixosSystem {
+          specialArgs = sharedArgsFor "x86_64-linux";
+          system = "x86_64-linux";
+          modules = [
+            sharedKernelAndCache
+            inputs.mangowm.nixosModules.mango
+            ./hosts/potatomonster
+
+            # Home-Manager as NixOS module
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "hm-bak";
+              home-manager.users.niwatorichan = import ./home/potatomonster.nix;
+            }
+          ];
+        };
+
+        # --- PwPoulet — KDE Plasma 6 Desktop ---
+        PwPoulet = nixpkgs.lib.nixosSystem {
+          specialArgs = sharedArgsFor "x86_64-linux";
+          system = "x86_64-linux";
+          modules = [
+            sharedKernelAndCache
+            ./hosts/pwpoulet
+
+            # Home-Manager as NixOS module
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "hm-bak";
+
+              home-manager.users.niwatorichan = import ./home/pwpoulet.nix;
+            }
+          ];
+        };
+
+        # --- jeff — Headless ---
+        jeff = nixpkgs.lib.nixosSystem {
+          specialArgs = sharedArgsFor "x86_64-linux";
+          system = "x86_64-linux";
+          modules = [
+            sharedKernelAndCache
+            ./hosts/jeff
+
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "hm-bak";
+              home-manager.users.niwatorichan = import ./home/jeff.nix;
+            }
+          ];
+        };
+
+        # --- PetitePatate — Pinebook Pro ARM64 ---
+        PetitePatate = nixpkgs.lib.nixosSystem {
+          specialArgs = sharedArgsFor "aarch64-linux";
+          system = "aarch64-linux";
+          modules = [
+            inputs.nixos-hardware.nixosModules.pine64-pinebook-pro
+            ./hosts/petitepatate
+
+            # Home-Manager as NixOS module
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "hm-bak";
+              home-manager.users.niwatorichan = import ./home/petitepatate.nix;
+            }
+          ];
+        };
+
+      };
+    };
+}
