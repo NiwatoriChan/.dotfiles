@@ -1,17 +1,10 @@
 # KDE Plasma 6 desktop profile — combines system-level and user-level settings
-{ pkgs, pkgs-unstable, ... }:
+{ pkgs, ... }:
 
 {
   # --- System-Level (NixOS) Configuration ---
 
-  # Overlay: replace kdePackages with the unstable set so the latest KDE is always used.
-  nixpkgs.overlays = [
-    (final: prev: {
-      kdePackages = pkgs-unstable.kdePackages;
-    })
-  ];
-
-  # KDE Plasma 6 (now pulled from unstable via the overlay above)
+  # KDE Plasma 6 (stable, from nixos-26.05)
   services.desktopManager.plasma6.enable = true;
 
   # KDE-specific packages
