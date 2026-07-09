@@ -16,6 +16,7 @@
       ll = "ls -l";
       edit = "sudo -e";
       update = "sudo nixos-rebuild switch";
+      nu = "$HOME/.dotfiles/nu";
     };
 
     history = {

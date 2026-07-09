@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
+DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$DOTFILES_DIR"
 
 usage() {
-  printf 'Usage:\n  %s rebuild [hostname]\n  %s update [hostname]\n  %s check\n  %s clean\n  %s export\n  %s init-secrets\n  %s docs\n' "$0" "$0" "$0" "$0" "$0" "$0" "$0"
+  printf 'Usage:\n  %s rebuild [hostname]\n  %s update [hostname]\n  %s sync [hostname]\n  %s check\n  %s clean\n  %s export\n  %s init-secrets\n  %s docs\n' "$0" "$0" "$0" "$0" "$0" "$0" "$0" "$0"
 }
 
 if [ "$#" -eq 0 ]; then
@@ -17,7 +19,7 @@ case "$cmd" in
   rebuild|update)
     host="${1:-$(hostname)}"
     ;;
-  export|clean|check|init-secrets|docs)
+  export|clean|check|init-secrets|docs|sync)
     if [ "$#" -ne 0 ]; then
       usage
       exit 1
@@ -44,6 +46,11 @@ case "$cmd" in
   update)
     sudo nix flake update
     rebuild
+    ;;
+  sync)
+    echo "Pulling latest dotfiles from GitHub..."
+    git pull --rebase
+    echo "Dotfiles synced!"
     ;;
   check)
     sudo nix flake check --impure
