@@ -39,7 +39,7 @@
   # --- User-Level (Home Manager) Configuration ---
   home-manager.users.niwatorichan = { config, ... }: {
     # Hyprland Lua configuration symlink
-    home.file.".config/hypr/hyprland.lua".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Projects/dotfiles-main/home/config/hypr/hyprland.lua";
+    home.file.".config/hypr/hyprland.lua".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/hypr/hyprland.lua";
 
     # Waybar Status Bar — Hyprland workspace module
     programs.waybar.custom = {

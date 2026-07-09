@@ -20,7 +20,7 @@
   programs.home-manager.enable = true;
 
   # Symlink mimeapps.list out-of-store so applications can edit it
-  home.file.".config/mimeapps.list".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Projects/dotfiles-main/home/config/mimeapps.list";
+  home.file.".config/mimeapps.list".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/mimeapps.list";
 
   # KDE Connect service and system tray indicator applet
   services.kdeconnect = {

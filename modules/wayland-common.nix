@@ -74,14 +74,14 @@
     };
 
     # Configure qt5ct and qt6ct — plain config files symlinked from dotfiles
-    home.file.".config/qt5ct/colors/darker.conf".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Projects/dotfiles-main/home/config/qt5ct/colors/darker.conf";
-    home.file.".config/qt5ct/qt5ct.conf".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Projects/dotfiles-main/home/config/qt5ct/qt5ct.conf";
-    home.file.".config/qt6ct/colors/darker.conf".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Projects/dotfiles-main/home/config/qt6ct/colors/darker.conf";
-    home.file.".config/qt6ct/qt6ct.conf".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Projects/dotfiles-main/home/config/qt6ct/qt6ct.conf";
+    home.file.".config/qt5ct/colors/darker.conf".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/qt5ct/colors/darker.conf";
+    home.file.".config/qt5ct/qt5ct.conf".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/qt5ct/qt5ct.conf";
+    home.file.".config/qt6ct/colors/darker.conf".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/qt6ct/colors/darker.conf";
+    home.file.".config/qt6ct/qt6ct.conf".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/qt6ct/qt6ct.conf";
 
-    home.file.".config/waybar/scripts/wlsunset.sh".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Projects/dotfiles-main/home/config/waybar/scripts/wlsunset.sh";
-    home.file.".config/waybar/scripts/power-menu.sh".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Projects/dotfiles-main/home/config/waybar/scripts/power-menu.sh";
-    home.file.".local/bin/gnome-disks-admin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Projects/dotfiles-main/home/config/scripts/gnome-disks-admin.sh";
+    home.file.".config/waybar/scripts/wlsunset.sh".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/waybar/scripts/wlsunset.sh";
+    home.file.".config/waybar/scripts/power-menu.sh".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/waybar/scripts/power-menu.sh";
+    home.file.".local/bin/gnome-disks-admin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/scripts/gnome-disks-admin.sh";
 
     home.packages = with pkgs; [
       libsForQt5.qt5ct
@@ -89,7 +89,7 @@
     ];
 
     # Doom Emacs config symlink
-    home.file.".config/doom".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Projects/dotfiles-main/home/config/doom";
+    home.file.".config/doom".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/doom";
 
     # Blurry transparent centered Wayland application launcher with icons (Fuzzel)
     programs.fuzzel = {

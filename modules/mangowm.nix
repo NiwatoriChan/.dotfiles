@@ -20,7 +20,7 @@
   # --- User-Level (Home Manager) Configuration ---
   home-manager.users.niwatorichan = { config, ... }: {
     # MangoWM configuration symlinks
-    home.file.".config/mango/config.conf".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Projects/dotfiles-main/home/config/mango/config.conf";
+    home.file.".config/mango/config.conf".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/mango/config.conf";
 
     # Waybar Status Bar — MangoWM workspace module
     programs.waybar.custom = {

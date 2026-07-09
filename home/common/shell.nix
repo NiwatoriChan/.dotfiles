@@ -4,7 +4,7 @@
 
 {
   # Deploy p10k config to ~/.p10k.zsh
-  home.file.".p10k.zsh".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Projects/dotfiles-main/home/common/p10k.zsh";
+  home.file.".p10k.zsh".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/common/p10k.zsh";
 
   programs.zsh = {
     enable = true;
