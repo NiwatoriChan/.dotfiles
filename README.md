@@ -8,8 +8,8 @@ A modular, unified, and declarative NixOS flake configuration managing multiple 
 
 | Host | Device / Type | Hardware Specifications | Environment | System Config | User Config |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **🍗 PwPoulet** *EXPERIMENTAL* | Primary Desktop | Ryzen 9 3900X + Radeon RX 6750 XT | KDE Plasma 6 | [`hosts/pwpoulet`](./hosts/pwpoulet) | [`home/pwpoulet.nix`](./home/pwpoulet.nix) |
-| **🥔 PotatoMonster** | Laptop (Inspiron 7559) | Intel i7 + NVIDIA GTX 960M | MangoWM / Hyprland | [`hosts/potatomonster`](./hosts/potatomonster) | [`home/potatomonster.nix`](./home/potatomonster.nix) |
+| **🍗 PwPoulet** | Primary Desktop | Ryzen 9 3900X + Radeon RX 6750 XT | KDE Plasma 6 | [`hosts/pwpoulet`](./hosts/pwpoulet) | [`home/pwpoulet.nix`](./home/pwpoulet.nix) |
+| **🥔 PotatoMonster** | Laptop (Inspiron 7559) | Intel i7 + NVIDIA GTX 960M | MangoWM | [`hosts/potatomonster`](./hosts/potatomonster) | [`home/potatomonster.nix`](./home/potatomonster.nix) |
 | **🍠 PetitePatate** *EXPERIMENTAL* | Laptop (Pinebook Pro) | Rockchip RK3399 (OC 2.08GHz) + Mali | Hyprland | [`hosts/petitepatate`](./hosts/petitepatate) | [`home/petitepatate.nix`](./home/petitepatate.nix) |
 | **🦙 jeff** *EXPERIMENTAL* | Headless Server | Ryzen 5 1600X + GTX 1070 | Headless CLI / Nixarr | [`hosts/jeff`](./hosts/jeff) | [`home/jeff.nix`](./home/jeff.nix) |
 
