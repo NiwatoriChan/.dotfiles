@@ -9,6 +9,7 @@
     ../../modules/gaming.nix
     ../../modules/sunshine.nix
     ../../modules/virtualisation/vmware.nix
+    ../../modules/jovian-amd.nix
   ];
 
   # Bootloader kernel package choice

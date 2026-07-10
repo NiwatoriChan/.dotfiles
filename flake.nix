@@ -33,6 +33,11 @@
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    jovian = {
+      url = "github:Jovian-Experiments/Jovian-NixOS";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, nix-cachyos-kernel, home-manager, nixos-hardware, ... }@inputs:
@@ -92,6 +97,7 @@
           system = "x86_64-linux";
           modules = [
             sharedKernelAndCache
+            inputs.jovian.nixosModules.default
             ./hosts/pwpoulet
 
             # Home-Manager as NixOS module
@@ -139,6 +145,26 @@
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "hm-bak";
               home-manager.users.niwatorichan = import ./home/petitepatate.nix;
+            }
+          ];
+        };
+
+        # --- Savage — Steam Deck LCD ---
+        Savage = nixpkgs.lib.nixosSystem {
+          specialArgs = sharedArgsFor "x86_64-linux";
+          system = "x86_64-linux";
+          modules = [
+            sharedKernelAndCache
+            inputs.jovian.nixosModules.default
+            ./hosts/savage
+
+            # Home-Manager as NixOS module
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "hm-bak";
+              home-manager.users.niwatorichan = import ./home/savage.nix;
             }
           ];
         };
