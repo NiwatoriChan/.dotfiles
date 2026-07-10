@@ -37,6 +37,7 @@
     mpv
     emacs-pgtk
     gnome-disk-utility
+    moonlight-qt
 
     # Theming
     papirus-icon-theme
