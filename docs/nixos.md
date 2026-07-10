@@ -26,7 +26,8 @@ Defined in `hosts/common/packages.nix`, these are installed globally on all desk
 ### Applications & Games
 - **Browsers**: `Firefox` (declaratively enabled), `Helium` (via custom flake).
 - **Communication & Editors**: `Discord`, `Zed Editor`.
-- **Gaming Clients**: `Lutris`, `Heroic Games Launcher`, `Steam` (enabled via `programs.steam.enable = true`).
+- **Gaming & Streaming**: `Lutris`, `Heroic Games Launcher`, `Steam`, `Moonlight Game Streaming` (`moonlight-qt`).
+- **System Monitoring**: `mission-center` (modern system resource visualizer).
 
 ### CLI Utilities & Theming
 - **Utilities**: `vim`, `wget`, `git`, `curl`, `jq`, `bat`, `gnumake`, `fastfetch`.
@@ -65,6 +66,8 @@ systemd.services.flatpak-repo = {
   '';
 };
 ```
+To maintain compatibility with third-party tools and applications that hardcode the flatpak binary path, a symlink is automatically created at `/usr/bin/flatpak` pointing to the Nix-managed package.
+
 ---
 
 ## 🖥️ Host Modules
@@ -90,6 +93,13 @@ Specific system host modules override or add system services:
 ### 4. jeff (`hosts/jeff`)
 - **Type**: Headless Server.
 - **Services**: Imports core server modules (`modules/server/default.nix`) enabling declarative Samba storage sharing, OpenVPN tunneling, the Homepage portal, and the Nixarr stack.
+
+### 5. Savage (`hosts/savage`)
+- **Device/Architecture**: Steam Deck LCD (x86_64).
+- **Steam Deck Integration (Jovian-NixOS)**: Configured using the Jovian-NixOS module system, enabling Steam Deck hardware profiles, performance optimizations, and controller driver layers.
+- **Graphical Environment**: Launches directly into Steam Gaming Mode on boot, with KDE Plasma 6 available as the alternative desktop environment session.
+- **Garbage Collection**: Automatically runs Nix store garbage collection weekly, deleting generations older than 7 days.
+- **Services**: Sunshine game streaming host configuration (`modules/sunshine.nix`) is enabled to allow high-performance local remote play.
 
 ---
 
@@ -127,3 +137,18 @@ System secrets (such as API keys, passwords, and server credentials) are encrypt
    age.secrets.my-secret.file = ../../secrets/my-secret.age;
    ```
    At boot, Agenix decrypts the files and exposes them securely to processes at `/run/agenix/my-secret`.
+
+---
+
+## 💾 Binary Caches & Bootstrapping
+
+To speed up installation, download times, and rebuilds across all systems, the flake is configured to use the following custom binary caches:
+
+- **Lantian Attic Cache**: `https://attic.xuyh0120.win/lantian` (trusted key: `lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc=`)
+- **Jovian Cachix Cache**: `https://jovian.cachix.org` (trusted key: `jovian.cachix.org-1:8Vq4Txku6VZIRhYrHYki3Ab9XHJRoWmdYqMqj4rB/Uc=`)
+
+### Bootstrapping Cache Settings (`add-caches.sh`)
+When configuring a fresh system, Nix might not have these caches registered yet. A helper script `add-caches.sh` is provided in the repository root:
+- It creates a temporary minimal flake defining the binary caches.
+- It builds a minimal configuration to populate/register the extra-substituters on the host system.
+- Once run, subsequent full `nixos-rebuild` commands will automatically leverage the binary caches without compiling heavy packages (like the Linux kernel or steam-deck configurations) from source.

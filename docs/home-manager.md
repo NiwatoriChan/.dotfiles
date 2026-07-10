@@ -35,6 +35,7 @@ Quick-command aliases are defined to speed up common tasks:
 alias ll="ls -l"                      # Long listing format
 alias edit="sudo -e"                  # Securely edit files as root
 alias update="sudo nixos-rebuild switch"  # Rebuild the NixOS configuration
+alias nu="$HOME/.dotfiles/nu"          # Helper CLI script accessible from anywhere
 ```
 
 ---

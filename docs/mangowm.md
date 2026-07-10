@@ -12,7 +12,7 @@ Managed in `home/config/mango/config.conf`, MangoWM handles tiling layout struct
 - **Border Radius**: Curved corners set to `12px` to fit modern aesthetics.
 - **Inner Gaps**: `4px` horizontal and vertical spacing between adjacent windows.
 - **Outer Gaps**: `6px` padding between windows and screen borders.
-- **Smart Gaps**: Enabled (`smartgaps=1`), removing gaps when only a single window is open on a workspace.
+- **Smart Gaps**: Disabled (`smartgaps=0`), keeping gaps even when only a single window is open on a workspace.
 - **Window Blur**: High-quality frosted glass background blur enabled with optimized caching:
   - Radius: `6`
   - Passes: `2`
@@ -20,6 +20,7 @@ Managed in `home/config/mango/config.conf`, MangoWM handles tiling layout struct
 ### 📜 Scroller Layout (Niri-Style Tiling)
 MangoWM is set up to emulate Niri's signature scroller-tiling:
 - Windows are organized into horizontal columns.
+- **Layout rules**: The `scroller` layout is explicitly configured as the default for all workspaces (tags) 1 through 9. Layout structures are disabled (`scroller_structs = 0`).
 - **Proportion rules**: 
   - Single windows open at `100%` width.
   - Subsequent windows open at `50%` width by default.
