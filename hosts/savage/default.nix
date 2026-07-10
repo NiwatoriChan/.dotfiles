@@ -6,20 +6,8 @@
     ../common
     ../../modules/kde.nix
     ../../modules/gaming.nix
+    ../../modules/jovian-deck.nix
   ];
-
-  # Jovian-NixOS Steam Deck Configuration
-  jovian = {
-    devices.steamdeck = {
-      enable = true;
-    };
-    steam = {
-      enable = true;
-      autoStart = true;
-      user = "niwatorichan";
-      desktopSession = "plasma";
-    };
-  };
 
   # Hostname
   networking.hostName = "Savage";

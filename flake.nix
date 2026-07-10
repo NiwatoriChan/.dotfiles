@@ -8,6 +8,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    home-manager-unstable = {
+      url = "github:nix-community/home-manager/master";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
 
     nixos-hardware = {
@@ -36,11 +41,10 @@
 
     jovian = {
       url = "github:Jovian-Experiments/Jovian-NixOS";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nix-cachyos-kernel, home-manager, nixos-hardware, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-unstable, nix-cachyos-kernel, home-manager, home-manager-unstable, nixos-hardware, ... }@inputs:
     let
       sharedArgsFor = system:
         let
@@ -64,8 +68,14 @@
         boot.kernelPackages = pkgs.linuxPackages_latest;
 
         # Binary cache
-        nix.settings.extra-substituters = [ "https://attic.xuyh0120.win/lantian" ];
-        nix.settings.extra-trusted-public-keys = [ "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc=" ];
+        nix.settings.extra-substituters = [
+          "https://attic.xuyh0120.win/lantian"
+          "https://jovian.cachix.org"
+        ];
+        nix.settings.extra-trusted-public-keys = [
+          "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
+          "jovian.cachix.org-1:8Vq4Txku6VZIRhYrHYki3Ab9XHJRoWmdYqMqj4rB/Uc="
+        ];
       };
     in
     {
@@ -150,7 +160,7 @@
         };
 
         # --- Savage — Steam Deck LCD ---
-        Savage = nixpkgs.lib.nixosSystem {
+        Savage = nixpkgs-unstable.lib.nixosSystem {
           specialArgs = sharedArgsFor "x86_64-linux";
           system = "x86_64-linux";
           modules = [
@@ -159,7 +169,7 @@
             ./hosts/savage
 
             # Home-Manager as NixOS module
-            home-manager.nixosModules.home-manager
+            home-manager-unstable.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
