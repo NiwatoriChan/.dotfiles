@@ -4,7 +4,7 @@ DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DOTFILES_DIR"
 
 usage() {
-  printf 'Usage:\n  %s rebuild [hostname]\n  %s update [hostname]\n  %s check\n  %s clean\n  %s export\n  %s init-secrets\n  %s docs\n' "$0" "$0" "$0" "$0" "$0" "$0" "$0"
+  printf 'Usage:\n  %s rebuild [hostname]\n  %s update\n  %s sync\n  %s sur [hostname]\n  %s check\n  %s clean\n  %s export\n  %s init-secrets\n  %s docs\n' "$0" "$0" "$0" "$0" "$0" "$0" "$0" "$0" "$0"
 }
 
 if [ "$#" -eq 0 ]; then
@@ -19,7 +19,7 @@ case "$cmd" in
   rebuild|sur)
     host="${1:-$(hostname)}"
     ;;
-  export|clean|check|init-secrets|docs)
+  update|sync|export|clean|check|init-secrets|docs)
     if [ "$#" -ne 0 ]; then
       usage
       exit 1
@@ -48,21 +48,17 @@ case "$cmd" in
     sudo nix flake update
     ;;
   sync)
-    echo "Syncing repository..."
-    git pull
+    echo "Pulling latest dotfiles from GitHub..."
+    git pull --rebase
+    echo "Dotfiles synced!"
     ;;
   sur)
     echo "=== Syncing repository ==="
-    git pull
+    git pull --rebase
     echo "=== Updating flake inputs ==="
     sudo nix flake update
     echo "=== Rebuilding system ==="
     rebuild
-    ;;
-  sync)
-    echo "Pulling latest dotfiles from GitHub..."
-    git pull --rebase
-    echo "Dotfiles synced!"
     ;;
   check)
     sudo nix flake check --impure
