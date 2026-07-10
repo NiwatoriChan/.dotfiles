@@ -7,6 +7,7 @@
     ../../modules/kde.nix
     ../../modules/gaming.nix
     ../../modules/jovian-deck.nix
+    ../../modules/sunshine.nix
   ];
 
   # Hostname
