@@ -78,18 +78,7 @@
   programs.appimage.binfmt = true;
 
 
-  # Thunar File Manager and plugins
-  programs.thunar = {
-    enable = true;
-    plugins = with pkgs; [
-      thunar-archive-plugin
-      thunar-volman
-      thunar-media-tags-plugin
-    ];
-  };
 
-  # Xfconf configuration daemon (required for saving Thunar preferences)
-  programs.xfconf.enable = true;
 
   # KDE Connect configurations
   home-manager.users.niwatorichan.services.kdeconnect.enable = true;

@@ -48,9 +48,6 @@
 
   # Default applications — Gwenview for images, mpv for video
   xdg.mime.defaultApplications = {
-    # Directories → Thunar
-    "inode/directory" = "thunar.desktop";
-
     # Images → Gwenview
     "image/jpeg" = "org.kde.gwenview.desktop";
     "image/png" = "org.kde.gwenview.desktop";

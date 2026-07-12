@@ -25,6 +25,24 @@
 
   services.blueman.enable = true;
 
+  # Thunar File Manager and plugins
+  programs.thunar = {
+    enable = true;
+    plugins = with pkgs; [
+      thunar-archive-plugin
+      thunar-volman
+      thunar-media-tags-plugin
+    ];
+  };
+
+  # Xfconf configuration daemon (required for saving Thunar preferences)
+  programs.xfconf.enable = true;
+
+  # Default applications — Directories → Thunar
+  xdg.mime.defaultApplications = {
+    "inode/directory" = "thunar.desktop";
+  };
+
   fonts.packages = with pkgs; [
     font-awesome
     nerd-fonts.symbols-only
