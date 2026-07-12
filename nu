@@ -4,23 +4,71 @@ DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DOTFILES_DIR"
 
 usage() {
-  printf 'Usage:\n  %s rebuild [hostname]\n  %s update\n  %s sync\n  %s sur [hostname]\n  %s check\n  %s clean\n  %s export\n  %s init-secrets\n  %s docs\n' "$0" "$0" "$0" "$0" "$0" "$0" "$0" "$0" "$0"
+  printf 'Usage:\n  %s [options] <command> [arguments]\n\n' "$0"
+  printf 'Options:\n'
+  printf '  -f, --force       Remove any staging / discard local changes\n'
+  printf '  -n, --no-flake    Sync all but the flake.lock\n\n'
+  printf 'Commands:\n'
+  printf '  rebuild [hostname]\n'
+  printf '  update\n'
+  printf '  sync\n'
+  printf '  sur [hostname]\n'
+  printf '  check\n'
+  printf '  clean\n'
+  printf '  export\n'
+  printf '  init-secrets\n'
+  printf '  docs\n'
 }
 
-if [ "$#" -eq 0 ]; then
+force=false
+no_flake=false
+args=()
+
+# Parse options
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -f|--force)
+      force=true
+      shift
+      ;;
+    -n|--no-flake)
+      no_flake=true
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -*)
+      echo "Unknown option: $1"
+      usage
+      exit 1
+      ;;
+    *)
+      args+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [ "${#args[@]}" -eq 0 ]; then
   usage
   exit 0
 fi
 
-cmd="$1"
-shift
+cmd="${args[0]}"
+subargs=("${args[@]:1}")
 
 case "$cmd" in
   rebuild|sur)
-    host="${1:-$(hostname)}"
+    if [ "${#subargs[@]}" -gt 1 ]; then
+      usage
+      exit 1
+    fi
+    host="${subargs[0]:-$(hostname)}"
     ;;
   update|sync|export|clean|check|init-secrets|docs)
-    if [ "$#" -ne 0 ]; then
+    if [ "${#subargs[@]}" -ne 0 ]; then
       usage
       exit 1
     fi
@@ -35,8 +83,37 @@ case "$cmd" in
     ;;
 esac
 
+if [ "$force" = true ]; then
+  echo "Removing any staging..."
+  git reset
+fi
+
 rebuild() {
   sudo nixos-rebuild switch --flake ".#${host}" --impure
+}
+
+pull_repo() {
+  local has_bak=false
+  if [ "$no_flake" = true ] && [ -f flake.lock ]; then
+    cp flake.lock flake.lock.bak
+    # Discard any local modifications to flake.lock so git pull doesn't fail/conflict on it
+    git checkout -- flake.lock
+    has_bak=true
+  fi
+
+  local err=0
+  git pull --rebase || err=$?
+
+  if [ "$has_bak" = true ]; then
+    if [ -f flake.lock.bak ]; then
+      mv flake.lock.bak flake.lock
+    fi
+  fi
+
+  if [ $err -ne 0 ]; then
+    echo "git pull failed with exit code $err" >&2
+    return $err
+  fi
 }
 
 case "$cmd" in
@@ -44,19 +121,25 @@ case "$cmd" in
     rebuild
     ;;
   update)
+    if [ "$no_flake" = true ]; then
+      echo "Error: Cannot update flake inputs when --no-flake (-n) is set." >&2
+      exit 1
+    fi
     echo "Updating flake inputs..."
     sudo nix flake update
     ;;
   sync)
     echo "Pulling latest dotfiles from GitHub..."
-    git pull --rebase
+    pull_repo
     echo "Dotfiles synced!"
     ;;
   sur)
     echo "=== Syncing repository ==="
-    git pull --rebase
-    echo "=== Updating flake inputs ==="
-    sudo nix flake update
+    pull_repo
+    if [ "$no_flake" = false ]; then
+      echo "=== Updating flake inputs ==="
+      sudo nix flake update
+    fi
     echo "=== Rebuilding system ==="
     rebuild
     ;;
