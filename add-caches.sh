@@ -49,10 +49,12 @@ cat << EOF > "$TEMP_DIR/flake.nix"
     extra-substituters = [
       "https://attic.xuyh0120.win/lantian"
       "https://jovian.cachix.org"
+      "https://nyx-cache.chaotic.cx"
     ];
     extra-trusted-public-keys = [
       "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
       "jovian.cachix.org-1:8Vq4Txku6VZIRhYrHYki3Ab9XHJRoWmdYqMqj4rB/Uc="
+      "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
     ];
   };
 
@@ -71,10 +73,12 @@ cat << EOF > "$TEMP_DIR/flake.nix"
           nix.settings.extra-substituters = [
             "https://attic.xuyh0120.win/lantian"
             "https://jovian.cachix.org"
+            "https://nyx-cache.chaotic.cx"
           ];
           nix.settings.extra-trusted-public-keys = [
             "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
             "jovian.cachix.org-1:8Vq4Txku6VZIRhYrHYki3Ab9XHJRoWmdYqMqj4rB/Uc="
+            "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
           ];
 
           system.stateVersion = "26.05";
