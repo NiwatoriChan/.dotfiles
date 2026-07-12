@@ -13,7 +13,7 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
-    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
+    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
 
     nixos-hardware = {
       url = "github:NixOS/nixos-hardware/master";
@@ -44,7 +44,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nix-cachyos-kernel, home-manager, home-manager-unstable, nixos-hardware, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-unstable, chaotic, home-manager, home-manager-unstable, nixos-hardware, ... }@inputs:
     let
       sharedArgsFor = system:
         let
@@ -64,11 +64,11 @@
         };
 
       sharedKernelAndCache = { pkgs, ... }: {
-        nixpkgs.overlays = [
-          nix-cachyos-kernel.overlays.default
+        imports = [
+          inputs.chaotic.nixosModules.default
         ];
 
-        #boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest;
+        #boot.kernelPackages = pkgs.linuxPackages_cachyos;
         boot.kernelPackages = pkgs.linuxPackages_latest;
 
         # Binary cache
