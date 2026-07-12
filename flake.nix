@@ -51,6 +51,10 @@
           pkgs-unstable = import nixpkgs-unstable {
             inherit system;
             config.allowUnfree = true;
+            config.permittedInsecurePackages = [
+              "pnpm-9.15.9"
+              "pnpm-10.29.2"
+            ];
           };
         in {
           heliumPkg = if inputs.helium.packages ? ${system}

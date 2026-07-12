@@ -67,6 +67,7 @@
 
   # Permit insecure packages pulled as build dependencies
   nixpkgs.config.permittedInsecurePackages = [
+    "pnpm-9.15.9"
     "pnpm-10.29.2"
   ];
 
