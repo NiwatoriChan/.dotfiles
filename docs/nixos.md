@@ -80,7 +80,7 @@ Specific system host modules override or add system services:
 - **Hardware**: Imports `hosts/potatomonster/hardware.nix` and system-specific hardware parameters.
 
 ### 2. PwPoulet (`hosts/pwpoulet`)
-- **Kernel**: Configured to use the performance-optimized **CachyOS kernel** (\`boot.kernelPackages = pkgs.linuxPackages_cachyos\`).
+- **Kernel**: Configured to use the performance-optimized **CachyOS kernel** (\`boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest\`).
 - **Services**: KDE Plasma 6 (\`services.desktopManager.plasma6.enable = true\`). Configured modularly via \`modules/kde.nix\` to use an overlay replacing \`kdePackages\` with the latest unstable releases (\`pkgs-unstable.kdePackages\`).
 - **Packages**: Dolphin (\`kdePackages.dolphin\`) and Qt Multimedia support (\`kdePackages.qtmultimedia\`).
 - **Hardware**: Configured with standard desktop x86_64 hardware modules.

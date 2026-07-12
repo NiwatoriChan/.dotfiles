@@ -15,6 +15,8 @@
 
     chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
 
+    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
+
     nixos-hardware = {
       url = "github:NixOS/nixos-hardware/master";
     };
@@ -66,6 +68,10 @@
       sharedKernelAndCache = { pkgs, ... }: {
         imports = [
           inputs.chaotic.nixosModules.default
+        ];
+
+        nixpkgs.overlays = [
+          inputs.nix-cachyos-kernel.overlays.default
         ];
 
         #boot.kernelPackages = pkgs.linuxPackages_cachyos;
