@@ -91,6 +91,14 @@
   # Xfconf configuration daemon (required for saving Thunar preferences)
   programs.xfconf.enable = true;
 
+  # KDE Connect configurations
+  home-manager.users.niwatorichan.services.kdeconnect.enable = true;
+
+  networking.firewall = rec {
+    allowedTCPPortRanges = [ { from = 1714; to = 1764; } ];
+    allowedUDPPortRanges = allowedTCPPortRanges;
+  };
+
   # System state version
   system.stateVersion = "26.05";
 }
