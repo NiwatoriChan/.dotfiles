@@ -11,7 +11,12 @@
   environment.systemPackages = with pkgs; [
     kdePackages.dolphin
     kdePackages.qtmultimedia
+    kdePackages.krdp
   ];
+
+  # Open firewall ports for KDE Remote Desktop (krdp)
+  networking.firewall.allowedTCPPorts = [ 3389 ];
+  networking.firewall.allowedUDPPorts = [ 3389 ];
 
   # --- User-Level (Home Manager) Configuration ---
   home-manager.users.niwatorichan = { ... }: {
