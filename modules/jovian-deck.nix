@@ -12,6 +12,9 @@
       user = "niwatorichan";
       desktopSession = "plasma";
     };
+    decky-loader = {
+      enable = true;
+    };
   };
 
   nix.gc = {
