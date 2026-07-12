@@ -78,13 +78,19 @@
         boot.kernelPackages = pkgs.linuxPackages_latest;
 
         # Binary cache
-        nix.settings.extra-substituters = [
+        nix.settings.substituters = [
           "https://attic.xuyh0120.win/lantian"
+          "https://cache.xinux.uz"
+        ];
+        nix.settings.trusted-public-keys = [
+          "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
+          "cache.xinux.uz:BXCrtqejFjWzWEB9YuGB7X2MV4ttBur1N8BkwQRdH+0="
+        ];
+        nix.settings.extra-substituters = [
           "https://jovian.cachix.org"
           "https://nyx-cache.chaotic.cx"
         ];
         nix.settings.extra-trusted-public-keys = [
-          "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
           "jovian.cachix.org-1:8Vq4Txku6VZIRhYrHYki3Ab9XHJRoWmdYqMqj4rB/Uc="
           "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
         ];
