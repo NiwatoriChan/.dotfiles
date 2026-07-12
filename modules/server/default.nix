@@ -7,6 +7,7 @@
     ./samba.nix
     ./homepage.nix
     ./openvpn.nix
+    ./reverse-proxy.nix
     ../secrets.nix
   ];
 

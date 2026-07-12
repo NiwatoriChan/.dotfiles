@@ -33,12 +33,4 @@
       rpc-whitelist-enabled = lib.mkForce false; # Allow LAN devices to connect without restrictions
     };
   };
-
-  # Open firewall ports for the media stack services so they are accessible on the LAN
-  networking.firewall.allowedTCPPorts = [
-    8096 # Jellyfin HTTP
-    8989 # Sonarr
-    7878 # Radarr
-    9696 # Prowlarr
-  ];
 }

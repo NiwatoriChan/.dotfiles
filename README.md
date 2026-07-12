@@ -131,5 +131,11 @@ Verify all system configurations evaluate and compile successfully before rebuil
 ### Bootstrapping Binary Caches
 On a fresh system installation, build time can be significantly reduced by registering target binary caches first:
 ```bash
-./add-caches.sh
+./nu init
+```
+
+### Building Documentation
+To build the documentation pages using Python:
+```bash
+./nu build-docs
 ```

@@ -9,15 +9,16 @@ usage() {
   printf '  -f, --force       Remove any staging / discard local changes\n'
   printf '  -n, --no-flake    Sync all but the flake.lock\n\n'
   printf 'Commands:\n'
-  printf '  rebuild [hostname]\n'
-  printf '  update\n'
-  printf '  sync\n'
-  printf '  sur [hostname]\n'
-  printf '  check\n'
-  printf '  clean\n'
-  printf '  export\n'
-  printf '  init-secrets\n'
-  printf '  docs\n'
+  printf '  init                Bootstrap binary caches by running add-caches.sh\n'
+  printf '  rebuild [hostname]  Rebuild and switch the system configuration\n'
+  printf '  update              Update Nix flake inputs\n'
+  printf '  sync                Pull and rebase latest dotfiles from GitHub\n'
+  printf '  sur [hostname]      Sync repo, update flake, and rebuild host\n'
+  printf '  check               Verify system configurations compile cleanly\n'
+  printf '  clean               Collect garbage and optimize the Nix store\n'
+  printf '  export              Export configuration files into a zip backup\n'
+  printf '  init-secrets        Initialize secrets configuration and SSH keys\n'
+  printf '  build-docs          Build documentation using python3\n'
 }
 
 force=false
@@ -67,7 +68,7 @@ case "$cmd" in
     fi
     host="${subargs[0]:-$(hostname)}"
     ;;
-  update|sync|export|clean|check|init-secrets|docs)
+  init|update|sync|export|clean|check|init-secrets|build-docs)
     if [ "${#subargs[@]}" -ne 0 ]; then
       usage
       exit 1
@@ -167,7 +168,11 @@ case "$cmd" in
     sed -i "s|user = \".*\"; # USER_SSH_KEY|user = \"$pubkey\"; # USER_SSH_KEY|" secrets/secrets.nix
     echo "Successfully initialized secrets configuration with SSH key!"
     ;;
-  docs)
+  init)
+    echo "Bootstrapping binary caches..."
+    ./add-caches.sh
+    ;;
+  build-docs)
     nix-shell -p python3 --run "python3 docs/build.py"
     ;;
 esac

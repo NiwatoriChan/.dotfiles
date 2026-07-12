@@ -132,7 +132,4 @@
       }
     ];
   };
-
-  # Open port 8082 in the firewall so the dashboard is accessible on the LAN
-  networking.firewall.allowedTCPPorts = [ 8082 ];
 }
