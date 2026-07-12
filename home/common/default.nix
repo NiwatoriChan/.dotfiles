@@ -22,6 +22,9 @@
   # Symlink mimeapps.list out-of-store so applications can edit it
   home.file.".config/mimeapps.list".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/mimeapps.list";
 
+  # Enable CEF remote debugging for Steam (required for Decky Loader to inject)
+  home.file.".steam/steam/.cef-enable-remote-debugging".text = "";
+
   # KDE Connect service and system tray indicator applet
   services.kdeconnect = {
     enable = true;
