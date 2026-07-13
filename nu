@@ -9,7 +9,7 @@ usage() {
   printf '  -f, --force       Remove any staging / discard local changes\n'
   printf '  -n, --no-flake    Sync all but the flake.lock\n\n'
   printf 'Commands:\n'
-  printf '  init                Bootstrap binary caches by running add-caches.sh\n'
+  printf '  init                Bootstrap binary caches by running scripts/add-caches.sh\n'
   printf '  rebuild [hostname]  Rebuild and switch the system configuration\n'
   printf '  update              Update Nix flake inputs\n'
   printf '  sync                Pull and rebase latest dotfiles from GitHub\n'
@@ -170,7 +170,7 @@ case "$cmd" in
     ;;
   init)
     echo "Bootstrapping binary caches..."
-    ./add-caches.sh
+    "$DOTFILES_DIR/scripts/add-caches.sh"
     ;;
   build-docs)
     nix-shell -p python3 --run "python3 docs/build.py"

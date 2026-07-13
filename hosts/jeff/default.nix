@@ -1,4 +1,4 @@
-# jeff — headless configuration scaffold
+# Jeff — headless configuration scaffold
 { config, pkgs, ... }:
 
 {
@@ -23,7 +23,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   # Hostname
-  networking.hostName = "jeff";
+  networking.hostName = "Jeff";
   networking.networkmanager.enable = true;
 
   # Locale & Timezone

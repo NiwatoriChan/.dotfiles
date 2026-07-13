@@ -90,7 +90,7 @@ Specific system host modules override or add system services:
 - **Kernel/Hardware**: Integrates custom NixOS hardware modules alongside device tree overlay overrides for CPU/GPU overclocking (up to 2.08GHz) and stable undervolting.
 - **Graphical Environment**: Enables and configures Hyprland (`modules/hyprland.nix`).
 
-### 4. jeff (`hosts/jeff`)
+### 4. Jeff (`hosts/jeff`)
 - **Type**: Headless Server.
 - **Services**: Imports core server modules (`modules/server/default.nix`) enabling declarative Samba storage sharing, OpenVPN tunneling, the Homepage portal, and the Nixarr stack.
 
@@ -148,8 +148,8 @@ To speed up installation, download times, and rebuilds across all systems, the f
 - **Jovian Cachix Cache**: `https://jovian.cachix.org` (trusted key: `jovian.cachix.org-1:8Vq4Txku6VZIRhYrHYki3Ab9XHJRoWmdYqMqj4rB/Uc=`)
 - **Chaotic Nyx Cache**: `https://nyx-cache.chaotic.cx` (trusted key: `nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk=`)
 
-### Bootstrapping Cache Settings (`add-caches.sh`)
-When configuring a fresh system, Nix might not have these caches registered yet. A helper script `add-caches.sh` is provided in the repository root:
+### Bootstrapping Cache Settings (`scripts/add-caches.sh`)
+When configuring a fresh system, Nix might not have these caches registered yet. A helper script `scripts/add-caches.sh` is provided in the repository:
 - It creates a temporary minimal flake defining the binary caches.
 - It builds a minimal configuration to populate/register the extra-substituters on the host system.
 - Once run, subsequent full `nixos-rebuild` commands will automatically leverage the binary caches without compiling heavy packages (like the Linux kernel or steam-deck configurations) from source.

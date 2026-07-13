@@ -140,8 +140,8 @@
           ];
         };
 
-        # --- jeff — Headless ---
-        jeff = nixpkgs.lib.nixosSystem {
+        # --- Jeff — Headless ---
+        Jeff = nixpkgs.lib.nixosSystem {
           specialArgs = sharedArgsFor "x86_64-linux";
           system = "x86_64-linux";
           modules = [

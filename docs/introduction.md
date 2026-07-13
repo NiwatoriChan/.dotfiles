@@ -21,7 +21,7 @@ The configuration files are organized as follows:
 │   ├── potatomonster/    # Config for PotatoMonster (MangoWM system)
 │   ├── pwpoulet/         # Config for PwPoulet (KDE Plasma 6 system)
 │   ├── savage/           # Config for Savage (Steam Deck LCD system)
-│   ├── jeff/             # Config for jeff (headless server profile)
+│   ├── jeff/             # Config for Jeff (headless server profile)
 │   └── petitepatate/     # Config for PetitePatate (Pinebook Pro ARM64 system)
 ├── home/                 # User-specific Home Manager configurations
 │   ├── common/           # Shared user packages, shell (zsh/p10k), and git
@@ -44,7 +44,7 @@ The configurations define four target machines and one headless server:
 | **PwPoulet** | Desktop (x86_64) | KDE Plasma 6 (Unstable) | `hosts/pwpoulet` | `home/pwpoulet.nix` |
 | **Savage** | Steam Deck (x86_64) | Steam Deck Game Mode / KDE Plasma | `hosts/savage` | `home/savage.nix` |
 | **PetitePatate** | Pinebook Pro (aarch64) | Hyprland | `hosts/petitepatate` | `home/petitepatate.nix` |
-| **jeff** | Headless Server (x86_64) | *None (CLI)* | `hosts/jeff` | `home/jeff.nix` |
+| **Jeff** | Headless Server (x86_64) | *None (CLI)* | `hosts/jeff` | `home/jeff.nix` |
 
 ---
 

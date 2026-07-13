@@ -2,7 +2,7 @@
 
 The **Nixarr** stack is a declarative media server configuration implemented using the `nixarr` NixOS module flake. It consolidates a suite of media management and downloading services into a unified, self-hosted deployment.
 
-The stack is activated globally on the headless server configuration (**jeff**) via the server module entrypoint (`modules/server/default.nix`).
+The stack is activated globally on the headless server configuration (**Jeff**) via the server module entrypoint (`modules/server/default.nix`).
 
 ---
 
@@ -79,12 +79,12 @@ services.transmission = {
 
 ## 🚀 Accessing the Stack
 
-Once the **jeff** host is running and the system is rebuilt, you can access the services:
+Once the **Jeff** host is running and the system is rebuilt, you can access the services:
 
-1. **Via Dashboard**: Open the Server Dashboard at `http://<jeff-ip>:8082` to see status widgets and click direct links.
+1. **Via Dashboard**: Open the Server Dashboard at `http://<Jeff-ip>:8082` to see status widgets and click direct links.
 2. **Direct Connection**: Navigate directly to any of the service URLs:
-   - Jellyfin: `http://<jeff-ip>:8096`
-   - Sonarr: `http://<jeff-ip>:8989`
-   - Radarr: `http://<jeff-ip>:7878`
-   - Prowlarr: `http://<jeff-ip>:9696`
-   - Transmission: `http://<jeff-ip>:9091`
+   - Jellyfin: `http://<Jeff-ip>:8096`
+   - Sonarr: `http://<Jeff-ip>:8989`
+   - Radarr: `http://<Jeff-ip>:7878`
+   - Prowlarr: `http://<Jeff-ip>:9696`
+   - Transmission: `http://<Jeff-ip>:9091`

@@ -12,7 +12,7 @@ A modular, unified, and declarative NixOS flake configuration managing multiple 
 | **🦖 Savage** | Steam Deck LCD | Custom AMD APU + RDNA 2 GPU | Steam Deck Game Mode / Plasma | [`hosts/savage`](./hosts/savage) | [`home/savage.nix`](./home/savage.nix) |
 | **🥔 PotatoMonster** | Laptop (Inspiron 7559) | Intel i7 + NVIDIA GTX 960M | MangoWM | [`hosts/potatomonster`](./hosts/potatomonster) | [`home/potatomonster.nix`](./home/potatomonster.nix) |
 | **🍠 PetitePatate** *EXPERIMENTAL* | Laptop (Pinebook Pro) | Rockchip RK3399 (OC 2.08GHz) + Mali | Hyprland | [`hosts/petitepatate`](./hosts/petitepatate) | [`home/petitepatate.nix`](./home/petitepatate.nix) |
-| **🦙 jeff** *EXPERIMENTAL* | Headless Server | Ryzen 5 1600X + GTX 1070 | Headless CLI / Nixarr | [`hosts/jeff`](./hosts/jeff) | [`home/jeff.nix`](./home/jeff.nix) |
+| **🦙 Jeff** *EXPERIMENTAL* | Headless Server | Ryzen 5 1600X + GTX 1070 | Headless CLI / Nixarr | [`hosts/jeff`](./hosts/jeff) | [`home/jeff.nix`](./home/jeff.nix) |
 
 ---
 
@@ -34,14 +34,15 @@ The system uses unified module blocks under `modules/` to manage target packages
 ```text
 .dotfiles/
 ├── flake.nix             # Flake configurations and inputs entrypoint
-├── add-caches.sh         # Helper script to bootstrap binary caches
+├── scripts/              # Helper scripts (cache bootstrapping, etc.)
+│   └── add-caches.sh     # Bootstrap binary caches on fresh systems
 ├── modules/              # Unified system + user modules (Gaming, Jovian, Hyprland, KDE, Server)
 ├── hosts/                # Host-specific settings & hardware profiles
 │   ├── common/           # Shared base packages, CLI tools, shell, and configs
 │   ├── potatomonster/    # PotatoMonster system configuration
 │   ├── pwpoulet/         # PwPoulet system configuration
 │   ├── savage/           # Savage (Steam Deck LCD) system configuration
-│   ├── jeff/             # Headless server (jeff) system configuration
+│   ├── jeff/             # Headless server (Jeff) system configuration
 │   └── petitepatate/     # PetitePatate (Pinebook Pro) configuration
 └── home/                 # User-specific Home Manager configurations
     ├── common/           # Shared zsh, git, and baseline configs

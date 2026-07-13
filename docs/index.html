@@ -736,7 +736,7 @@ The configuration files are organized as follows:
 │   ├── potatomonster/    # Config for PotatoMonster (MangoWM system)
 │   ├── pwpoulet/         # Config for PwPoulet (KDE Plasma 6 system)
 │   ├── savage/           # Config for Savage (Steam Deck LCD system)
-│   ├── jeff/             # Config for jeff (headless server profile)
+│   ├── jeff/             # Config for Jeff (headless server profile)
 │   └── petitepatate/     # Config for PetitePatate (Pinebook Pro ARM64 system)
 ├── home/                 # User-specific Home Manager configurations
 │   ├── common/           # Shared user packages, shell (zsh/p10k), and git
@@ -759,7 +759,7 @@ The configurations define four target machines and one headless server:
 | **PwPoulet** | Desktop (x86_64) | KDE Plasma 6 (Unstable) | \`hosts/pwpoulet\` | \`home/pwpoulet.nix\` |
 | **Savage** | Steam Deck (x86_64) | Steam Deck Game Mode / KDE Plasma | \`hosts/savage\` | \`home/savage.nix\` |
 | **PetitePatate** | Pinebook Pro (aarch64) | Hyprland | \`hosts/petitepatate\` | \`home/petitepatate.nix\` |
-| **jeff** | Headless Server (x86_64) | *None (CLI)* | \`hosts/jeff\` | \`home/jeff.nix\` |
+| **Jeff** | Headless Server (x86_64) | *None (CLI)* | \`hosts/jeff\` | \`home/jeff.nix\` |
 
 ---
 
@@ -883,7 +883,7 @@ The keyboard controls map to high-speed desktop navigation:
 
 The **Nixarr** stack is a declarative media server configuration implemented using the \`nixarr\` NixOS module flake. It consolidates a suite of media management and downloading services into a unified, self-hosted deployment.
 
-The stack is activated globally on the headless server configuration (**jeff**) via the server module entrypoint (\`modules/server/default.nix\`).
+The stack is activated globally on the headless server configuration (**Jeff**) via the server module entrypoint (\`modules/server/default.nix\`).
 
 ---
 
@@ -960,15 +960,15 @@ services.transmission = {
 
 ## 🚀 Accessing the Stack
 
-Once the **jeff** host is running and the system is rebuilt, you can access the services:
+Once the **Jeff** host is running and the system is rebuilt, you can access the services:
 
-1. **Via Dashboard**: Open the Server Dashboard at \`http://<jeff-ip>:8082\` to see status widgets and click direct links.
+1. **Via Dashboard**: Open the Server Dashboard at \`http://<Jeff-ip>:8082\` to see status widgets and click direct links.
 2. **Direct Connection**: Navigate directly to any of the service URLs:
-   - Jellyfin: \`http://<jeff-ip>:8096\`
-   - Sonarr: \`http://<jeff-ip>:8989\`
-   - Radarr: \`http://<jeff-ip>:7878\`
-   - Prowlarr: \`http://<jeff-ip>:9696\`
-   - Transmission: \`http://<jeff-ip>:9091\`
+   - Jellyfin: \`http://<Jeff-ip>:8096\`
+   - Sonarr: \`http://<Jeff-ip>:8989\`
+   - Radarr: \`http://<Jeff-ip>:7878\`
+   - Prowlarr: \`http://<Jeff-ip>:9696\`
+   - Transmission: \`http://<Jeff-ip>:9091\`
 `,
       "nixos": `# NixOS System-Level Configuration
 
@@ -1062,7 +1062,7 @@ Specific system host modules override or add system services:
 - **Kernel/Hardware**: Integrates custom NixOS hardware modules alongside device tree overlay overrides for CPU/GPU overclocking (up to 2.08GHz) and stable undervolting.
 - **Graphical Environment**: Enables and configures Hyprland (\`modules/hyprland.nix\`).
 
-### 4. jeff (\`hosts/jeff\`)
+### 4. Jeff (\`hosts/jeff\`)
 - **Type**: Headless Server.
 - **Services**: Imports core server modules (\`modules/server/default.nix\`) enabling declarative Samba storage sharing, OpenVPN tunneling, the Homepage portal, and the Nixarr stack.
 
@@ -1120,8 +1120,8 @@ To speed up installation, download times, and rebuilds across all systems, the f
 - **Jovian Cachix Cache**: \`https://jovian.cachix.org\` (trusted key: \`jovian.cachix.org-1:8Vq4Txku6VZIRhYrHYki3Ab9XHJRoWmdYqMqj4rB/Uc=\`)
 - **Chaotic Nyx Cache**: \`https://nyx-cache.chaotic.cx\` (trusted key: \`nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk=\`)
 
-### Bootstrapping Cache Settings (\`add-caches.sh\`)
-When configuring a fresh system, Nix might not have these caches registered yet. A helper script \`add-caches.sh\` is provided in the repository root:
+### Bootstrapping Cache Settings (\`scripts/add-caches.sh\`)
+When configuring a fresh system, Nix might not have these caches registered yet. A helper script \`scripts/add-caches.sh\` is provided in the repository:
 - It creates a temporary minimal flake defining the binary caches.
 - It builds a minimal configuration to populate/register the extra-substituters on the host system.
 - Once run, subsequent full \`nixos-rebuild\` commands will automatically leverage the binary caches without compiling heavy packages (like the Linux kernel or steam-deck configurations) from source.

@@ -8,7 +8,7 @@
 
   # Install the agenix CLI tool so it is available globally
   environment.systemPackages = [
-    inputs.agenix.packages.${pkgs.system}.default
+    inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 
   # Setup standard age decryption keys

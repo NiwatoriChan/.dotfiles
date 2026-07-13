@@ -1,4 +1,4 @@
-# jeff home-manager configuration
+# Jeff home-manager configuration
 # Imports common user configuration and the server profile
 { ... }:
 
