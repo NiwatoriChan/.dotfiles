@@ -40,8 +40,11 @@ Item {
                     item.isActive = Qt.binding(() => root.activeWsId === (index + 1))
                     item.isOccupied = Qt.binding(() => root.occupied[index + 1] ?? false)
                     item.clicked.connect(function() {
-                        if (root.hypr.activeWsId !== item.workspaceId) {
-                            root.hypr.dispatch(`workspace ${item.workspaceId}`)
+                        const ws = root.hypr.workspaces.values.find(w => w.id === item.workspaceId);
+                        if (ws && typeof ws.activate === "function") {
+                            ws.activate();
+                        } else {
+                            root.hypr.dispatch("workspace " + item.workspaceId);
                         }
                     })
                 }

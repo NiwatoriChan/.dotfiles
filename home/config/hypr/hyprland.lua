@@ -29,8 +29,8 @@ local menu        = "fuzzel"
 
 hl.on("hyprland.start", function () 
     hl.exec_cmd("xhost +si:localuser:root")
-    hl.exec_cmd("waybar")
-    -- hl.exec_cmd("quickshell")  -- Waybar-style bar; swap with waybar above to try
+    -- hl.exec_cmd("waybar")
+    hl.exec_cmd("quickshell")  -- Waybar-style bar; swap with waybar above to try
     hl.exec_cmd("mako")
     hl.exec_cmd("wpaperd")
     hl.exec_cmd("nm-applet --indicator")
@@ -326,6 +326,18 @@ hl.window_rule({
     opacity = "0.90 0.85",
 })
 
+hl.window_rule({
+    name  = "quickshell-float",
+    match = { class = "^(quickshell)$" },
+    float = true,
+})
+
+hl.window_rule({
+    name  = "quickshell-noblur",
+    match = { class = "^(quickshell)$", title = "^(quickshell)$" },
+    no_blur = true,
+})
+
 ---------------------
 ---- LAYER RULES ----
 ---------------------
@@ -335,6 +347,13 @@ hl.layer_rule({
     name  = "blur-waybar",
     match = { namespace = "waybar" },
     blur  = true,
+})
+
+hl.layer_rule({
+    name  = "blur-quickshell",
+    match = { namespace = "^(quickshell.*)$" },
+    blur  = true,
+    ignore_alpha = 0.3,
 })
 
 hl.layer_rule({

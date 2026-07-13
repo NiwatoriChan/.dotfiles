@@ -1,4 +1,5 @@
 import Quickshell
+import Quickshell.Wayland
 import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import "components" as BarComponents
@@ -13,7 +14,19 @@ Item {
 
     property string activePopup: ""
     readonly property bool hasPopup: activePopup !== ""
-    readonly property real popupAreaHeight: hasPopup ? popupHost.height : 0
+    
+    readonly property real popupX: {
+        const w = (activePopup === "network" || activePopup === "volume") ? 340 : 320
+        const hostPadding = 12
+        const target = popupAnchorTarget()
+        if (target && target.mapToItem) {
+            const targetX = target.mapToItem(root, 0, 0).x
+            const targetWidth = target.width
+            const centerX = targetX + (targetWidth / 2)
+            return Math.max(hostPadding, Math.min(root.width - w - hostPadding, centerX - (w / 2)))
+        }
+        return root.width - w - hostPadding
+    }
 
     function togglePopup(name: string) {
         activePopup = activePopup === name ? "" : name
@@ -26,6 +39,7 @@ Item {
     function popupAnchorTarget() {
         if (activePopup === "network") return networkLoader
         if (activePopup === "bluetooth") return bluetoothLoader
+        if (activePopup === "volume") return volumeLoader
         return rightSection
     }
 
@@ -107,7 +121,20 @@ Item {
             }
 
             Loader {
+                id: volumeLoader
                 source: "components/WaybarVolume.qml"
+                Binding {
+                    target: volumeLoader.item
+                    property: "barWindow"
+                    value: root.barWindow
+                    when: volumeLoader.status === Loader.Ready && root.barWindow !== undefined
+                }
+                Binding {
+                    target: volumeLoader.item
+                    property: "bar"
+                    value: root
+                    when: volumeLoader.status === Loader.Ready
+                }
             }
 
             Loader {
@@ -164,15 +191,33 @@ Item {
         }
     }
 
-    Item {
-        id: popupHost
-        anchors.top: barContainer.bottom
-        anchors.topMargin: 4
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: hasPopup ? popupContentWrapper.height + 12 : 0
-        clip: true
-        visible: hasPopup
+    PanelWindow {
+        id: popupWindow
+        screen: root.screen
+        anchors {
+            top: true
+            left: true
+        }
+        margins {
+            top: config.bar.height + 4
+            left: root.popupX
+        }
+        
+        implicitWidth: (root.activePopup === "network" || root.activePopup === "volume") ? 340 : 320
+        implicitHeight: {
+            if (btPanelLoader.active && btPanelLoader.item)
+                return btPanelLoader.item.implicitHeight
+            if (netPanelLoader.active && netPanelLoader.item)
+                return netPanelLoader.item.implicitHeight
+            if (volPanelLoader.active && volPanelLoader.item)
+                return volPanelLoader.item.implicitHeight
+            return 0
+        }
+        
+        color: "transparent"
+        visible: root.hasPopup
+        
+        WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
         property bool mouseHasEntered: false
         property bool mouseInside: popupHoverHandler.hovered
@@ -181,79 +226,66 @@ Item {
             id: popupCloseTimer
             interval: 400
             onTriggered: {
-                if (!popupHost.mouseInside && popupHost.mouseHasEntered && root.hasPopup) {
+                if (!popupWindow.mouseInside && popupWindow.mouseHasEntered && root.hasPopup) {
                     root.closePopup()
                 }
             }
         }
 
-        MouseArea {
-            anchors.fill: parent
-            onClicked: root.closePopup()
+        HoverHandler {
+            id: popupHoverHandler
+            onHoveredChanged: {
+                if (hovered) {
+                    popupWindow.mouseHasEntered = true
+                    popupCloseTimer.stop()
+                } else if (popupWindow.mouseHasEntered && root.hasPopup) {
+                    popupCloseTimer.restart()
+                }
+            }
         }
 
-        Item {
-            id: popupContentWrapper
-            y: 4
-            x: {
-                const w = width
-                const hostPadding = 12
-                const anchor = root.popupAnchorTarget()
-                if (anchor && anchor.mapToItem) {
-                    const centerInHost = anchor.mapToItem(popupHost, anchor.width / 2, anchor.height).x
-                    return Math.max(hostPadding, Math.min(popupHost.width - w - hostPadding, centerInHost - (w / 2)))
-                }
-                return Math.max(hostPadding, popupHost.width - w - hostPadding)
+        Loader {
+            id: btPanelLoader
+            anchors.fill: parent
+            active: root.activePopup === "bluetooth"
+            source: "components/BluetoothPanel.qml"
+            onLoaded: {
+                item.shouldShow = true
+                item.forceActiveFocus()
             }
-            width: activePopup === "network" ? 340 : 320
-            height: {
-                if (btPanelLoader.active && btPanelLoader.item)
-                    return btPanelLoader.item.implicitHeight
-                if (netPanelLoader.active && netPanelLoader.item)
-                    return netPanelLoader.item.implicitHeight
-                return 0
+            Connections {
+                target: btPanelLoader.item
+                function onCloseRequested() { root.closePopup() }
             }
+        }
 
-            HoverHandler {
-                id: popupHoverHandler
-                onHoveredChanged: {
-                    if (hovered) {
-                        popupHost.mouseHasEntered = true
-                        popupCloseTimer.stop()
-                    } else if (popupHost.mouseHasEntered && root.hasPopup) {
-                        popupCloseTimer.restart()
-                    }
-                }
+        Loader {
+            id: netPanelLoader
+            anchors.fill: parent
+            active: root.activePopup === "network"
+            source: "components/NetworkPanel.qml"
+            onLoaded: {
+                item.shouldShow = true
+                item.forceActiveFocus()
             }
-
-            Loader {
-                id: btPanelLoader
-                anchors.fill: parent
-                active: root.activePopup === "bluetooth"
-                source: "components/BluetoothPanel.qml"
-                onLoaded: {
-                    item.shouldShow = true
-                    item.forceActiveFocus()
-                }
-                Connections {
-                    target: btPanelLoader.item
-                    function onCloseRequested() { root.closePopup() }
-                }
+            Connections {
+                target: netPanelLoader.item
+                function onCloseRequested() { root.closePopup() }
             }
+        }
 
-            Loader {
-                id: netPanelLoader
-                anchors.fill: parent
-                active: root.activePopup === "network"
-                source: "components/NetworkPanel.qml"
-                onLoaded: {
-                    item.shouldShow = true
-                    item.forceActiveFocus()
-                }
-                Connections {
-                    target: netPanelLoader.item
-                    function onCloseRequested() { root.closePopup() }
-                }
+        Loader {
+            id: volPanelLoader
+            anchors.fill: parent
+            active: root.activePopup === "volume"
+            source: "components/VolumePanel.qml"
+            onLoaded: {
+                item.shouldShow = true
+                item.forceActiveFocus()
+            }
+            Connections {
+                target: volPanelLoader.item
+                function onCloseRequested() { root.closePopup() }
             }
         }
     }

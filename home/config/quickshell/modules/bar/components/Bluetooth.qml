@@ -20,7 +20,7 @@ Item {
     readonly property string deviceName: hasConnection ? (connectedDevices[0]?.name ?? "Device") : ""
     readonly property int deviceCount: connectedDevices.length
     
-    implicitWidth: bluetoothRow.implicitWidth
+    implicitWidth: bluetoothRow.implicitWidth + 16
     implicitHeight: 20
     
     RowLayout {
@@ -53,33 +53,6 @@ Item {
             
             scale: isHovered ? 1.05 : 1.0
             Behavior on scale { NumberAnimation { duration: 100 } }
-        }
-        
-        // Device name - simple text, no gradient overlay
-        Text {
-            id: deviceText
-            Layout.alignment: Qt.AlignVCenter
-            Layout.maximumWidth: 65
-            
-            text: {
-                if (!isEnabled) return "Off"
-                if (!hasConnection) return "No Device"
-                if (deviceCount > 1) return deviceName + " +" + (deviceCount - 1)
-                return deviceName
-            }
-            
-            font.family: "Inter"
-            font.pixelSize: 10
-            font.weight: hasConnection ? Font.Medium : Font.Normal
-            elide: Text.ElideRight
-            
-            color: {
-                if (!isEnabled || !hasConnection) return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.4)
-                if (isHovered) return pywal.foreground
-                return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.75)
-            }
-            
-            Behavior on color { ColorAnimation { duration: 150 } }
         }
     }
     

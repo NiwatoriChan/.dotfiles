@@ -18,7 +18,7 @@ Item {
     readonly property int signalStrength: isConnected ? network.active.strength : 0
     readonly property string networkName: isConnected ? (network.active.ssid ?? "Connected") : ""
     
-    implicitWidth: networkRow.implicitWidth
+    implicitWidth: networkRow.implicitWidth + 16
     implicitHeight: 20
     
     RowLayout {
@@ -54,32 +54,6 @@ Item {
             
             scale: isHovered ? 1.05 : 1.0
             Behavior on scale { NumberAnimation { duration: 100 } }
-        }
-        
-        // Network name - simple text, no gradient overlay
-        Text {
-            id: networkText
-            Layout.alignment: Qt.AlignVCenter
-            Layout.maximumWidth: 70
-            
-            text: {
-                if (!isEnabled) return "Off"
-                if (!isConnected) return "No WiFi"
-                return networkName
-            }
-            
-            font.family: "Inter"
-            font.pixelSize: 10
-            font.weight: isConnected ? Font.Medium : Font.Normal
-            elide: Text.ElideRight
-            
-            color: {
-                if (!isEnabled || !isConnected) return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.4)
-                if (isHovered) return pywal.foreground
-                return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.75)
-            }
-            
-            Behavior on color { ColorAnimation { duration: 150 } }
         }
     }
     

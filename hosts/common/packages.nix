@@ -38,6 +38,7 @@
     emacs-pgtk
     gnome-disk-utility
     moonlight-qt
+    code-cursor
 
     # Theming
     papirus-icon-theme

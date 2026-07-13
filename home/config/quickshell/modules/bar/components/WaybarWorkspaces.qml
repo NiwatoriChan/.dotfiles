@@ -56,7 +56,13 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Hyprland.dispatch("workspace " + modelData.id)
+                    onClicked: {
+                        if (typeof modelData.activate === "function") {
+                            modelData.activate();
+                        } else {
+                            Hyprland.dispatch("workspace " + modelData.id);
+                        }
+                    }
                     onEntered: if (!isActive) wsButton.color = "#ffffff"
                     onExited: if (!isActive && !isUrgent) wsButton.color = Qt.rgba(1, 1, 1, 0.4)
                 }

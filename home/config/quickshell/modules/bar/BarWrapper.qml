@@ -22,12 +22,10 @@ Scope {
             }
 
             exclusiveZone: config.bar.height
-            implicitHeight: config.bar.height + (barLoader.item?.popupAreaHeight ?? 0)
+            implicitHeight: config.bar.height
             color: "transparent"
 
-            WlrLayershell.keyboardFocus: (barLoader.item?.hasPopup ?? false)
-                ? WlrKeyboardFocus.OnDemand
-                : WlrKeyboardFocus.None
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
             Loader {
                 id: barLoader

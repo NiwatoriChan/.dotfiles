@@ -6,16 +6,30 @@ Item {
 
     readonly property var system: QsServices.SystemUsage
 
-    implicitWidth: memText.implicitWidth + 24
+    implicitWidth: memRow.implicitWidth + 24
     implicitHeight: 28
 
-    Text {
-        id: memText
+    Row {
+        id: memRow
         anchors.centerIn: parent
-        text: "\uf538   " + Math.round(system.memPerc * 100) + "%"
-        color: "#93c5fd"
-        font.family: "Inter Variable"
-        font.pixelSize: 13
-        font.weight: Font.DemiBold
+        spacing: 6
+
+        Text {
+            text: "\uefc5"
+            color: "#93c5fd"
+            font.family: "JetBrainsMono Nerd Font"
+            font.pixelSize: 13
+            font.weight: Font.DemiBold
+            anchors.verticalCenter: parent.verticalCenter
+        }
+
+        Text {
+            text: Math.round(system.memPerc * 100) + "%"
+            color: "#93c5fd"
+            font.family: "Inter Variable"
+            font.pixelSize: 13
+            font.weight: Font.DemiBold
+            anchors.verticalCenter: parent.verticalCenter
+        }
     }
 }

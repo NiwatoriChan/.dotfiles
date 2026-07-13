@@ -5,6 +5,9 @@ import "../../../services" as QsServices
 Item {
     id: root
 
+    property var barWindow
+    property var bar
+
     readonly property var audio: QsServices.Audio
     readonly property bool isMuted: audio.muted
     readonly property int percentage: audio.percentage
@@ -26,6 +29,13 @@ Item {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: Quickshell.execDetached(["pwvucontrol"])
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onClicked: (mouse) => {
+            if (mouse.button === Qt.RightButton) {
+                Quickshell.execDetached(["pwvucontrol"])
+            } else if (mouse.button === Qt.LeftButton && root.bar) {
+                root.bar.togglePopup("volume")
+            }
+        }
     }
 }

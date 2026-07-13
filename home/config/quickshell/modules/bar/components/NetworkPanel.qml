@@ -2,6 +2,7 @@ import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import QtQuick.Controls 6.10 as QQC
 import Quickshell.Io
+import "../../../components/effects"
 import "../../../services" as QsServices
 
 FocusScope {

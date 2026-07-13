@@ -25,6 +25,9 @@
 
   services.blueman.enable = true;
 
+  # Enable UPower only if Quickshell is enabled
+  services.upower.enable = config.home-manager.users.niwatorichan.programs.quickshell.enable;
+
   # Thunar File Manager and plugins
   programs.thunar = {
     enable = true;
