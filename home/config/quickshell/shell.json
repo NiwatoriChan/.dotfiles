@@ -1,0 +1,41 @@
+{
+  "appearance": {
+    "fontFamily": "Inter Variable",
+    "materialIconFont": "Material Design Icons"
+  },
+  "paths": {
+    "pywalColors": "~/.cache/wal/colors.json",
+    "screenshotsDir": "~/Pictures/Screenshots"
+  },
+  "osd": {
+    "volumeTimeoutMs": 2000,
+    "brightnessTimeoutMs": 2000
+  },
+  "notifications": {
+    "popupWidth": 340,
+    "maxVisible": 5,
+    "timeoutMs": 7000,
+    "registerServer": false,
+    "spacing": 10,
+    "margin": 10
+  },
+  "launcher": {
+    "enabled": false,
+    "width": 720,
+    "maxResults": 8,
+    "terminalCommand": ["kitty"],
+    "favorites": []
+  },
+  "sidebar": {
+    "enabled": false,
+    "width": 420,
+    "margin": 12,
+    "maxHistory": 80
+  },
+  "dashboard": {
+    "enabled": false,
+    "width": 860,
+    "height": 640,
+    "margin": 18
+  }
+}

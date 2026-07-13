@@ -54,7 +54,10 @@
   home-manager.users.niwatorichan = { config, pkgs, ... }: {
     imports = [
       ../home/common/waybar.nix
+      ../home/common/quickshell.nix
     ];
+
+    programs.quickshell.enable = true;
 
     # Qt theming — use qtct to manage styling for any Qt apps
     qt = {
