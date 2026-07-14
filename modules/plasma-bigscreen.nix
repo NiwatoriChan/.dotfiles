@@ -28,6 +28,10 @@
     krdp
   ];
 
+  environment.plasma6.excludePackages = with pkgs.kdePackages; [
+    discover
+  ];
+
   # Open firewall ports for KDE Remote Desktop (krdp)
   networking.firewall.allowedTCPPorts = [ 3389 ];
   networking.firewall.allowedUDPPorts = [ 3389 ];

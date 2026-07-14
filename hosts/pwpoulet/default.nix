@@ -8,6 +8,7 @@
     ../../modules/kde.nix   # ← swap to change DE
     ../../modules/gaming.nix
     ../../modules/sunshine.nix
+    ../../modules/developpement.nix
     #../../modules/virtualisation/vmware.nix
     #../../modules/jovian-amd.nix
   ];
