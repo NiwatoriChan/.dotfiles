@@ -30,7 +30,9 @@ FocusScope {
     Rectangle {
         anchors.fill: parent
         radius: 24
-        color: cSurface
+        color: Qt.rgba(cSurface.r, cSurface.g, cSurface.b, 0.65)
+        border.width: 1
+        border.color: Qt.rgba(1, 1, 1, 0.08)
 
         ColumnLayout {
             id: contentColumn
@@ -84,7 +86,7 @@ FocusScope {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 54
                 radius: 16
-                color: cSurfaceContainer
+                color: Qt.rgba(cSurfaceContainer.r, cSurfaceContainer.g, cSurfaceContainer.b, 0.4)
                 
                 RowLayout {
                     anchors.fill: parent
@@ -180,7 +182,7 @@ FocusScope {
                 Layout.fillWidth: true
                 Layout.preferredHeight: Math.min(deviceList.contentHeight + 8, 120)
                 radius: 16
-                color: cSurfaceContainerHigh
+                color: Qt.rgba(cSurfaceContainerHigh.r, cSurfaceContainerHigh.g, cSurfaceContainerHigh.b, 0.4)
                 clip: true
 
                 ListView {
@@ -265,7 +267,7 @@ FocusScope {
                 Layout.fillWidth: true
                 Layout.preferredHeight: Math.min(appList.contentHeight + 8, 220)
                 radius: 16
-                color: cSurfaceContainerHigh
+                color: Qt.rgba(cSurfaceContainerHigh.r, cSurfaceContainerHigh.g, cSurfaceContainerHigh.b, 0.4)
                 clip: true
 
                 ListView {

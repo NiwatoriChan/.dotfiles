@@ -41,7 +41,9 @@ FocusScope {
     Rectangle {
         anchors.fill: parent
         radius: 24
-        color: cSurface
+        color: Qt.rgba(cSurface.r, cSurface.g, cSurface.b, 0.65)
+        border.width: 1
+        border.color: Qt.rgba(1, 1, 1, 0.08)
 
         ColumnLayout {
             id: contentColumn
@@ -116,7 +118,7 @@ FocusScope {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 36
                 radius: 12
-                color: scanArea.pressed ? Qt.rgba(cOnSurface.r, cOnSurface.g, cOnSurface.b, 0.12) : scanArea.containsMouse ? Qt.rgba(cOnSurface.r, cOnSurface.g, cOnSurface.b, 0.08) : cSurfaceContainer
+                color: scanArea.pressed ? Qt.rgba(cOnSurface.r, cOnSurface.g, cOnSurface.b, 0.12) : scanArea.containsMouse ? Qt.rgba(cOnSurface.r, cOnSurface.g, cOnSurface.b, 0.08) : Qt.rgba(cSurfaceContainer.r, cSurfaceContainer.g, cSurfaceContainer.b, 0.4)
                 Behavior on color { ColorAnimation { duration: 150 } }
                 scale: scanArea.pressed ? 0.97 : 1.0
                 Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: Material3Anim.springGentle } }
@@ -161,7 +163,7 @@ FocusScope {
                 Layout.fillWidth: true
                 Layout.preferredHeight: Math.min(networkList.contentHeight + 8, 280)
                 radius: 16
-                color: cSurfaceContainerHigh
+                color: Qt.rgba(cSurfaceContainerHigh.r, cSurfaceContainerHigh.g, cSurfaceContainerHigh.b, 0.4)
                 clip: true
 
                 ListView {
