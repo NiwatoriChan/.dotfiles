@@ -14,7 +14,7 @@
   ];
 
   # Bootloader kernel package choice
-  #boot.kernelPackages = lib.mkForce pkgs.cachyosKernels.linuxPackages-cachyos-latest;
+  boot.kernelPackages = lib.mkForce pkgs.cachyosKernels.linuxPackages-cachyos-latest;
 
   # Hostname
   networking.hostName = "PwPoulet";

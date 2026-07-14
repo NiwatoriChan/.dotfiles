@@ -76,7 +76,7 @@ cat << EOF > "$TEMP_DIR/flake.nix"
         chaotic.nixosModules.default
         ({ pkgs, ... }: {
           nixpkgs.overlays = [
-            nix-cachyos-kernel.overlays.default
+            nix-cachyos-kernel.overlays.pinned
           ];
 
           boot.loader.systemd-boot.enable = true;
