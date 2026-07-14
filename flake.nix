@@ -70,7 +70,7 @@
           inherit inputs pkgs-unstable;
         };
 
-      sharedKernelAndCache = { pkgs, ... }: {
+      sharedKernelAndCache = { config, pkgs, lib, ... }: {
         imports = [
           inputs.chaotic.nixosModules.default
         ];
@@ -80,7 +80,7 @@
         ];
 
         #boot.kernelPackages = pkgs.linuxPackages_cachyos;
-        boot.kernelPackages = pkgs.linuxPackages_latest;
+        boot.kernelPackages = lib.mkIf (config.networking.hostName != "Savage") pkgs.linuxPackages_latest;
 
         # Binary cache
         nix.settings.substituters = [
