@@ -22,8 +22,8 @@ let
     in
     {
       inherit name;
-      # Use Helium since it is the installed browser on the system
-      exec = "helium --start-maximized --app=${url}";
+      # Use Brave Origin since it is the installed browser on the system
+      exec = "brave-origin --start-maximized --app=${url}";
       icon = "${iconPath}";
       terminal = false;
       type = "Application";

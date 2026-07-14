@@ -89,6 +89,14 @@
       };
     };
 
+    # Dconf settings to remove window buttons for GNOME/GTK apps using gsettings
+    dconf.settings = {
+      "org/gnome/desktop/wm/preferences" = {
+        button-layout = ":";
+      };
+    };
+
+
     # Set pointer cursor to Breeze (from KDE)
     home.pointerCursor = {
       gtk.enable = true;

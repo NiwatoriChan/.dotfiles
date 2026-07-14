@@ -26,8 +26,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    helium = {
-      url = "github:schembriaiden/helium-browser-nix-flake";
+    custom-packages = {
+      url = "github:Rishabh5321/custom-packages-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -59,9 +59,14 @@
             ];
           };
         in {
-          heliumPkg = if inputs.helium.packages ? ${system}
-                      then inputs.helium.packages.${system}.default
-                      else pkgs-unstable.writeShellScriptBin "helium" "echo 'Helium browser is not supported on ${system}'";
+          customPackages = {
+            better-control = if inputs.custom-packages.packages ? ${system} && inputs.custom-packages.packages.${system} ? better-control
+                             then inputs.custom-packages.packages.${system}.better-control
+                             else pkgs-unstable.writeShellScriptBin "better-control" "echo 'better-control is not supported on ${system}'";
+            brave-origin = if inputs.custom-packages.packages ? ${system} && inputs.custom-packages.packages.${system} ? brave-origin
+                           then inputs.custom-packages.packages.${system}.brave-origin
+                           else pkgs-unstable.writeShellScriptBin "brave-origin" "echo 'brave-origin is not supported on ${system}'";
+          };
           inherit inputs pkgs-unstable;
         };
 

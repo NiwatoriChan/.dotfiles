@@ -1,10 +1,11 @@
 # Shared system-level packages — installed on all desktop hosts
-{ pkgs, heliumPkg, ... }:
+{ pkgs, customPackages, ... }:
 
 {
   environment.systemPackages = with pkgs; [
-    # Browser
-    heliumPkg
+    # Browser / Custom Packages
+    customPackages.better-control
+    customPackages.brave-origin
 
     # Command line utilities
     neovim
