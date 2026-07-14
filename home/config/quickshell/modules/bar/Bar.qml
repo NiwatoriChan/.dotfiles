@@ -105,7 +105,10 @@ Item {
             }
 
             Loader {
+                id: mprisLoader
                 source: "components/WaybarMpris.qml"
+                Layout.preferredWidth: item ? item.implicitWidth : 0
+                Layout.preferredHeight: item ? item.implicitHeight : 0
             }
         }
 

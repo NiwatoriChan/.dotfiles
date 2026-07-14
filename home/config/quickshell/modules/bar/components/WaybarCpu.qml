@@ -6,7 +6,7 @@ Item {
 
     readonly property var system: QsServices.SystemUsage
 
-    implicitWidth: cpuText.implicitWidth + 24
+    implicitWidth: 90
     implicitHeight: 28
 
     Text {

@@ -81,11 +81,11 @@
       };
       gtk3.extraConfig = {
         gtk-application-prefer-dark-theme = 1;
-        gtk-decoration-layout = ":minimize,maximize,close";
+        gtk-decoration-layout = ":";
       };
       gtk4.extraConfig = {
         gtk-application-prefer-dark-theme = 1;
-        gtk-decoration-layout = ":minimize,maximize,close";
+        gtk-decoration-layout = ":";
       };
     };
 
