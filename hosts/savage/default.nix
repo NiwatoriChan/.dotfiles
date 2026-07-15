@@ -8,6 +8,8 @@
     ../../modules/gaming.nix
     ../../modules/jovian-deck.nix
     ../../modules/sunshine.nix
+    ../../modules/kodi.nix
+    ../../modules/multimedias.nix
   ];
 
   # Hostname

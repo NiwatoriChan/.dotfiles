@@ -15,6 +15,8 @@
     #../../modules/plasma-bigscreen.nix
     ../../modules/virtualisation/vmware.nix
     ../../modules/developpement.nix
+    ../../modules/kodi.nix
+    ../../modules/multimedias.nix
   ];
 
   # Hostname
