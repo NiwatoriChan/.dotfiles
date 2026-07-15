@@ -13,7 +13,10 @@
   hardware.graphics.enable = true;
 
   # Pin kernel to a stable 6.x series compatible with legacy_580 driver
-  boot.kernelPackages = lib.mkForce pkgs.linuxPackages;
+  #boot.kernelPackages = lib.mkForce pkgs.linuxPackages;
+
+  # Pin Cachy OS kernel
+  boot.kernelPackages = lib.mkForce pkgs.cachyosKernels.linuxPackages-cachyos-latest;
 
   hardware.nvidia = {
     modesetting.enable = true;
