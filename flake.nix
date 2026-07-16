@@ -60,9 +60,6 @@
           };
         in {
           customPackages = {
-            better-control = if inputs.custom-packages.packages ? ${system} && inputs.custom-packages.packages.${system} ? better-control
-                             then inputs.custom-packages.packages.${system}.better-control
-                             else pkgs-unstable.writeShellScriptBin "better-control" "echo 'better-control is not supported on ${system}'";
             brave-origin = if inputs.custom-packages.packages ? ${system} && inputs.custom-packages.packages.${system} ? brave-origin
                            then inputs.custom-packages.packages.${system}.brave-origin
                            else pkgs-unstable.writeShellScriptBin "brave-origin" "echo 'brave-origin is not supported on ${system}'";

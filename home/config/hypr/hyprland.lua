@@ -274,6 +274,18 @@ hl.window_rule({
     opacity = "0.85 0.75",
 })
 
+hl.window_rule({
+    name = "blueman-float",
+    match = { class = "^(blueman-manager)$" },
+    float = true,
+})
+
+hl.window_rule({
+    name = "nm-connection-editor-float",
+    match = { class = "^(nm-connection-editor)$" },
+    float = true,
+})
+
 
 hl.window_rule({
     name = "emacs-opacity-1",

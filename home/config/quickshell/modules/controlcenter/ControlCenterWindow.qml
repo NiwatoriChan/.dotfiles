@@ -39,14 +39,7 @@ PanelWindow {
 
     WlrLayershell.keyboardFocus: shouldShow ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
-    Process { id: settingsProcess; command: ["nm-connection-editor"] }
-    Process { id: lockProcess; command: ["loginctl", "lock-session"] }
-    Process { id: powerProcess; command: ["wlogout"] }
-    Process {
-        id: screenshotsProcess
-        command: ["xdg-open", root.screenshot.screenshotsDir]
-        onStarted: root.shouldShow = false
-    }
+
 
     // M3 Solid Color Tokens
     readonly property color cSurface: pywal.surface
@@ -136,7 +129,7 @@ PanelWindow {
                             Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: Material3Anim.springGentle } }
 
                             Text { anchors.centerIn: parent; text: "󰒓"; font.family: "Material Design Icons"; font.pixelSize: 24; color: root.cOnSurfaceVariant }
-                            MouseArea { id: settingsBtnMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; hoverEnabled: true; onClicked: settingsProcess.running = true }
+                            MouseArea { id: settingsBtnMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; hoverEnabled: true; onClicked: Quickshell.execDetached(["nm-connection-editor"]) }
                         }
 
                         Rectangle {
@@ -147,7 +140,7 @@ PanelWindow {
                             Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: Material3Anim.springGentle } }
 
                             Text { anchors.centerIn: parent; text: "󰍜"; font.family: "Material Design Icons"; font.pixelSize: 24; color: root.cOnSurfaceVariant }
-                            MouseArea { id: lockBtnMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; hoverEnabled: true; onClicked: lockProcess.running = true }
+                            MouseArea { id: lockBtnMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; hoverEnabled: true; onClicked: Quickshell.execDetached(["loginctl", "lock-session"]) }
                         }
 
                         Rectangle {
@@ -158,7 +151,7 @@ PanelWindow {
                             Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: Material3Anim.springGentle } }
 
                             Text { anchors.centerIn: parent; text: "󰐥"; font.family: "Material Design Icons"; font.pixelSize: 24; color: root.cOnSurfaceVariant }
-                            MouseArea { id: powerBtnMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; hoverEnabled: true; onClicked: powerProcess.running = true }
+                            MouseArea { id: powerBtnMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; hoverEnabled: true; onClicked: Quickshell.execDetached(["wlogout"]) }
                         }
                     }
                 }
@@ -190,7 +183,7 @@ PanelWindow {
                             QuickToggle { Layout.fillWidth: true; icon: "󰄉"; label: "Focus Mode"; subLabel: root.settings.focusModeEnabled ? `${root.settings.focusModeMinutesLeft} min remaining` : "25 min timer"; active: root.settings.focusModeEnabled; activeColor: pywal.info; onClicked: { root.settings.focusModeEnabled = !root.settings.focusModeEnabled; if (root.settings.focusModeEnabled) { root.settings.focusModeMinutesLeft = 25; root.notifs.dnd = true } } }
                             QuickToggle { Layout.fillWidth: true; Layout.columnSpan: 2; icon: "󰹑"; label: "Screenshot"; subLabel: "Capture Screen"; active: false; activeColor: root.cSecondary; onClicked: root.screenshot.takeScreenshot("screen") }
                             QuickToggle { Layout.fillWidth: true; icon: root.screenshot.isRecording ? "󰛿" : "󰻃"; label: root.screenshot.isRecording ? "Stop Recording" : "Record Screen"; subLabel: root.screenshot.isRecording ? "Recording in progress" : "Start wf-recorder"; active: root.screenshot.isRecording; activeColor: pywal.error; onClicked: { if (root.screenshot.isRecording) root.screenshot.stopRecording(); else root.screenshot.startRecording() } }
-                            QuickToggle { Layout.fillWidth: true; icon: "󰉋"; label: "Open Captures"; subLabel: "Screenshots & recordings"; active: false; activeColor: root.cSecondary; onClicked: screenshotsProcess.running = true }
+                            QuickToggle { Layout.fillWidth: true; icon: "󰉋"; label: "Open Captures"; subLabel: "Screenshots & recordings"; active: false; activeColor: root.cSecondary; onClicked: { Quickshell.execDetached(["xdg-open", root.screenshot.screenshotsDir]); root.shouldShow = false } }
                         }
 
                         // Sliders Container

@@ -4,7 +4,6 @@
 {
   environment.systemPackages = with pkgs; [
     # Browser / Custom Packages
-    customPackages.better-control
     customPackages.brave-origin
 
     # Command line utilities

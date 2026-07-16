@@ -1,6 +1,7 @@
 import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import QtQuick.Controls 6.10 as QQC
+import Quickshell
 import Quickshell.Io
 import "../../../components/effects"
 import "../../../services" as QsServices
@@ -24,11 +25,6 @@ FocusScope {
     readonly property color cOnSurface: pywal.foreground
     readonly property color cOnSurfaceVariant: pywal.onSurfaceMuted
 
-    Process {
-        id: settingsProcess
-        command: ["nm-connection-editor"]
-        onStarted: popupPanel.closeRequested()
-    }
 
     implicitWidth: 340
     implicitHeight: contentColumn.implicitHeight + 32
@@ -342,7 +338,10 @@ FocusScope {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: settingsProcess.running = true
+                    onClicked: {
+                        Quickshell.execDetached(["nm-connection-editor"])
+                        popupPanel.closeRequested()
+                    }
                 }
             }
         }

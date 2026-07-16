@@ -15,11 +15,6 @@ Item {
     readonly property var bluetooth: QsServices.Bluetooth
     readonly property var idleInhibitor: QsServices.IdleInhibitor
 
-    Process { id: lockProc; command: ["loginctl", "lock-session"] }
-    Process { id: logoutProc; command: ["hyprctl", "dispatch", "exit"] }
-    Process { id: sleepProc; command: ["systemctl", "suspend"] }
-    Process { id: wifiSettingsProc; command: ["nm-connection-editor"] }
-    Process { id: bluetoothSettingsProc; command: ["blueman-manager"] }
     
     // DND state (simple toggle for now)
     property bool dndEnabled: false
@@ -74,7 +69,7 @@ Item {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            lockProc.running = true
+                            Quickshell.execDetached(["loginctl", "lock-session"])
                         }
                         
                         onPressed: parent.color = Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.1)
@@ -114,7 +109,7 @@ Item {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            logoutProc.running = true
+                            Quickshell.execDetached(["hyprctl", "dispatch", "exit"])
                         }
                         
                         onPressed: parent.color = Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.1)
@@ -154,7 +149,7 @@ Item {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            sleepProc.running = true
+                            Quickshell.execDetached(["systemctl", "suspend"])
                         }
                         
                         onPressed: parent.color = Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.1)
@@ -417,7 +412,7 @@ Item {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        wifiSettingsProc.running = true
+                        Quickshell.execDetached(["nm-connection-editor"])
                     }
                     
                     onPressed: parent.color = Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.1)
@@ -477,7 +472,7 @@ Item {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        bluetoothSettingsProc.running = true
+                        Quickshell.execDetached(["blueman-manager"])
                     }
                     
                     onPressed: parent.color = Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.1)
