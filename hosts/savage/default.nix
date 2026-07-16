@@ -14,8 +14,13 @@
   # Hostname
   networking.hostName = "Savage";
 
-  # Fix external display flickering on older TVs by disabling Scatter/Gather display memory
-  boot.kernelParams = [ "amdgpu.sg_display=0" ];
+  # Fix external display flickering on older TVs by forcing 1080p@60Hz and disabling Scatter/Gather display memory
+  boot.kernelParams = [ 
+    "amdgpu.sg_display=0" 
+    "video=DP-1:1920x1080@60e"
+    "video=DP-2:1920x1080@60e"
+    "video=HDMI-A-1:1920x1080@60e"
+  ];
 
   # Add "Return to Gaming Mode" shortcut on Desktop
   home-manager.users.niwatorichan = { pkgs, ... }: {
