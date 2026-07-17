@@ -38,7 +38,13 @@
   };
 
   # Printing
-  services.printing.enable = true;
+  services.printing = {
+    enable = true;
+    drivers = with pkgs; [
+      samsung-unified-linux-driver
+      splix
+    ];
+  };
 
   # SSD TRIM (weekly via systemd timer)
   services.fstrim.enable = true;
