@@ -94,12 +94,24 @@ Specific system host modules override or add system services:
 - **Type**: Headless Server.
 - **Services**: Imports core server modules (`modules/server/default.nix`) enabling declarative Samba storage sharing, OpenVPN tunneling, the Homepage portal, and the Nixarr stack.
 
-### 5. Savage (`hosts/savage`)
+### 5. Savage (*BETA*) (`hosts/savage`)
+- **Status**: Beta.
 - **Device/Architecture**: Steam Deck LCD (x86_64).
 - **Steam Deck Integration (Jovian-NixOS)**: Configured using the Jovian-NixOS module system, enabling Steam Deck hardware profiles, performance optimizations, and controller driver layers.
 - **Graphical Environment**: Launches directly into Steam Gaming Mode on boot, with KDE Plasma 6 available as the alternative desktop environment session.
 - **Garbage Collection**: Automatically runs Nix store garbage collection weekly, deleting generations older than 7 days.
 - **Services**: Sunshine game streaming host configuration (`modules/sunshine.nix`) is enabled to allow high-performance local remote play.
+
+---
+
+## 🎨 Desktop Environment & Compositor Modules
+
+Modular graphical desktop profiles under `modules/`:
+
+- **KDE Plasma 6** (`modules/kde.nix`): Unstable KDE release overlay and Plasma 6 desktop manager settings.
+- **Hyprland** (`modules/hyprland.nix`): Wayland tiling window manager profile with custom environment variables, XDG desktop portals, and font configuration.
+- **MangoWM** (`modules/mangowm.nix`): Custom scroll-tiling window manager profile.
+- **KineticWE** (`modules/kineticwe.nix`) *EXPERIMENTAL*: Custom KWin Window Environment desktop module combining system-level and Home Manager settings. Imports `inputs.kineticwe`, enables overlays, configures XDG Desktop Portals (`xdg-desktop-portal-kde`), defines a custom startup launcher script (`start-kineticwe`) executing autostart background tools (Quickshell, Mako, Wpaperd, NM Applet, Blueman Applet, Wlsunset), registers the SDDM wayland session desktop entry, and symlinks shared KDE Plasma configurations.
 
 ---
 

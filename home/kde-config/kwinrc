@@ -14,32 +14,32 @@ Mode=Constant
 
 [Plugins]
 blurEnabled=true
-karouselEnabled=false
-krohnkiteEnabled=true
+karouselEnabled=true
+krohnkiteEnabled=false
 
 [Tiling][Desktop_1][c393ae35-4ff2-410c-9383-2009ce9ce3c0]
 padding=4
-tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+tiles={"layoutDirection":"floating","tiles":[]}
 
 [Tiling][Desktop_2][c393ae35-4ff2-410c-9383-2009ce9ce3c0]
 padding=4
-tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+tiles={"layoutDirection":"floating","tiles":[]}
 
 [Tiling][Desktop_3][c393ae35-4ff2-410c-9383-2009ce9ce3c0]
 padding=4
-tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+tiles={"layoutDirection":"floating","tiles":[{"height":1,"width":0.5,"x":0,"y":0},{"height":0.5,"width":0.5,"x":0.5,"y":0},{"height":0.5,"width":0.5,"x":0.5,"y":0.5}]}
 
 [Tiling][Desktop_4][c393ae35-4ff2-410c-9383-2009ce9ce3c0]
 padding=4
-tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+tiles={"layoutDirection":"floating","tiles":[]}
 
 [Tiling][Desktop_5][c393ae35-4ff2-410c-9383-2009ce9ce3c0]
 padding=4
-tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+tiles={"layoutDirection":"floating","tiles":[]}
 
 [Tiling][Desktop_6][c393ae35-4ff2-410c-9383-2009ce9ce3c0]
 padding=4
-tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+tiles={"layoutDirection":"floating","tiles":[]}
 
 [Xwayland]
 Scale=1

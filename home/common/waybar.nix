@@ -41,6 +41,7 @@ with lib;
             format = "";
             tooltip = false;
             on-click = "${config.home.homeDirectory}/.config/waybar/scripts/power-menu.sh";
+            on-click-right = "kitty";
           };
 
           "wlr/taskbar" = {

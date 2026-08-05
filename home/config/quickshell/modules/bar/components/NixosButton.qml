@@ -22,9 +22,16 @@ Item {
         id: mouseArea
         anchors.fill: parent
         hoverEnabled: true
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         cursorShape: Qt.PointingHandCursor
-        onClicked: Quickshell.execDetached([
-            "/home/niwatorichan/.config/waybar/scripts/power-menu.sh"
-        ])
+        onClicked: (mouse) => {
+            if (mouse.button === Qt.RightButton) {
+                Quickshell.execDetached(["kitty"])
+            } else {
+                Quickshell.execDetached([
+                    "/home/niwatorichan/.config/waybar/scripts/power-menu.sh"
+                ])
+            }
+        }
     }
 }

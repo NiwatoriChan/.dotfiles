@@ -2,9 +2,12 @@
 # Power Menu — launched from the NixOS waybar button
 # Uses fuzzel as the selection menu
 
-choice=$(printf " Shutdown\n Reboot\n Logout\n About This System" | fuzzel --dmenu --prompt "  " --width 28 --lines 4)
+choice=$(printf " Open a Terminal\n Shutdown\n Reboot\n Logout\n About This System" | fuzzel --dmenu --prompt "  " --width 28 --lines 5)
 
 case "$choice" in
+    *"Open a Terminal"*)
+        kitty &
+        ;;
     *"Shutdown"*)
         systemctl poweroff
         ;;

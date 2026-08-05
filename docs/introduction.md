@@ -15,7 +15,7 @@ The configuration files are organized as follows:
 ├── docs/                 # Documentation (this portal)
 │   ├── index.html        # Interactive documentation viewer
 │   └── *.md              # Section-specific markdown documents
-├── modules/              # Unified system + user modules (Hyprland, MangoWM, KDE, Server, Gaming)
+├── modules/              # Unified system + user modules (Hyprland, MangoWM, KDE, KineticWE [EXPERIMENTAL], Server, Gaming)
 ├── hosts/                # Machine-specific NixOS configurations
 │   ├── common/           # Shared system settings, packages, and services
 │   ├── potatomonster/    # Config for PotatoMonster (MangoWM system)
@@ -42,7 +42,7 @@ The configurations define four target machines and one headless server:
 | :--- | :--- | :--- | :--- | :--- |
 | **PotatoMonster** | Laptop (x86_64) | MangoWM / Hyprland | `hosts/potatomonster` | `home/potatomonster.nix` |
 | **PwPoulet** | Desktop (x86_64) | KDE Plasma 6 (Unstable) | `hosts/pwpoulet` | `home/pwpoulet.nix` |
-| **Savage** | Steam Deck (x86_64) | Steam Deck Game Mode / KDE Plasma | `hosts/savage` | `home/savage.nix` |
+| **Savage** *BETA* | Steam Deck (x86_64) | Steam Deck Game Mode / KDE Plasma | `hosts/savage` | `home/savage.nix` |
 | **PetitePatate** | Pinebook Pro (aarch64) | Hyprland | `hosts/petitepatate` | `home/petitepatate.nix` |
 | **Jeff** | Headless Server (x86_64) | *None (CLI)* | `hosts/jeff` | `home/jeff.nix` |
 

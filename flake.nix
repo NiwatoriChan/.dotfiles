@@ -44,6 +44,11 @@
     jovian = {
       url = "github:Jovian-Experiments/Jovian-NixOS";
     };
+
+    kineticwe = {
+      url = "gitlab:theblackdon/kineticwe/master";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, chaotic, home-manager, home-manager-unstable, nixos-hardware, ... }@inputs:

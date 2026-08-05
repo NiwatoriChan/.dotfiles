@@ -9,7 +9,7 @@ A modular, unified, and declarative NixOS flake configuration managing multiple 
 | Host | Device / Type | Hardware Specifications | Environment | System Config | User Config |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **🍗 PwPoulet** | Primary Desktop | Ryzen 9 3900X + Radeon RX 6750 XT | KDE Plasma 6 | [`hosts/pwpoulet`](./hosts/pwpoulet) | [`home/pwpoulet.nix`](./home/pwpoulet.nix) |
-| **🦖 Savage** | Steam Deck LCD | Custom AMD APU + RDNA 2 GPU | Steam Deck Game Mode / Plasma | [`hosts/savage`](./hosts/savage) | [`home/savage.nix`](./home/savage.nix) |
+| **🦖 Savage** *BETA* | Steam Deck LCD | Custom AMD APU + RDNA 2 GPU | Steam Deck Game Mode / Plasma | [`hosts/savage`](./hosts/savage) | [`home/savage.nix`](./home/savage.nix) |
 | **🥔 PotatoMonster** | Laptop (Inspiron 7559) | Intel i7 + NVIDIA GTX 960M | MangoWM | [`hosts/potatomonster`](./hosts/potatomonster) | [`home/potatomonster.nix`](./home/potatomonster.nix) |
 | **🍠 PetitePatate** *EXPERIMENTAL* | Laptop (Pinebook Pro) | Rockchip RK3399 (OC 2.08GHz) + Mali | Hyprland | [`hosts/petitepatate`](./hosts/petitepatate) | [`home/petitepatate.nix`](./home/petitepatate.nix) |
 | **🦙 Jeff** *EXPERIMENTAL* | Headless Server | Ryzen 5 1600X + GTX 1070 | Headless CLI / Nixarr | [`hosts/jeff`](./hosts/jeff) | [`home/jeff.nix`](./home/jeff.nix) |
@@ -20,7 +20,7 @@ A modular, unified, and declarative NixOS flake configuration managing multiple 
 
 The system uses unified module blocks under `modules/` to manage target packages and environments:
 
-- **`hyprland.nix` / `mangowm.nix` / `kde.nix`**: Graphical environment declarations.
+- **`hyprland.nix` / `mangowm.nix` / `kde.nix` / `kineticwe.nix` *EXPERIMENTAL***: Graphical environment declarations.
 - **`gaming.nix`**: Dedicated gaming packages (Steam, Lutris, Heroic Games Launcher).
 - **`jovian-deck.nix` / `jovian-amd.nix`**: Steam Deck / Jovian compatibility layers.
 - **`server/`**: A segregated headless server stack including:
@@ -36,7 +36,7 @@ The system uses unified module blocks under `modules/` to manage target packages
 ├── flake.nix             # Flake configurations and inputs entrypoint
 ├── scripts/              # Helper scripts (cache bootstrapping, etc.)
 │   └── add-caches.sh     # Bootstrap binary caches on fresh systems
-├── modules/              # Unified system + user modules (Gaming, Jovian, Hyprland, KDE, Server)
+├── modules/              # Unified system + user modules (Gaming, Jovian, Hyprland, KDE, KineticWE [EXPERIMENTAL], Server)
 ├── hosts/                # Host-specific settings & hardware profiles
 │   ├── common/           # Shared base packages, CLI tools, shell, and configs
 │   ├── potatomonster/    # PotatoMonster system configuration
