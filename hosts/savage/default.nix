@@ -1,5 +1,5 @@
 # Savage — Steam Deck LCD configuration
-{ pkgs, lib, ... }:
+{ pkgs, lib, config, ... }:
 
 {
   imports = [
@@ -16,17 +16,22 @@
 
   # Add "Return to Gaming Mode" shortcut on Desktop
   home-manager.users.niwatorichan = { pkgs, ... }: {
-    home.file."Desktop/Return-to-Gaming-Mode.desktop" = {
-      text = ''
-        [Desktop Entry]
-        Name=Return to Gaming Mode
-        Exec=steamos-session-select gamescope
-        Icon=steam
-        Terminal=false
-        Type=Application
-        StartupNotify=false
-      '';
-      executable = true;
+    home.file."Desktop/Return-to-Gaming-Mode.desktop".source =
+      (pkgs.makeDesktopItem {
+        desktopName = "Return to Gaming Mode";
+        exec = "qdbus org.kde.Shutdown /Shutdown org.kde.Shutdown.logout";
+        icon = "steam";
+        name = "Return-to-Gaming-Mode";
+        startupNotify = false;
+        terminal = false;
+        type = "Application";
+      })
+      + "/share/applications/Return-to-Gaming-Mode.desktop";
+
+    # Boot in desktop mode instead of gaming mode by default
+    # https://github.com/Jovian-Experiments/Jovian-NixOS/discussions/488
+    xdg.stateFile."steamos-session-select" = {
+      text = config.jovian.steam.desktopSession;
     };
   };
 
