@@ -14,6 +14,11 @@
   # Hostname
   networking.hostName = "Savage";
 
+  # Force kernel DRM subsystem to expose 1920x1080@59.94Hz mode if not exposed by monitor EDID
+  boot.kernelParams = [
+    "video=1920x1080@59.94"
+  ];
+
   # Add "Return to Gaming Mode" shortcut on Desktop
   home-manager.users.niwatorichan = { pkgs, ... }: {
     home.file."Desktop/Return-to-Gaming-Mode.desktop".source =
