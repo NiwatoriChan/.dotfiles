@@ -20,7 +20,7 @@
       text = ''
         [Desktop Entry]
         Name=Return to Gaming Mode
-        Exec=/run/current-system/sw/bin/steamos-session-select gamescope
+        Exec=steamos-session-select gamescope
         Icon=steam
         Terminal=false
         Type=Application
