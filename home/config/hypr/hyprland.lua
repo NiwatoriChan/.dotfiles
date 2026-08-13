@@ -281,6 +281,18 @@ hl.window_rule({
 })
 
 hl.window_rule({
+    name = "xarchiver-opacity",
+    match = { class = "[Xx]archiver" },
+    opacity = "0.85 0.75",
+})
+
+hl.window_rule({
+    name = "xarchiver-float",
+    match = { class = "^([Xx]archiver)$" },
+    float = true,
+})
+
+hl.window_rule({
     name = "nm-connection-editor-float",
     match = { class = "^(nm-connection-editor)$" },
     float = true,

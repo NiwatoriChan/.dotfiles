@@ -21,6 +21,9 @@
     pavucontrol
     pwvucontrol
     playerctl
+    xarchiver
+    unzip
+    p7zip
   ];
 
   services.blueman.enable = true;
@@ -41,9 +44,16 @@
   # Xfconf configuration daemon (required for saving Thunar preferences)
   programs.xfconf.enable = true;
 
-  # Default applications — Directories → Thunar
+  # Default applications — Directories → Thunar, Archives → Xarchiver
   xdg.mime.defaultApplications = {
     "inode/directory" = "thunar.desktop";
+    "application/zip" = "xarchiver.desktop";
+    "application/x-tar" = "xarchiver.desktop";
+    "application/x-compressed-tar" = "xarchiver.desktop";
+    "application/x-bzip-compressed-tar" = "xarchiver.desktop";
+    "application/x-xz-compressed-tar" = "xarchiver.desktop";
+    "application/x-7z-compressed" = "xarchiver.desktop";
+    "application/x-rar" = "xarchiver.desktop";
   };
 
   fonts.packages = with pkgs; [
