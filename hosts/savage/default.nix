@@ -14,10 +14,33 @@
   # Hostname
   networking.hostName = "Savage";
 
-  # Force kernel DRM subsystem to expose 1920x1080@59.94Hz mode if not exposed by monitor EDID
+  # Fix external display flickering on TVs by disabling Scatter/Gather display memory (without forcing phantom connected displays)
   boot.kernelParams = [
-    "video=1920x1080@59.94"
+    "amdgpu.sg_display=0"
   ];
+
+  # Prevent CS35L41 speaker amplifier DSP from hanging during runtime power management
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="spi", DRIVERS=="cs35l41-spi", ATTR{power/control}="on"
+  '';
+
+  # Allow Steam and desktop applications full permission to adjust volume in WirePlumber
+  services.pipewire.wireplumber.extraConfig."10-permissions" = {
+    "access.rules" = [
+      {
+        matches = [
+          {
+            "application.name" = "~.*";
+          }
+        ];
+        actions = {
+          update-props = {
+            "default_permissions" = "all";
+          };
+        };
+      }
+    ];
+  };
 
   # Add "Return to Gaming Mode" shortcut on Desktop
   home-manager.users.niwatorichan = { pkgs, ... }: {
