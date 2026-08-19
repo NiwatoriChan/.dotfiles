@@ -1,9 +1,9 @@
 # Multimedia profile — media players and streaming applications
-{ pkgs, ... }:
+{ pkgs, pkgs-stable, ... }:
 
 {
-  environment.systemPackages = with pkgs; [
-    stremio-linux-shell
-    vlc
+  environment.systemPackages = [
+    pkgs-stable.stremio-linux-shell
+    pkgs.vlc
   ];
 }

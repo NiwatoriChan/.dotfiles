@@ -63,13 +63,17 @@
               "pnpm-10.29.2"
             ];
           };
+          pkgs-stable = import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+          };
         in {
           customPackages = {
             brave-origin = if inputs.custom-packages.packages ? ${system} && inputs.custom-packages.packages.${system} ? brave-origin
                            then inputs.custom-packages.packages.${system}.brave-origin
                            else pkgs-unstable.writeShellScriptBin "brave-origin" "echo 'brave-origin is not supported on ${system}'";
           };
-          inherit inputs pkgs-unstable;
+          inherit inputs pkgs-unstable pkgs-stable;
         };
 
       sharedKernelAndCache = { config, pkgs, lib, ... }: {

@@ -9,14 +9,15 @@
     ../../modules/jovian-deck.nix
     ../../modules/sunshine.nix
     ../../modules/multimedias.nix
+    ../../modules/developpement.nix
   ];
 
   # Hostname
   networking.hostName = "Savage";
 
-  # Fix external display flickering on TVs by disabling Scatter/Gather display memory (without forcing phantom connected displays)
+  # Fix external display flickering on TVs by disabling Scatter/Gather display memory and expose 1920x1080@59.94Hz mode
   boot.kernelParams = [
-    "amdgpu.sg_display=0"
+  "video=1920x1080@59.94"
   ];
 
   # Prevent CS35L41 speaker amplifier DSP from hanging during runtime power management
