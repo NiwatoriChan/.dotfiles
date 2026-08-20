@@ -6,13 +6,13 @@
   imports = [
     ../common
     ./hardware.nix
-    #../../modules/hyprland.nix
+    ../../modules/hyprland.nix
     #../../modules/kineticwe.nix
     #../../modules/kde.nix
     #../../modules/server
     ../../modules/gaming.nix
     ../../modules/sunshine.nix
-    ../../modules/mangowm.nix   # ← swap to ../../modules/hyprland.nix to change DE
+    #../../modules/mangowm.nix   # ← swap to ../../modules/hyprland.nix to change DE
     #../../modules/plasma-bigscreen.nix
     ../../modules/virtualisation/vmware.nix
     ../../modules/developpement.nix
