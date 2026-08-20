@@ -1,10 +1,9 @@
 # Development profile — development tools like Cursor, Antigravity, and Zed
-{ pkgs, ... }:
+{ pkgs, pkgs-unstable, ... }:
 
 {
-  environment.systemPackages = with pkgs; [
-    antigravity
-    zed-editor
-    code-cursor
+  environment.systemPackages = [
+    pkgs-unstable.antigravity
+    pkgs.zed-editor
   ];
 }
