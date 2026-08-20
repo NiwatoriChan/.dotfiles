@@ -17,7 +17,7 @@
     ../../modules/virtualisation/vmware.nix
     ../../modules/developpement.nix
     ../../modules/multimedias.nix
-    #../../modules/syncthing
+    ../../modules/syncthing
   ];
 
   # Hostname
