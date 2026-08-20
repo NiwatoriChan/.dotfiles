@@ -9,7 +9,7 @@
     ../../modules/gaming.nix
     ../../modules/sunshine.nix
     ../../modules/developpement.nix
-    #../../modules/syncthing
+    ../../modules/syncthing
     #../../modules/virtualisation/vmware.nix
     #../../modules/jovian-amd.nix
   ];
