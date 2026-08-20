@@ -10,6 +10,7 @@
     ../../modules/sunshine.nix
     ../../modules/multimedias.nix
     ../../modules/developpement.nix
+    ../../modules/syncthing
   ];
 
   # Hostname
