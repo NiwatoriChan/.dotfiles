@@ -3,8 +3,8 @@
 
 {
   imports = [
+    ../common
     # Server base + Hyprland desktop environment
-    /etc/nixos/hardware-configuration.nix
     ../../modules/server
     ../../modules/hyprland.nix
     ../../modules/developpement.nix
