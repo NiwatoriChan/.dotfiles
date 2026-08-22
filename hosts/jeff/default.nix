@@ -1,5 +1,5 @@
 # Jeff — headless configuration scaffold
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports = [
@@ -10,6 +10,9 @@
     ../../modules/developpement.nix
 
   ];
+
+  # Kernel
+  boot.kernelPackages = lib.mkForce pkgs.cachyosKernels.linuxPackages-cachyos-latest;
 
   # Nvidia GPU support (GTX 1070 is Pascal, pre-Turing -> use proprietary closed driver)
   services.xserver.videoDrivers = [ "nvidia" ];
