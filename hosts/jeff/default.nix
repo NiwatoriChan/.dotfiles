@@ -21,7 +21,7 @@
     modesetting.enable = true;
     powerManagement.enable = false;
     open = false; # GTX 1070 (Pascal) MUST use closed modules
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
+    package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
   };
 
   # Bootloader
