@@ -3,9 +3,12 @@
 
 {
   imports = [
-    # Server does NOT import ../common — it has its own minimal base
+    # Server base + Hyprland desktop environment
     /etc/nixos/hardware-configuration.nix
     ../../modules/server
+    ../../modules/hyprland.nix
+    ../../modules/developpement.nix
+
   ];
 
   # Nvidia GPU support (GTX 1070 is Pascal, pre-Turing -> use proprietary closed driver)
