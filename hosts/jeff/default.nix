@@ -24,45 +24,47 @@
     package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
   };
 
-  # Bootloader
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
   # Hostname
   networking.hostName = "Jeff";
-  networking.networkmanager.enable = true;
+
+  # --- Scaffold / Server configuration (commented out while using ../common) ---
+  # Bootloader
+  # boot.loader.systemd-boot.enable = true;
+  # boot.loader.efi.canTouchEfiVariables = true;
+
+  # networking.networkmanager.enable = true;
 
   # Locale & Timezone
-  time.timeZone = "America/Toronto";
-  i18n.defaultLocale = "en_CA.UTF-8";
-  console.keyMap = "ca";
+  # time.timeZone = "America/Toronto";
+  # i18n.defaultLocale = "en_CA.UTF-8";
+  # console.keyMap = "ca";
 
   # User account
-  users.users."niwatorichan" = {
-    isNormalUser = true;
-    description = "niwatorichan";
-    extraGroups = [ "networkmanager" "wheel" ];
-    shell = pkgs.zsh;
-    openssh.authorizedKeys.keys = [
-      # Add your SSH public keys here
-      # "ssh-ed25519 AAAA..."
-    ];
-  };
+  # users.users."niwatorichan" = {
+  #   isNormalUser = true;
+  #   description = "niwatorichan";
+  #   extraGroups = [ "networkmanager" "wheel" ];
+  #   shell = pkgs.zsh;
+  #   openssh.authorizedKeys.keys = [
+  #     # Add your SSH public keys here
+  #     # "ssh-ed25519 AAAA..."
+  #   ];
+  # };
 
-  programs.zsh.enable = true;
+  # programs.zsh.enable = true;
 
   # Additional server-specific configurations can be added here.
   # Base SSH, firewall, and minimal packages are now defined in ../../modules/server.
 
   # Containers
-  virtualisation.podman = {
-    enable = true;
-    dockerCompat = true;
-  };
+  # virtualisation.podman = {
+  #   enable = true;
+  #   dockerCompat = true;
+  # };
 
   # Nix settings
-  nixpkgs.config.allowUnfree = true;
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  # nixpkgs.config.allowUnfree = true;
+  # nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  system.stateVersion = "26.05";
+  # system.stateVersion = "26.05";
 }
