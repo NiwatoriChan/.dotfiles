@@ -6,7 +6,8 @@
     ../common
     # Server base + Hyprland desktop environment
     ../../modules/server
-    ../../modules/hyprland.nix
+    #../../modules/hyprland.nix
+    ../../modules/mangowm.nix
     ../../modules/developpement.nix
 
   ];

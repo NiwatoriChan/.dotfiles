@@ -1,8 +1,9 @@
 # MangoWM desktop profile — combines system-level and user-level settings
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 
 {
   imports = [
+    inputs.mangowm.nixosModules.mango
     ./wayland-common.nix
   ];
 
