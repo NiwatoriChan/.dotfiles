@@ -8,12 +8,41 @@
 ---- MONITORS ----
 ------------------
 
-hl.monitor({
-    output   = "",
-    mode     = "1920x1080@60",
-    position = "auto",
-    scale    = 1,
-})
+local hostname = ""
+local host_file = io.open("/etc/hostname", "r")
+if host_file then
+    hostname = host_file:read("*l") or ""
+    host_file:close()
+end
+
+if hostname == "Jeff" then
+    hl.monitor({
+        output   = "HDMI-A-1",
+        mode     = "2560x1440@59.95",
+        position = "0x0",
+        scale    = 1,
+    })
+elseif hostname == "PotatoMonster" then
+    hl.monitor({
+        output   = "eDP-1",
+        mode     = "1920x1080@60",
+        position = "0x0",
+        scale    = 1,
+    })
+    hl.monitor({
+        output   = "",
+        mode     = "preferred",
+        position = "auto",
+        scale    = 1,
+    })
+else
+    hl.monitor({
+        output   = "",
+        mode     = "preferred",
+        position = "auto",
+        scale    = 1,
+    })
+end
 
 ---------------------
 ---- MY PROGRAMS ----
@@ -46,6 +75,10 @@ end)
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
 hl.env("XCURSOR_THEME", "breeze_cursors")
+hl.env("AQ_NO_MODIFIERS", "1")
+hl.env("LIBVA_DRIVER_NAME", "nvidia")
+hl.env("GBM_BACKEND", "nvidia-drm")
+hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
 
 -----------------------
 ---- LOOK AND FEEL ----
