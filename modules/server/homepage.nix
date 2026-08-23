@@ -5,6 +5,7 @@
   services.homepage-dashboard = {
     enable = true;
     listenPort = 8082;
+    allowedHosts = "localhost,localhost:8082,127.0.0.1,127.0.0.1:8082,jeff.lan,jeff.lan:8082,jeff,jeff:8082";
 
     # Basic configuration settings
     settings = {

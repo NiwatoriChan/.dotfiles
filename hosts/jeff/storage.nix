@@ -6,6 +6,7 @@
   boot.swraid = {
     enable = true;
     mdadmConf = ''
+      MAILADDR root
       ARRAY /dev/md/EXP6 UUID=7cdf93d9:1c68ac95:28ad9c10:2f7388d5
     '';
   };

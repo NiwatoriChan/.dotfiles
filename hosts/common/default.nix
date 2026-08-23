@@ -34,6 +34,14 @@
     variant = "";
   };
 
+  programs.nix-ld.enable = true;
+    programs.nix-ld.libraries = with pkgs; [
+    stdenv.cc.cc.lib
+    zlib
+    glibc
+  ];
+
+
   # Containers
   virtualisation.podman = {
     enable = true;
@@ -77,8 +85,6 @@
   # AppImage support
   programs.appimage.enable = true;
   programs.appimage.binfmt = true;
-
-
 
 
   # KDE Connect configurations
