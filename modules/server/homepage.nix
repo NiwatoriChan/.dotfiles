@@ -5,10 +5,10 @@
   services.homepage-dashboard = {
     enable = true;
     listenPort = 8082;
-    allowedHosts = "localhost,localhost:8082,127.0.0.1,127.0.0.1:8082,jeff.lan,jeff.lan:8082,jeff,jeff:8082";
-
+    allowedHosts = "192.168.0.10, localhost,localhost:8082,127.0.0.1,127.0.0.1:8082,jeff.lan,jeff.lan:8082,jeff,jeff:8082";
     # Basic configuration settings
     settings = {
+
       title = "Server Dashboard";
       background = {
         image = "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=1920&q=80";
@@ -104,11 +104,11 @@
           {
             Transmission = {
               icon = "transmission.png";
-              href = "http://localhost:9091";
+              href = "http://192.168.0.10:9091";
               description = "Torrent Downloader";
               widget = {
                 type = "transmission";
-                url = "http://localhost:9091";
+                url = "http://192.168.0.10:9091";
               };
             };
           }

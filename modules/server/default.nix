@@ -3,12 +3,14 @@
 
 {
   imports = [
-    ./nixarr.nix
+    #./nixarr.nix
     ./samba.nix
     ./homepage.nix
     ./openvpn.nix
     ./reverse-proxy.nix
     ../secrets.nix
+    ./dns.nix
+    ./transmission.nix
   ];
 
   # --- System-Level (NixOS) Configuration ---
@@ -18,7 +20,7 @@
     enable = true;
     settings = {
       PermitRootLogin = "no";
-      PasswordAuthentication = false;
+      PasswordAuthentication = true;
     };
   };
 
