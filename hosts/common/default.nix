@@ -65,7 +65,7 @@
   users.users."niwatorichan" = {
     isNormalUser = true;
     description = "niwatorichan";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel"];
     shell = pkgs.zsh;
     packages = with pkgs; [];
   };

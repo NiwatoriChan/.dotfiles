@@ -52,6 +52,10 @@
   #   ];
   # };
 
+  boot.kernelParams = [
+    "amd_iommu=off"
+  ];
+
   # programs.zsh.enable = true;
 
   # Additional server-specific configurations can be added here.
