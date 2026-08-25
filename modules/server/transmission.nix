@@ -13,7 +13,7 @@
       rpc-bind-address = "0.0.0.0";
       rpc-port = 9091;
       rpc-whitelist-enabled = true;
-      rpc-whitelist = "127.0.0.1,192.168.0.*";
+      rpc-whitelist = "127.0.0.1,192.168.0.*,10.8.0.*";
       rpc-host-whitelist-enabled = false;
 
       download-dir = "/mnt/torrent/Download/complete";
