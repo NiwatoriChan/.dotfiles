@@ -149,6 +149,6 @@ EOF
   networking.nat = {
     enable = true;
     internalInterfaces = [ "tun0" ];
-    externalInterface = "eth0";  # ← adjust if your WAN interface differs (e.g. enp0s3, wlan0)
+    externalInterface = "enp40s0";
   };
 }
