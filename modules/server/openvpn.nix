@@ -144,4 +144,11 @@ EOF
   # 4. Firewall & Kernel Forwarding
   networking.firewall.allowedUDPPorts = [ 1194 ];
   boot.kernel.sysctl."net.ipv4.ip_forward" = lib.mkDefault 1;
+
+  # 5. NAT — masquerade VPN clients so they can reach the internet
+  networking.nat = {
+    enable = true;
+    internalInterfaces = [ "tun0" ];
+    externalInterface = "eth0";  # ← adjust if your WAN interface differs (e.g. enp0s3, wlan0)
+  };
 }
