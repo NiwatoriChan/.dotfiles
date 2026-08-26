@@ -190,6 +190,12 @@ Item {
                 id: trayLoader
                 source: "components/WaybarTray.qml"
                 visible: trayLoader.item?.hasItems ?? false
+                Binding {
+                    target: trayLoader.item
+                    property: "barWindow"
+                    value: root.barWindow
+                    when: trayLoader.status === Loader.Ready && root.barWindow !== undefined
+                }
             }
         }
     }

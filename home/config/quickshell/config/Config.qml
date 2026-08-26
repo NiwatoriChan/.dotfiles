@@ -74,6 +74,17 @@ Singleton {
         margin: data.dashboard?.margin ?? 18
     })
 
+    readonly property var tray: ({
+        ignoredItems: data.tray?.ignoredItems ?? [
+            "nm-applet",
+            "network-manager-applet",
+            "networkmanager",
+            "blueman",
+            "blueman-applet",
+            "blueman-tray"
+        ]
+    })
+
     readonly property BarConfig bar: BarConfig {}
     readonly property AppearanceConfig appearanceTokens: AppearanceConfig {}
 

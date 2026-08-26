@@ -92,7 +92,13 @@ Item {
                                 Hyprland.dispatch("workspace " + modelData.workspace.id);
                             }
                         }
-                        modelData.activate();
+                        if (typeof modelData.focus === "function") {
+                            modelData.focus();
+                        } else if (typeof modelData.activate === "function") {
+                            modelData.activate();
+                        } else if (modelData.address) {
+                            Hyprland.dispatch("focuswindow address:" + modelData.address);
+                        }
                     }
                 }
             }

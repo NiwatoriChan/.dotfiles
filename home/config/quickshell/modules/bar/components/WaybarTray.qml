@@ -1,57 +1,123 @@
 import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import Quickshell
+import Quickshell.Widgets
 import Quickshell.Services.SystemTray
+import "../../../config" as QsConfig
 
 Item {
     id: root
 
-    readonly property bool hasItems: SystemTray.items.length > 0
+    property var barWindow
+    readonly property var config: QsConfig.Config
 
-    implicitWidth: hasItems ? trayRow.implicitWidth + 12 : 0
-    implicitHeight: 28
+    readonly property var ignoredItems: config.tray?.ignoredItems ?? [
+        "nm-applet",
+        "network-manager-applet",
+        "networkmanager",
+        "blueman",
+        "blueman-applet",
+        "blueman-tray"
+    ]
+
+    function isItemIgnored(item) {
+        if (!item) return true
+        const id = (item.id ?? "").toLowerCase()
+        const title = (item.title ?? "").toLowerCase()
+        const icon = (item.icon ?? "").toLowerCase()
+
+        for (const pattern of ignoredItems) {
+            const p = pattern.toLowerCase()
+            if (id.includes(p) || title.includes(p)) {
+                return true
+            }
+        }
+        if (icon.startsWith("nm-") || icon.startsWith("network-") || icon.startsWith("blueman")) {
+            return true
+        }
+        return false
+    }
+
+    readonly property var visibleItems: {
+        const list = []
+        for (const item of SystemTray.items.values) {
+            if (!isItemIgnored(item)) {
+                list.push(item)
+            }
+        }
+        return list
+    }
+
+    readonly property bool hasItems: visibleItems.length > 0
+
+    implicitWidth: hasItems ? trayRow.implicitWidth + 8 : 0
+    implicitHeight: 20
     visible: hasItems
 
     RowLayout {
         id: trayRow
         anchors.centerIn: parent
-        spacing: 10
+        spacing: 8
 
         Repeater {
-            model: SystemTray.items
+            model: root.visibleItems
 
             delegate: Item {
+                id: itemDelegate
+                required property var modelData
+
                 Layout.preferredWidth: 16
                 Layout.preferredHeight: 16
 
-                Image {
+                QsMenuAnchor {
+                    id: menuAnchor
+                    menu: itemDelegate.modelData?.menu
+                    anchor.item: itemDelegate
+                }
+
+                IconImage {
                     anchors.centerIn: parent
                     width: 16
                     height: 16
-                    source: {
-                        const icon = modelData.icon ?? ""
-                        if (typeof icon === "string" && icon.includes("?path=")) {
-                            const parts = icon.split("?path=")
-                            const name = parts[0]
-                            const base = parts[1] ?? ""
-                            const fileName = name.slice(name.lastIndexOf("/") + 1)
-                            return Qt.resolvedUrl(`${base}/${fileName}`)
-                        }
-                        return icon
-                    }
-                    visible: status === Image.Ready
+                    source: itemDelegate.modelData?.icon ?? ""
                 }
 
                 MouseArea {
                     anchors.fill: parent
                     anchors.margins: -4
                     cursorShape: Qt.PointingHandCursor
-                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+
                     onClicked: mouse => {
+                        const item = itemDelegate.modelData
+                        if (!item) return
+
                         if (mouse.button === Qt.LeftButton) {
-                            modelData.activate(0, 0)
-                        } else {
-                            modelData.menu.open(0, 0)
+                            if (item.onlyMenu) {
+                                if (item.hasMenu) {
+                                    menuAnchor.open()
+                                } else if (typeof item.display === "function") {
+                                    item.display(root.barWindow ?? itemDelegate.QsWindow.window, mouse.x, mouse.y)
+                                }
+                            } else {
+                                item.activate()
+                            }
+                        } else if (mouse.button === Qt.MiddleButton) {
+                            item.secondaryActivate()
+                        } else if (mouse.button === Qt.RightButton) {
+                            if (item.hasMenu) {
+                                menuAnchor.open()
+                            } else if (typeof item.display === "function") {
+                                item.display(root.barWindow ?? itemDelegate.QsWindow.window, mouse.x, mouse.y)
+                            } else {
+                                item.activate()
+                            }
+                        }
+                    }
+
+                    onWheel: wheel => {
+                        if (itemDelegate.modelData) {
+                            itemDelegate.modelData.scroll(wheel.angleDelta.y, false)
                         }
                     }
                 }

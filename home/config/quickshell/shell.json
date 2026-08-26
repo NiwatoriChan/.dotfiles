@@ -37,5 +37,15 @@
     "width": 860,
     "height": 640,
     "margin": 18
+  },
+  "tray": {
+    "ignoredItems": [
+      "nm-applet",
+      "network-manager-applet",
+      "networkmanager",
+      "blueman",
+      "blueman-applet",
+      "blueman-tray"
+    ]
   }
 }
