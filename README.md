@@ -25,6 +25,7 @@ The system uses unified module blocks under `modules/` to manage target packages
 - **`jovian-deck.nix` / `jovian-amd.nix`**: Steam Deck / Jovian compatibility layers.
 - **`server/`**: A segregated headless server stack including:
   - **Samba** (`samba.nix`): Restricted file sharing for the `niwatorichan` user.
+  - **Jellyfin** (`jellyfin.nix`): Media streaming server with automated per-folder library mounting (`/mnt/exp6/EXP6/MEDIAX/Videos`).
   - **Transmission** (`transmission.nix`): BitTorrent client daemon and storage configuration.
   - **Homepage** (`homepage.nix`): Dashboard portal for server metrics and services.
   - **Reverse Proxy** (`reverse-proxy.nix`) & **DNS** (`dns.nix`): Nginx reverse proxy and dnsmasq local resolution.

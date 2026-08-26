@@ -12,6 +12,12 @@
           proxyPass = "http://127.0.0.1:8082";
         };
       };
+      "jellyfin.jeff.lan" = {
+        locations."/" = {
+          proxyPass = "http://127.0.0.1:8096";
+          proxyWebsockets = true;
+        };
+      };
       "transmission.jeff.lan" = {
         locations."/" = {
           proxyPass = "http://127.0.0.1:9091";

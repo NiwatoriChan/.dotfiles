@@ -10,6 +10,7 @@
     ../secrets.nix
     ./dns.nix
     ./transmission.nix
+    ./jellyfin.nix
   ];
 
   # --- System-Level (NixOS) Configuration ---

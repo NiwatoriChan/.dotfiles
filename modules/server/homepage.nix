@@ -56,7 +56,18 @@
     # Services list, grouped by categories
     services = [
       {
-        "Downloads" = [
+        "Media & Downloads" = [
+          {
+            Jellyfin = {
+              icon = "jellyfin.png";
+              href = "http://192.168.0.10:8096";
+              description = "Media Streaming Server";
+              widget = {
+                type = "jellyfin";
+                url = "http://127.0.0.1:8096";
+              };
+            };
+          }
           {
             Transmission = {
               icon = "transmission.png";
