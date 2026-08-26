@@ -12,7 +12,7 @@ A modular, unified, and declarative NixOS flake configuration managing multiple 
 | **🦖 Savage** *BETA* | Steam Deck LCD | Custom AMD APU + RDNA 2 GPU | Steam Deck Game Mode / Plasma | [`hosts/savage`](./hosts/savage) | [`home/savage.nix`](./home/savage.nix) |
 | **🥔 PotatoMonster** | Laptop (Inspiron 7559) | Intel i7 + NVIDIA GTX 960M | MangoWM | [`hosts/potatomonster`](./hosts/potatomonster) | [`home/potatomonster.nix`](./home/potatomonster.nix) |
 | **🍠 PetitePatate** *EXPERIMENTAL* | Laptop (Pinebook Pro) | Rockchip RK3399 (OC 2.08GHz) + Mali | Hyprland | [`hosts/petitepatate`](./hosts/petitepatate) | [`home/petitepatate.nix`](./home/petitepatate.nix) |
-| **🦙 Jeff** *EXPERIMENTAL* | Headless Server | Ryzen 5 1600X + GTX 1070 | Headless CLI / Nixarr | [`hosts/jeff`](./hosts/jeff) | [`home/jeff.nix`](./home/jeff.nix) |
+| **🦙 Jeff** *EXPERIMENTAL* | Headless Server | Ryzen 5 1600X + GTX 1070 | Headless CLI / Server Services | [`hosts/jeff`](./hosts/jeff) | [`home/jeff.nix`](./home/jeff.nix) |
 
 ---
 
@@ -25,7 +25,9 @@ The system uses unified module blocks under `modules/` to manage target packages
 - **`jovian-deck.nix` / `jovian-amd.nix`**: Steam Deck / Jovian compatibility layers.
 - **`server/`**: A segregated headless server stack including:
   - **Samba** (`samba.nix`): Restricted file sharing for the `niwatorichan` user.
-  - **Nixarr** (`nixarr.nix`): Full declarative media stack (Jellyfin, Sonarr, Radarr, Prowlarr, Transmission) with RPC LAN overrides.
+  - **Transmission** (`transmission.nix`): BitTorrent client daemon and storage configuration.
+  - **Homepage** (`homepage.nix`): Dashboard portal for server metrics and services.
+  - **Reverse Proxy** (`reverse-proxy.nix`) & **DNS** (`dns.nix`): Nginx reverse proxy and dnsmasq local resolution.
 
 ---
 

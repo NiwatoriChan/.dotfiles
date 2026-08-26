@@ -56,51 +56,7 @@
     # Services list, grouped by categories
     services = [
       {
-        "Media Stack" = [
-          {
-            Jellyfin = {
-              icon = "jellyfin.png";
-              href = "http://localhost:8096";
-              description = "Media Server";
-              widget = {
-                type = "jellyfin";
-                url = "http://localhost:8096";
-              };
-            };
-          }
-          {
-            Sonarr = {
-              icon = "sonarr.png";
-              href = "http://localhost:8989";
-              description = "TV Show Downloader";
-              widget = {
-                type = "sonarr";
-                url = "http://localhost:8989";
-              };
-            };
-          }
-          {
-            Radarr = {
-              icon = "radarr.png";
-              href = "http://localhost:7878";
-              description = "Movie Downloader";
-              widget = {
-                type = "radarr";
-                url = "http://localhost:7878";
-              };
-            };
-          }
-          {
-            Prowlarr = {
-              icon = "prowlarr.png";
-              href = "http://localhost:9696";
-              description = "Torrent Indexer Manager";
-              widget = {
-                type = "prowlarr";
-                url = "http://localhost:9696";
-              };
-            };
-          }
+        "Downloads" = [
           {
             Transmission = {
               icon = "transmission.png";

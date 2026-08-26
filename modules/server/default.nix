@@ -3,7 +3,6 @@
 
 {
   imports = [
-    #./nixarr.nix
     ./samba.nix
     ./homepage.nix
     ./openvpn.nix

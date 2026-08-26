@@ -92,7 +92,7 @@ Specific system host modules override or add system services:
 
 ### 4. Jeff (`hosts/jeff`)
 - **Type**: Headless Server.
-- **Services**: Imports core server modules (`modules/server/default.nix`) enabling declarative Samba storage sharing, OpenVPN tunneling, the Homepage portal, and the Nixarr stack.
+- **Services**: Imports core server modules (`modules/server/default.nix`) enabling declarative Samba storage sharing, Transmission BitTorrent daemon, OpenVPN tunneling, local DNS resolution, Nginx reverse proxy, and the Homepage portal.
 
 ### 5. Savage (*BETA*) (`hosts/savage`)
 - **Status**: Beta.
@@ -122,7 +122,8 @@ Unified server services are managed modularly under `modules/server/`:
 - **Homepage Dashboard** (`homepage.nix`): Launches a system dashboard on port `8082`. It displays server resources and custom service widgets for network apps.
 - **OpenVPN Client** (`openvpn.nix`): Manages tunnel configuration to secure networks using credential keys.
 - **Samba Sharing** (`samba.nix`): Configures secure SMB folder sharing across the local network for system users.
-- **Nixarr Media Stack** (`nixarr.nix`): Automates Jellyfin, Sonarr, Radarr, Prowlarr, and Transmission with specialized local network RPC overrides (refer to [Nixarr Stack](#nixarr) for dedicated details).
+- **Transmission** (`transmission.nix`): Runs Transmission BitTorrent client daemon with custom ACLs and download directory bindings.
+- **Reverse Proxy & DNS** (`reverse-proxy.nix`, `dns.nix`): Local Nginx reverse proxy routing `jeff.lan` subdomains with dnsmasq resolution.
 
 ---
 
