@@ -11,3 +11,8 @@ test.desktop
 
 # Exclude secrets directory from Git
 /secrets/
+
+# Nix build outputs
+result
+result-*
+
