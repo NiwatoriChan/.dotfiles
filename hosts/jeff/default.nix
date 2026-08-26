@@ -9,6 +9,7 @@
     #../../modules/hyprland.nix
     ../../modules/mangowm.nix
     ../../modules/developpement.nix
+    ../../modules/sunshine.nix
     ./storage.nix
   ];
 
