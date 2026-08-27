@@ -69,7 +69,15 @@ Item {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            Quickshell.execDetached(["loginctl", "lock-session"])
+                            Quickshell.execDetached([
+                                "dbus-send",
+                                "--system",
+                                "--type=method_call",
+                                "--print-reply",
+                                "--dest=org.freedesktop.DisplayManager",
+                                "/org/freedesktop/DisplayManager/Seat0",
+                                "org.freedesktop.DisplayManager.Seat.SwitchToGreeter"
+                            ])
                         }
                         
                         onPressed: parent.color = Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.1)

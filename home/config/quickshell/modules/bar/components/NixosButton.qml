@@ -28,9 +28,7 @@ Item {
             if (mouse.button === Qt.RightButton) {
                 Quickshell.execDetached(["kitty"])
             } else {
-                Quickshell.execDetached([
-                    "/home/niwatorichan/.config/waybar/scripts/power-menu.sh"
-                ])
+                Quickshell.execDetached(["quickshell", "ipc", "call", "launcher", "toggle"])
             }
         }
     }

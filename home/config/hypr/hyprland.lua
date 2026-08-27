@@ -50,7 +50,7 @@ end
 
 local terminal    = "kitty"
 local fileManager = "thunar"
-local menu        = "fuzzel"
+local menu        = "quickshell ipc call launcher toggle"
 
 -------------------
 ---- AUTOSTART ----

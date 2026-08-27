@@ -140,7 +140,7 @@ PanelWindow {
                             Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: Material3Anim.springGentle } }
 
                             Text { anchors.centerIn: parent; text: "󰍜"; font.family: "Material Design Icons"; font.pixelSize: 24; color: root.cOnSurfaceVariant }
-                            MouseArea { id: lockBtnMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; hoverEnabled: true; onClicked: Quickshell.execDetached(["loginctl", "lock-session"]) }
+                            MouseArea { id: lockBtnMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; hoverEnabled: true; onClicked: Quickshell.execDetached(["dbus-send", "--system", "--type=method_call", "--print-reply", "--dest=org.freedesktop.DisplayManager", "/org/freedesktop/DisplayManager/Seat0", "org.freedesktop.DisplayManager.Seat.SwitchToGreeter"]) }
                         }
 
                         Rectangle {
