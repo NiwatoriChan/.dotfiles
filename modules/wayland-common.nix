@@ -130,38 +130,8 @@
       kdePackages.qt6ct
     ];
 
-    # Blurry transparent centered Wayland application launcher with icons (Fuzzel)
-    programs.fuzzel = {
-      enable = true;
-      settings = {
-        main = {
-          font = "Inter Variable:size=12";
-          terminal = "kitty";
-          prompt = "  run: ";
-          icon-theme = "Papirus-Dark";
-          width = 50;
-          lines = 10;
-          horizontal-pad = 20;
-          vertical-pad = 20;
-          inner-pad = 12;
-        };
-        colors = {
-          background = "121212CC"; # 80% opacity dark grey
-          text = "E0E0E0FF";
-          prompt = "FFFFFFFF";
-          input = "FFFFFFFF";
-          match = "00FFFFFF"; # Match highlight in cyan
-          selection = "FFFFFF1A"; # 10% opacity selection highlight
-          selection-text = "FFFFFFFF";
-          selection-match = "00FFFFFF";
-          border = "FFFFFF20"; # 12.5% opacity white border
-        };
-        border = {
-          width = 2;
-          radius = 12;
-        };
-      };
-    };
+    # Application launcher handled by QuickShell start menu (replaces Fuzzel)
+    programs.fuzzel.enable = false;
 
     # Mako Notification Daemon
     services.mako = {

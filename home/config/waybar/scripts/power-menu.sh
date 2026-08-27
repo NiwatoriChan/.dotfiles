@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 # Power Menu — launched from the NixOS waybar button
-# Uses fuzzel as the selection menu
+# Launches QuickShell launcher menu
 
-choice=$(printf " Open a Terminal\n Shutdown\n Reboot\n Logout\n About This System" | fuzzel --dmenu --prompt "  " --width 28 --lines 5)
+if pgrep -x quickshell >/dev/null; then
+    quickshell ipc call launcher toggle
+    exit 0
+fi
+
+choice=$(printf " Open a Terminal\n Shutdown\n Reboot\n Logout\n About This System" | (fuzzel --dmenu --prompt "  " --width 28 --lines 5 2>/dev/null || wofi --dmenu 2>/dev/null || cat))
 
 case "$choice" in
     *"Open a Terminal"*)

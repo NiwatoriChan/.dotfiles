@@ -20,9 +20,9 @@
     "margin": 10
   },
   "launcher": {
-    "enabled": false,
-    "width": 720,
-    "maxResults": 8,
+    "enabled": true,
+    "width": 640,
+    "maxResults": 10,
     "terminalCommand": ["kitty"],
     "favorites": []
   },

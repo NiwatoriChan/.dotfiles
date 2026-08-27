@@ -28,6 +28,11 @@ ShellRoot {
         }
     }
 
+    Loader {
+        id: launcherLoader
+        source: "modules/launcher/LauncherWindow.qml"
+    }
+
     Component.onCompleted: {
         QsServices.Logger.info("Shell", "Waybar-style quickshell loaded")
     }

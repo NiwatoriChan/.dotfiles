@@ -4,9 +4,9 @@ import QtQuick.Controls 6.10 as QQC
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
+import Quickshell.Io
 import "../../config" as QsConfig
 import "../../services" as QsServices
-import "../../components"
 
 PanelWindow {
     id: root
@@ -14,129 +14,128 @@ PanelWindow {
     property bool shouldShow: false
     property string query: ""
     property int selectedIndex: 0
+    property var cachedApps: []
 
     readonly property var config: QsConfig.Config
     readonly property var pywal: QsServices.Pywal
-    readonly property color cSurface: pywal.surfaceContainerHighest
-    readonly property color cSurfaceContainer: pywal.surfaceContainerHigh
+    readonly property color cSurface: pywal.surface
+    readonly property color cSurfaceContainer: pywal.surfaceContainer
     readonly property color cSurfaceContainerHigh: pywal.surfaceContainerHigh
     readonly property color cPrimary: pywal.primary
     readonly property color cText: pywal.foreground
     readonly property color cSubText: pywal.onSurfaceMuted
-    readonly property color cBorder: pywal.outlineVariant
+    readonly property color cBorder: Qt.rgba(1, 1, 1, 0.08)
+
     readonly property var terminalCommand: Array.isArray(config.launcher.terminalCommand) && config.launcher.terminalCommand.length > 0
         ? config.launcher.terminalCommand
-        : ["foot"]
+        : ["kitty"]
 
-    readonly property var actionEntries: [
-        {
-            id: "action-terminal",
-            name: "Open Terminal",
-            comment: "Launch your configured terminal",
-            glyph: "󰆍",
-            type: "action",
-            onTriggered: () => Quickshell.execDetached(terminalCommand)
-        },
-        {
-            id: "action-files",
-            name: "Open Files",
-            comment: "Open your home directory",
-            glyph: "󰉋",
-            type: "action",
-            onTriggered: () => Quickshell.execDetached(["xdg-open", Quickshell.env("HOME")])
-        },
-        {
-            id: "action-screenshots",
-            name: "Open Captures",
-            comment: "Browse screenshots and recordings",
-            glyph: "󰄄",
-            type: "action",
-            onTriggered: () => QsServices.Screenshot.openScreenshotsFolder()
-        },
-        {
-            id: "action-network",
-            name: "Network Settings",
-            comment: "Open nm-connection-editor",
-            glyph: "󰖩",
-            type: "action",
-            onTriggered: () => Quickshell.execDetached(["nm-connection-editor"])
+    IpcHandler {
+        target: "launcher"
+
+        function toggle(): void {
+            if (root.shouldShow) {
+                root.closeLauncher()
+            } else {
+                root.openLauncher()
+            }
         }
-    ]
 
-    readonly property var favoriteApps: {
-        const favorites = config.launcher.favorites ?? []
-        const apps = DesktopEntries.applications.values ?? []
-        return favorites
-            .map(favoriteId => apps.find(entry => entry.id === favoriteId || entry.name === favoriteId))
-            .filter(entry => !!entry)
+        function open(): void {
+            root.openLauncher()
+        }
+
+        function close(): void {
+            root.closeLauncher()
+        }
     }
 
-    readonly property var appEntries: {
-        const apps = DesktopEntries.applications.values ?? []
-        const q = query.trim().toLowerCase()
-        const favoriteIds = (favoriteApps ?? []).map(entry => entry.id)
-
-        function score(entry) {
-            const name = (entry.name ?? "").toLowerCase()
-            const genericName = (entry.genericName ?? "").toLowerCase()
-            const comment = (entry.comment ?? "").toLowerCase()
-            const execString = (entry.execString ?? "").toLowerCase()
-            const id = (entry.id ?? "").toLowerCase()
-            let rank = 0
-
-            if (!q.length)
-                rank = favoriteIds.includes(entry.id) ? 200 : 100
-            else if (name === q)
-                rank = 1000
-            else if (name.startsWith(q))
-                rank = 900
-            else if (genericName.startsWith(q) || id.startsWith(q))
-                rank = 760
-            else if (name.includes(q))
-                rank = 680
-            else if (genericName.includes(q) || comment.includes(q))
-                rank = 520
-            else if (execString.includes(q))
-                rank = 420
-
-            if (favoriteIds.includes(entry.id))
-                rank += 90
-
-            return rank
+    function resolveIcon(iconName, name) {
+        if (iconName) {
+            let path = Quickshell.iconPath(iconName, true)
+            if (path) return path
+            path = Quickshell.iconPath(iconName.toLowerCase(), true)
+            if (path) return path
+            if (iconName.includes(".")) {
+                const parts = iconName.split(".")
+                const lastPart = parts[parts.length - 1]
+                path = Quickshell.iconPath(lastPart, true) || Quickshell.iconPath(lastPart.toLowerCase(), true)
+                if (path) return path
+            }
         }
+        if (name) {
+            let path = Quickshell.iconPath(name.toLowerCase(), true)
+            if (path) return path
+        }
+        return ""
+    }
 
-        const filtered = apps
-            .map(entry => ({ entry, rank: score(entry) }))
-            .filter(item => item.rank > 0)
-            .sort((left, right) => {
-                if (right.rank !== left.rank)
-                    return right.rank - left.rank
-                return (left.entry.name ?? "").localeCompare(right.entry.name ?? "")
+    function reloadApps() {
+        const raw = DesktopEntries.applications.values ?? []
+        const list = []
+        for (let i = 0; i < raw.length; ++i) {
+            const entry = raw[i]
+            if (!entry) continue
+            const name = entry.name ?? ""
+            const comment = entry.comment || entry.genericName || entry.execString || "Launch application"
+            const iconPath = root.resolveIcon(entry.icon, name)
+            list.push({
+                entry: entry,
+                name: name,
+                comment: comment,
+                iconPath: iconPath,
+                lowerName: name.toLowerCase(),
+                lowerComment: (entry.comment ?? "").toLowerCase(),
+                lowerGeneric: (entry.genericName ?? "").toLowerCase(),
+                lowerExec: (entry.execString ?? "").toLowerCase(),
+                lowerId: (entry.id ?? "").toLowerCase()
             })
-            .slice(0, config.launcher.maxResults)
-            .map(item => item.entry)
+        }
+        list.sort((a, b) => a.name.localeCompare(b.name))
+        cachedApps = list
+    }
 
-        if (!q.length && filtered.length === 0)
-            return (apps ?? []).slice(0, config.launcher.maxResults)
+    Component.onCompleted: {
+        reloadApps()
+    }
 
-        return filtered
+    Connections {
+        target: DesktopEntries.applications
+        function onValuesChanged() {
+            root.reloadApps()
+        }
     }
 
     readonly property var visibleEntries: {
-        const q = query.trim()
-        if (q.startsWith(">")) {
-            const actionQuery = q.slice(1).trim().toLowerCase()
-            return actionEntries.filter(entry => {
-                if (!actionQuery.length)
-                    return true
-                return entry.name.toLowerCase().includes(actionQuery) || entry.comment.toLowerCase().includes(actionQuery)
-            })
+        const q = query.trim().toLowerCase()
+        const apps = cachedApps
+
+        if (!q.length) {
+            return apps
         }
 
-        if (!q.length && favoriteApps.length > 0)
-            return favoriteApps.slice(0, config.launcher.maxResults)
+        const results = []
+        for (let i = 0; i < apps.length; ++i) {
+            const item = apps[i]
+            let rank = 0
+            if (item.lowerName === q) rank = 1000
+            else if (item.lowerName.startsWith(q)) rank = 900
+            else if (item.lowerGeneric.startsWith(q) || item.lowerId.startsWith(q)) rank = 750
+            else if (item.lowerName.includes(q)) rank = 650
+            else if (item.lowerGeneric.includes(q) || item.lowerComment.includes(q)) rank = 500
+            else if (item.lowerExec.includes(q)) rank = 400
 
-        return appEntries
+            if (rank > 0) {
+                results.push({ item: item, rank: rank })
+            }
+        }
+
+        results.sort((a, b) => {
+            if (b.rank !== a.rank) return b.rank - a.rank
+            return a.item.name.localeCompare(b.item.name)
+        })
+
+        return results.map(r => r.item)
     }
 
     function closeLauncher() {
@@ -147,19 +146,14 @@ PanelWindow {
 
     function openLauncher() {
         shouldShow = true
+        query = ""
         selectedIndex = 0
         searchField.forceActiveFocus()
     }
 
-    function launchEntry(entry) {
-        if (!entry)
-            return
-
-        if (entry.type === "action") {
-            entry.onTriggered()
-            closeLauncher()
-            return
-        }
+    function launchEntry(item) {
+        if (!item) return
+        const entry = item.entry || item
 
         if (entry.runInTerminal) {
             Quickshell.execDetached({
@@ -179,287 +173,595 @@ PanelWindow {
     onShouldShowChanged: {
         if (shouldShow) {
             selectedIndex = 0
-            Qt.callLater(() => searchField.forceActiveFocus())
+            searchField.forceActiveFocus()
         }
     }
 
     onVisibleEntriesChanged: {
-        if (selectedIndex >= visibleEntries.length)
+        if (selectedIndex >= visibleEntries.length) {
             selectedIndex = Math.max(0, visibleEntries.length - 1)
+        }
     }
 
     screen: Quickshell.screens[0]
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.keyboardFocus: shouldShow ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+
     anchors {
         top: true
         left: true
+        right: true
+        bottom: true
     }
-    margins {
-        top: (config.bar.height ?? 34) + 22
-        left: Math.max(0, Math.round((screen.width - root.implicitWidth) / 2))
-    }
-    implicitWidth: config.launcher.width
-    implicitHeight: shouldShow || panel.opacity > 0 ? panelColumn.implicitHeight + 40 : 0
-    color: "transparent"
-    visible: config.launcher.enabled && (shouldShow || panel.opacity > 0)
 
-    WlrLayershell.keyboardFocus: shouldShow ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    color: "transparent"
+    visible: shouldShow || panel.opacity > 0
+
+    // Backdrop click-to-dismiss
+    MouseArea {
+        anchors.fill: parent
+        enabled: root.shouldShow
+        onClicked: root.closeLauncher()
+    }
 
     FocusScope {
         id: panel
-        anchors.fill: parent
-        property real revealOffset: shouldShow ? 0 : -20
+        anchors.centerIn: parent
+        width: 640
+        height: 520
+
         scale: shouldShow ? 1.0 : 0.97
         opacity: shouldShow ? 1.0 : 0.0
         focus: root.shouldShow
-        transform: Translate { y: panel.revealOffset }
 
-        Keys.onEscapePressed: root.closeLauncher()
-        Keys.onDownPressed: root.selectedIndex = Math.min(root.selectedIndex + 1, root.visibleEntries.length - 1)
-        Keys.onUpPressed: root.selectedIndex = Math.max(root.selectedIndex - 1, 0)
-        Keys.onReturnPressed: root.launchEntry(root.visibleEntries[root.selectedIndex])
-        Keys.onEnterPressed: root.launchEntry(root.visibleEntries[root.selectedIndex])
+        transform: Translate {
+            y: root.shouldShow ? 0 : -8
+            Behavior on y {
+                NumberAnimation { duration: 110; easing.type: Easing.OutCubic }
+            }
+        }
 
         Behavior on scale {
-            NumberAnimation { duration: 240; easing.bezierCurve: [0.22, 1.0, 0.36, 1.0] }
+            NumberAnimation { duration: 110; easing.type: Easing.OutCubic }
         }
 
         Behavior on opacity {
-            NumberAnimation { duration: 180; easing.type: Easing.OutQuad }
+            NumberAnimation { duration: 90; easing.type: Easing.OutQuad }
         }
 
-        Behavior on revealOffset {
-            NumberAnimation { duration: 260; easing.bezierCurve: [0.05, 0.7, 0.1, 1.0] }
+        Keys.onEscapePressed: root.closeLauncher()
+        Keys.onDownPressed: {
+            if (root.visibleEntries.length > 0) {
+                root.selectedIndex = Math.min(root.selectedIndex + 1, root.visibleEntries.length - 1)
+                resultsListView.positionViewAtIndex(root.selectedIndex, ListView.Contain)
+            }
+        }
+        Keys.onUpPressed: {
+            if (root.visibleEntries.length > 0) {
+                root.selectedIndex = Math.max(root.selectedIndex - 1, 0)
+                resultsListView.positionViewAtIndex(root.selectedIndex, ListView.Contain)
+            }
+        }
+        Keys.onReturnPressed: {
+            if (root.visibleEntries.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < root.visibleEntries.length) {
+                root.launchEntry(root.visibleEntries[root.selectedIndex])
+            }
+        }
+        Keys.onEnterPressed: {
+            if (root.visibleEntries.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < root.visibleEntries.length) {
+                root.launchEntry(root.visibleEntries[root.selectedIndex])
+            }
         }
 
-        AuroraSurface {
+        // Frosted Glass Window Container
+        Rectangle {
+            id: panelBg
             anchors.fill: parent
-            radius: 28
-            color: root.cSurface
-            strokeColor: root.cBorder
-            accentColor: root.cPrimary
-            elevation: 4
-            highlighted: root.shouldShow
+            radius: 24
+            color: Qt.rgba(root.cSurface.r, root.cSurface.g, root.cSurface.b, 0.68)
+            border.width: 1
+            border.color: root.cBorder
+
+            // Consume clicks inside window to prevent closing
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {}
+            }
 
             ColumnLayout {
-                id: panelColumn
                 anchors.fill: parent
                 anchors.margins: 18
-                spacing: 16
+                spacing: 14
 
-                Rectangle {
+                // ==========================================
+                // 1. TOP BAR: [App Launcher Icon] + [Search Bar]
+                // ==========================================
+                RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 62
-                    radius: 22
-                    color: root.cSurfaceContainer
-                    border.width: 1
-                    border.color: Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.18)
+                    spacing: 12
 
+                    // "Application launcher" icon badge (Grid of squares)
                     Rectangle {
-                        anchors.fill: parent
-                        radius: parent.radius
-                        color: Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.04)
-                    }
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.margins: 16
-                        spacing: 12
+                        Layout.preferredWidth: 48
+                        Layout.preferredHeight: 48
+                        radius: 14
+                        color: Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.15)
+                        border.width: 1
+                        border.color: Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.3)
 
                         Text {
-                            text: query.trim().startsWith(">") ? "󰘳" : "󰍉"
+                            anchors.centerIn: parent
+                            text: "󰕰" // 3x3 App Grid glyph
                             font.family: "Material Design Icons"
-                            font.pixelSize: 22
+                            font.pixelSize: 24
                             color: root.cPrimary
                         }
+                    }
 
-                        QQC.TextField {
-                            id: searchField
-                            Layout.fillWidth: true
-                            color: root.cText
-                            font.family: QsConfig.Config.appearance.fontFamily
-                            font.pixelSize: 15
-                            placeholderText: 'Search apps or type ">" for actions'
-                            placeholderTextColor: root.cSubText
-                            background: Item {}
-                            selectByMouse: true
+                    // "Search menu" bar
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 48
+                        radius: 14
+                        color: Qt.rgba(root.cSurfaceContainer.r, root.cSurfaceContainer.g, root.cSurfaceContainer.b, 0.75)
+                        border.width: 1
+                        border.color: searchField.activeFocus
+                            ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.45)
+                            : Qt.rgba(1, 1, 1, 0.08)
 
-                            onTextChanged: {
-                                root.query = text
-                                root.selectedIndex = 0
+                        Behavior on border.color { ColorAnimation { duration: 100 } }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 14
+                            anchors.rightMargin: 14
+                            spacing: 10
+
+                            QQC.TextField {
+                                id: searchField
+                                Layout.fillWidth: true
+                                color: root.cText
+                                font.family: QsConfig.Config.appearance.fontFamily
+                                font.pixelSize: 15
+                                placeholderText: "Search applications..."
+                                placeholderTextColor: root.cSubText
+                                background: Item {}
+                                selectByMouse: true
+
+                                onTextChanged: {
+                                    root.query = text
+                                    root.selectedIndex = 0
+                                }
+
+                                Keys.onEscapePressed: root.closeLauncher()
+                                Keys.onDownPressed: {
+                                    if (root.visibleEntries.length > 0) {
+                                        root.selectedIndex = Math.min(root.selectedIndex + 1, root.visibleEntries.length - 1)
+                                        resultsListView.positionViewAtIndex(root.selectedIndex, ListView.Contain)
+                                    }
+                                }
+                                Keys.onUpPressed: {
+                                    if (root.visibleEntries.length > 0) {
+                                        root.selectedIndex = Math.max(root.selectedIndex - 1, 0)
+                                        resultsListView.positionViewAtIndex(root.selectedIndex, ListView.Contain)
+                                    }
+                                }
+                                Keys.onReturnPressed: {
+                                    if (root.visibleEntries.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < root.visibleEntries.length) {
+                                        root.launchEntry(root.visibleEntries[root.selectedIndex])
+                                    }
+                                }
+                                Keys.onEnterPressed: {
+                                    if (root.visibleEntries.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < root.visibleEntries.length) {
+                                        root.launchEntry(root.visibleEntries[root.selectedIndex])
+                                    }
+                                }
                             }
+
+                            // Clear button if searching, or Search Icon
+                            Item {
+                                Layout.preferredWidth: 24
+                                Layout.preferredHeight: 24
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    visible: searchField.text.length === 0
+                                    text: "󰍉" // Search glyph
+                                    font.family: "Material Design Icons"
+                                    font.pixelSize: 20
+                                    color: searchField.activeFocus ? root.cPrimary : root.cSubText
+                                    Behavior on color { ColorAnimation { duration: 100 } }
+                                }
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    visible: searchField.text.length > 0
+                                    radius: 12
+                                    color: clearHover.hovered ? Qt.rgba(1, 1, 1, 0.12) : "transparent"
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "󰅖" // Close / clear glyph
+                                        font.family: "Material Design Icons"
+                                        font.pixelSize: 16
+                                        color: root.cSubText
+                                    }
+
+                                    HoverHandler { id: clearHover }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            searchField.text = ""
+                                            searchField.forceActiveFocus()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ==========================================
+                // 2. CENTER: "Results" Application List
+                // ==========================================
+                Item {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    clip: true
+
+                    ListView {
+                        id: resultsListView
+                        anchors.fill: parent
+                        model: root.visibleEntries
+                        spacing: 6
+                        boundsBehavior: Flickable.StopAtBounds
+                        reuseItems: true
+                        cacheBuffer: 400
+
+                        QQC.ScrollBar.vertical: QQC.ScrollBar {
+                            policy: QQC.ScrollBar.AsNeeded
+                            width: 6
+                        }
+
+                        delegate: Rectangle {
+                            id: resultItem
+                            required property var modelData
+                            required property int index
+
+                            width: resultsListView.width - (resultsListView.contentHeight > resultsListView.height ? 12 : 0)
+                            height: 54
+                            radius: 14
+
+                            readonly property bool isSelected: root.selectedIndex === index
+                            readonly property bool isHovered: itemHover.hovered
+
+                            color: isSelected
+                                ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.18)
+                                : isHovered
+                                    ? Qt.rgba(1, 1, 1, 0.07)
+                                    : Qt.rgba(1, 1, 1, 0.03)
+
+                            border.width: 1
+                            border.color: isSelected
+                                ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.35)
+                                : Qt.rgba(1, 1, 1, 0.04)
+
+                            Behavior on color { ColorAnimation { duration: 80 } }
+                            Behavior on border.color { ColorAnimation { duration: 80 } }
+
+                            HoverHandler { id: itemHover }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onEntered: root.selectedIndex = resultItem.index
+                                onClicked: root.launchEntry(resultItem.modelData)
+                            }
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 12
+                                anchors.rightMargin: 14
+                                spacing: 14
+
+                                // Application Icon
+                                Item {
+                                    Layout.preferredWidth: 36
+                                    Layout.preferredHeight: 36
+
+                                    Image {
+                                        id: appIconImage
+                                        anchors.centerIn: parent
+                                        width: 32
+                                        height: 32
+                                        sourceSize.width: 32
+                                        sourceSize.height: 32
+                                        smooth: true
+                                        fillMode: Image.PreserveAspectFit
+                                        source: resultItem.modelData.iconPath ?? ""
+                                        visible: status === Image.Ready
+                                    }
+
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        radius: 10
+                                        color: Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.12)
+                                        visible: !appIconImage.visible
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: (resultItem.modelData.name ?? "?").slice(0, 1).toUpperCase()
+                                            font.family: QsConfig.Config.appearance.fontFamily
+                                            font.pixelSize: 16
+                                            font.weight: Font.Bold
+                                            color: root.cPrimary
+                                        }
+                                    }
+                                }
+
+                                // Application Title and Comment / Subtitle
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 2
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: resultItem.modelData.name ?? "Application"
+                                        font.family: QsConfig.Config.appearance.fontFamily
+                                        font.pixelSize: 14
+                                        font.weight: Font.DemiBold
+                                        color: resultItem.isSelected ? root.cPrimary : root.cText
+                                        elide: Text.ElideRight
+                                        Behavior on color { ColorAnimation { duration: 80 } }
+                                    }
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: resultItem.modelData.comment || "Launch application"
+                                        font.family: QsConfig.Config.appearance.fontFamily
+                                        font.pixelSize: 11
+                                        color: root.cSubText
+                                        elide: Text.ElideRight
+                                    }
+                                }
+
+                                // Selection arrow indicator
+                                Text {
+                                    visible: resultItem.isSelected
+                                    text: "󰁔" // Chevron Right
+                                    font.family: "Material Design Icons"
+                                    font.pixelSize: 18
+                                    color: root.cPrimary
+                                }
+                            }
+                        }
+                    }
+
+                    // Empty State if no match
+                    ColumnLayout {
+                        anchors.centerIn: parent
+                        visible: root.visibleEntries.length === 0
+                        spacing: 8
+
+                        Text {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: "󰍉"
+                            font.family: "Material Design Icons"
+                            font.pixelSize: 36
+                            color: Qt.rgba(root.cSubText.r, root.cSubText.g, root.cSubText.b, 0.4)
                         }
 
                         Text {
-                            visible: query.length > 0
-                            text: "Esc"
+                            Layout.alignment: Qt.AlignHCenter
+                            text: "No applications found"
                             font.family: QsConfig.Config.appearance.fontFamily
-                            font.pixelSize: 11
+                            font.pixelSize: 13
                             color: root.cSubText
                         }
                     }
                 }
 
+                // Divider line above footer
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: Qt.rgba(1, 1, 1, 0.06)
+                }
+
+                // ==========================================
+                // 3. FOOTER: [Shutdown] [Reboot] [Lock] ... [Open About Menu]
+                // ==========================================
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 10
 
-                    Text {
-                        text: query.trim().startsWith(">") ? "Quick actions" : (query.trim().length ? "Best matches" : "Favorites")
-                        font.family: QsConfig.Config.appearance.fontFamily
-                        font.pixelSize: 13
-                        font.weight: Font.DemiBold
-                        color: root.cText
-                    }
+                    // Button 1: Shutdown
+                    Rectangle {
+                        id: btnShutdown
+                        Layout.preferredWidth: 38
+                        Layout.preferredHeight: 38
+                        radius: 19
+                        color: hoverShutdown.hovered
+                            ? Qt.rgba(239 / 255, 68 / 255, 68 / 255, 0.25)
+                            : Qt.rgba(1, 1, 1, 0.05)
+                        border.width: 1
+                        border.color: hoverShutdown.hovered
+                            ? Qt.rgba(239 / 255, 68 / 255, 68 / 255, 0.5)
+                            : Qt.rgba(1, 1, 1, 0.08)
 
-                    Item { Layout.fillWidth: true }
+                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on border.color { ColorAnimation { duration: 100 } }
 
-                    Text {
-                        text: `${root.visibleEntries.length} item${root.visibleEntries.length === 1 ? "" : "s"}`
-                        font.family: QsConfig.Config.appearance.fontFamily
-                        font.pixelSize: 11
-                        color: root.cSubText
-                    }
-                }
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰐥" // Power off glyph
+                            font.family: "Material Design Icons"
+                            font.pixelSize: 18
+                            color: hoverShutdown.hovered ? "#ef4444" : root.cText
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                        }
 
-                Flickable {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: Math.min(520, listColumn.implicitHeight + 12)
-                    clip: true
-                    contentWidth: width
-                    contentHeight: listColumn.implicitHeight
-                    boundsBehavior: Flickable.StopAtBounds
+                        HoverHandler { id: hoverShutdown }
 
-                    QQC.ScrollBar.vertical: QQC.ScrollBar {
-                        policy: QQC.ScrollBar.AsNeeded
-                    }
-
-                    Column {
-                        id: listColumn
-                        width: root.width - 48
-                        spacing: 8
-
-                        Repeater {
-                            model: root.visibleEntries
-
-                            Rectangle {
-                                id: delegateRoot
-                                required property var modelData
-                                required property int index
-
-                                width: listColumn.width
-                                height: 66
-                                radius: 20
-                                color: root.selectedIndex === index
-                                    ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.18)
-                                    : hovered.hovered
-                                        ? root.cSurfaceContainerHigh
-                                        : root.cSurfaceContainer
-                                border.width: 1
-                                border.color: root.selectedIndex === index
-                                    ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.34)
-                                    : Qt.rgba(root.cText.r, root.cText.g, root.cText.b, 0.10)
-                                scale: hovered.hovered ? 1.02 : 1.0
-
-                                Behavior on color { ColorAnimation { duration: 160 } }
-                                Behavior on border.color { ColorAnimation { duration: 160 } }
-                                Behavior on scale { NumberAnimation { duration: 180; easing.bezierCurve: [0.22, 1.0, 0.36, 1.0] } }
-
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: parent.radius
-                                    color: Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, root.selectedIndex === index ? 0.05 : hovered.hovered ? 0.03 : 0)
-                                }
-
-                                HoverHandler { id: hovered }
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.margins: 12
-                                    spacing: 12
-
-                                    Rectangle {
-                                        Layout.preferredWidth: 40
-                                        Layout.preferredHeight: 40
-                                        radius: 14
-                                        color: Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, delegateRoot.modelData.type === "action" ? 0.14 : 0.10)
-
-                                        Text {
-                                            anchors.centerIn: parent
-                                            text: delegateRoot.modelData.type === "action"
-                                                ? (delegateRoot.modelData.glyph ?? "󰣆")
-                                                : ((delegateRoot.modelData.name ?? "?").slice(0, 1).toUpperCase())
-                                            font.family: delegateRoot.modelData.type === "action"
-                                                ? "Material Design Icons"
-                                                : QsConfig.Config.appearance.fontFamily
-                                            font.pixelSize: delegateRoot.modelData.type === "action" ? 20 : 16
-                                            font.weight: Font.DemiBold
-                                            color: root.cPrimary
-                                        }
-                                    }
-
-                                    ColumnLayout {
-                                        Layout.fillWidth: true
-                                        spacing: 2
-
-                                        Text {
-                                            Layout.fillWidth: true
-                                            text: delegateRoot.modelData.name ?? "Unknown"
-                                            font.family: QsConfig.Config.appearance.fontFamily
-                                            font.pixelSize: 14
-                                            font.weight: Font.Medium
-                                            color: root.cText
-                                            elide: Text.ElideRight
-                                        }
-
-                                        Text {
-                                            Layout.fillWidth: true
-                                            text: delegateRoot.modelData.comment || delegateRoot.modelData.genericName || delegateRoot.modelData.execString || "Launch"
-                                            font.family: QsConfig.Config.appearance.fontFamily
-                                            font.pixelSize: 11
-                                            color: root.cSubText
-                                            elide: Text.ElideRight
-                                        }
-                                    }
-
-                                    Text {
-                                        visible: root.selectedIndex === index
-                                        text: "󰁔"
-                                        font.family: "Material Design Icons"
-                                        font.pixelSize: 18
-                                        color: root.cPrimary
-                                    }
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onEntered: root.selectedIndex = delegateRoot.index
-                                    onClicked: root.launchEntry(delegateRoot.modelData)
-                                }
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                root.closeLauncher()
+                                Quickshell.execDetached(["systemctl", "poweroff"])
                             }
                         }
+
+                        QQC.ToolTip.visible: hoverShutdown.hovered
+                        QQC.ToolTip.text: "Shutdown"
+                        QQC.ToolTip.delay: 150
+                    }
+
+                    // Button 2: Reboot
+                    Rectangle {
+                        id: btnReboot
+                        Layout.preferredWidth: 38
+                        Layout.preferredHeight: 38
+                        radius: 19
+                        color: hoverReboot.hovered
+                            ? Qt.rgba(249 / 255, 115 / 255, 22 / 255, 0.25)
+                            : Qt.rgba(1, 1, 1, 0.05)
+                        border.width: 1
+                        border.color: hoverReboot.hovered
+                            ? Qt.rgba(249 / 255, 115 / 255, 22 / 255, 0.5)
+                            : Qt.rgba(1, 1, 1, 0.08)
+
+                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on border.color { ColorAnimation { duration: 100 } }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰜉" // Reboot / restart glyph
+                            font.family: "Material Design Icons"
+                            font.pixelSize: 18
+                            color: hoverReboot.hovered ? "#f97316" : root.cText
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                        }
+
+                        HoverHandler { id: hoverReboot }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                root.closeLauncher()
+                                Quickshell.execDetached(["systemctl", "reboot"])
+                            }
+                        }
+
+                        QQC.ToolTip.visible: hoverReboot.hovered
+                        QQC.ToolTip.text: "Reboot"
+                        QQC.ToolTip.delay: 150
+                    }
+
+                    // Button 3: Lock
+                    Rectangle {
+                        id: btnLock
+                        Layout.preferredWidth: 38
+                        Layout.preferredHeight: 38
+                        radius: 19
+                        color: hoverLock.hovered
+                            ? Qt.rgba(56 / 255, 189 / 255, 248 / 255, 0.25)
+                            : Qt.rgba(1, 1, 1, 0.05)
+                        border.width: 1
+                        border.color: hoverLock.hovered
+                            ? Qt.rgba(56 / 255, 189 / 255, 248 / 255, 0.5)
+                            : Qt.rgba(1, 1, 1, 0.08)
+
+                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on border.color { ColorAnimation { duration: 100 } }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰌾" // Lock glyph
+                            font.family: "Material Design Icons"
+                            font.pixelSize: 18
+                            color: hoverLock.hovered ? "#38bdf8" : root.cText
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                        }
+
+                        HoverHandler { id: hoverLock }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                root.closeLauncher()
+                                Quickshell.execDetached([
+                                    "dbus-send",
+                                    "--system",
+                                    "--type=method_call",
+                                    "--print-reply",
+                                    "--dest=org.freedesktop.DisplayManager",
+                                    "/org/freedesktop/DisplayManager/Seat0",
+                                    "org.freedesktop.DisplayManager.Seat.SwitchToGreeter"
+                                ])
+                            }
+                        }
+
+                        QQC.ToolTip.visible: hoverLock.hovered
+                        QQC.ToolTip.text: "Lock Session"
+                        QQC.ToolTip.delay: 150
+                    }
+
+                    // Spacer between left buttons and right button
+                    Item { Layout.fillWidth: true }
+
+                    // Button 4: Open About Menu (Right side)
+                    Rectangle {
+                        id: btnAbout
+                        Layout.preferredWidth: 38
+                        Layout.preferredHeight: 38
+                        radius: 19
+                        color: hoverAbout.hovered
+                            ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.25)
+                            : Qt.rgba(1, 1, 1, 0.05)
+                        border.width: 1
+                        border.color: hoverAbout.hovered
+                            ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.5)
+                            : Qt.rgba(1, 1, 1, 0.08)
+
+                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on border.color { ColorAnimation { duration: 100 } }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰋽" // Information / About glyph
+                            font.family: "Material Design Icons"
+                            font.pixelSize: 18
+                            color: hoverAbout.hovered ? root.cPrimary : root.cText
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                        }
+
+                        HoverHandler { id: hoverAbout }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                root.closeLauncher()
+                                Quickshell.execDetached([
+                                    "kitty",
+                                    "--class", "nixos-about",
+                                    "--title", "About This System",
+                                    "sh", "-c", "fastfetch; echo; read -n 1 -s -r -p '  Press any key to close...'"
+                                ])
+                            }
+                        }
+
+                        QQC.ToolTip.visible: hoverAbout.hovered
+                        QQC.ToolTip.text: "About This System"
+                        QQC.ToolTip.delay: 150
                     }
                 }
-
-                Text {
-                    Layout.fillWidth: true
-                    visible: root.visibleEntries.length === 0
-                    text: query.trim().startsWith(">") ? "No actions matched." : "No applications matched your search."
-                    horizontalAlignment: Text.AlignHCenter
-                    font.family: QsConfig.Config.appearance.fontFamily
-                    font.pixelSize: 12
-                    color: root.cSubText
-                }
-            }
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            acceptedButtons: Qt.RightButton
-            onClicked: mouse => {
-                if (mouse.button === Qt.RightButton)
-                    root.closeLauncher()
             }
         }
     }
