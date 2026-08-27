@@ -4,7 +4,7 @@
 {
   environment.systemPackages = [
     pkgs-unstable.antigravity-ide
-    pkgs.zed-editor
+    pkgs-unstable.zed-editor
     pkgs-unstable.uv
   ];
 }
