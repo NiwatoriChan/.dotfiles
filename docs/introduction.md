@@ -25,7 +25,7 @@ The configuration files are organized as follows:
 │   └── petitepatate/     # Config for PetitePatate (Pinebook Pro ARM64 system)
 ├── home/                 # User-specific Home Manager configurations
 │   ├── common/           # Shared user packages, shell (zsh/p10k), and git
-│   ├── config/           # User configuration files (doom, waybar, hypr, mango, etc.)
+│   ├── config/           # User configuration files (waybar, hypr, mango, etc.)
 │   ├── potatomonster.nix # User environment for PotatoMonster (MangoWM configs)
 │   ├── pwpoulet.nix      # User environment for PwPoulet (KDE wrapper)
 │   ├── savage.nix        # User environment for Savage (Steam Deck common configs)

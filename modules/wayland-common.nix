@@ -130,9 +130,6 @@
       kdePackages.qt6ct
     ];
 
-    # Doom Emacs config symlink
-    home.file.".config/doom".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/doom";
-
     # Blurry transparent centered Wayland application launcher with icons (Fuzzel)
     programs.fuzzel = {
       enable = true;

@@ -33,7 +33,6 @@
     # Apps (shared across machines)
     discord
     mpv
-    emacs-pgtk
     gnome-disk-utility
     moonlight-qt
 

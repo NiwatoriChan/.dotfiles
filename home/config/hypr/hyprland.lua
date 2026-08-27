@@ -333,24 +333,6 @@ hl.window_rule({
 
 
 hl.window_rule({
-    name = "emacs-opacity-1",
-    match = { class = "emacs" },
-    opacity = "0.85 0.75",
-})
-
-hl.window_rule({
-    name = "emacs-opacity-2",
-    match = { class = "org.gnu.emacs" },
-    opacity = "0.85 0.75",
-})
-
-hl.window_rule({
-    name = "emacs-opacity-3",
-    match = { class = "Emacs" },
-    opacity = "0.85 0.75",
-})
-
-hl.window_rule({
     name = "opencode-opacity-1",
     match = { class = "opencode-desktop" },
     opacity = "0.85 0.75",
