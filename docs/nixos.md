@@ -120,7 +120,7 @@ Modular graphical desktop profiles under `modules/`:
 Unified server services are managed modularly under `modules/server/`:
 
 - **Homepage Dashboard** (`homepage.nix`): Launches a system dashboard on port `8082`. It displays server resources and custom service widgets for network apps.
-- **Jellyfin Media Server** (`jellyfin.nix`): Media streaming server pointing to `/mnt/exp6/EXP6/MEDIAX/Videos` with automated per-folder library mapping (excluding `zzISSUE` and `Homemade`).
+- **Jellyfin Media Server** (`jellyfin.nix`): Media streaming server pointing to `/mnt/exp6/EXP6/MEDIAX/Videos` with declarative POSIX ACLs, group permissions, and storage mount synchronization.
 - **OpenVPN Client** (`openvpn.nix`): Manages tunnel configuration to secure networks using credential keys.
 - **Samba Sharing** (`samba.nix`): Configures secure SMB folder sharing across the local network for system users.
 - **Transmission** (`transmission.nix`): Runs Transmission BitTorrent client daemon with custom ACLs and download directory bindings.

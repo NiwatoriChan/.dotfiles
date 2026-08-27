@@ -13,8 +13,8 @@
     ./storage.nix
   ];
 
-  # Kernel (LTS)
-  boot.kernelPackages = lib.mkForce pkgs.linuxPackages;
+  # Kernel (CachyOS)
+  boot.kernelPackages = lib.mkForce pkgs.cachyosKernels.linuxPackages-cachyos-latest;
 
   # Nvidia GPU support (GTX 1070 is Pascal, pre-Turing -> use proprietary closed driver)
   services.xserver.videoDrivers = [ "nvidia" ];

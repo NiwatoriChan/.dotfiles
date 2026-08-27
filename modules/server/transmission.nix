@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 {
   # Add your user to transmission's group
@@ -27,7 +27,29 @@
     };
   };
 
-  # Optional: Declaratively create and enforce directory permissions on boot
+  # Ensure storage mount is ready before Transmission starts and allow read-write watch directory access
+  systemd.services.transmission = {
+    after = [ "mnt-torrent.mount" ];
+    wants = [ "mnt-torrent.mount" ];
+    requires = [ "mnt-torrent.mount" ];
+    unitConfig = {
+      RequiresMountsFor = [ "/mnt/torrent" ];
+    };
+
+    serviceConfig = {
+      # Ensure watch-dir is bound read-write so Transmission can rename .torrent files to .added (or delete them)
+      BindPaths = [
+        "/mnt/torrent/Watch"
+      ];
+      # Override the default BindReadOnlyPaths which puts watch-dir into read-only mode when trash-original-torrent-files is false
+      BindReadOnlyPaths = lib.mkForce [
+        builtins.storeDir
+        "/etc"
+      ];
+    };
+  };
+
+  # Declaratively create and enforce directory permissions on boot
   systemd.tmpfiles.rules = [
     # 1. Create the directories if they don't exist
     "d /mnt/torrent 2775 transmission transmission -"
