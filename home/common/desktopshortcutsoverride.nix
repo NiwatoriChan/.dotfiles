@@ -29,11 +29,11 @@
       };
     };
 
-    # Application launcher desktop entry (needed for KWin/KDE global shortcuts)
+    # Fuzzel application launcher desktop entry (needed for KWin/KDE global shortcuts)
     fuzzel = {
-      name = "Application Launcher";
-      exec = "quickshell ipc call launcher toggle";
-      icon = "system-search";
+      name = "Fuzzel";
+      exec = "fuzzel";
+      icon = "fuzzel";
       comment = "Application Launcher";
       terminal = false;
       type = "Application";
