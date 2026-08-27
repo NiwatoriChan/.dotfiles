@@ -111,7 +111,6 @@ Modular graphical desktop profiles under `modules/`:
 - **KDE Plasma 6** (`modules/kde.nix`): Unstable KDE release overlay and Plasma 6 desktop manager settings.
 - **Hyprland** (`modules/hyprland.nix`): Wayland tiling window manager profile with custom environment variables, XDG desktop portals, and font configuration.
 - **MangoWM** (`modules/mangowm.nix`): Custom scroll-tiling window manager profile.
-- **KineticWE** (`modules/kineticwe.nix`) *EXPERIMENTAL*: Custom KWin Window Environment desktop module combining system-level and Home Manager settings. Imports `inputs.kineticwe`, enables overlays, configures XDG Desktop Portals (`xdg-desktop-portal-kde`), defines a custom startup launcher script (`start-kineticwe`) executing autostart background tools (Quickshell, Mako, Wpaperd, NM Applet, Blueman Applet, Wlsunset), registers the SDDM wayland session desktop entry, and symlinks shared KDE Plasma configurations.
 
 ---
 

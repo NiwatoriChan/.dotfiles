@@ -15,7 +15,7 @@ The configuration files are organized as follows:
 ├── docs/                 # Documentation (this portal)
 │   ├── index.html        # Interactive documentation viewer
 │   └── *.md              # Section-specific markdown documents
-├── modules/              # Unified system + user modules (Hyprland, MangoWM, KDE, KineticWE [EXPERIMENTAL], Server, Gaming)
+├── modules/              # Unified system + user modules (Hyprland, MangoWM, KDE, Server, Gaming)
 ├── hosts/                # Machine-specific NixOS configurations
 │   ├── common/           # Shared system settings, packages, and services
 │   ├── potatomonster/    # Config for PotatoMonster (MangoWM system)

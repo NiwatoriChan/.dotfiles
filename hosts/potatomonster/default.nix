@@ -7,7 +7,6 @@
     ../common
     ./hardware.nix
     ../../modules/hyprland.nix
-    #../../modules/kineticwe.nix
     #../../modules/kde.nix
     #../../modules/server
     ../../modules/gaming.nix

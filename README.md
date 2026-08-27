@@ -20,7 +20,7 @@ A modular, unified, and declarative NixOS flake configuration managing multiple 
 
 The system uses unified module blocks under `modules/` to manage target packages and environments:
 
-- **`hyprland.nix` / `mangowm.nix` / `kde.nix` / `kineticwe.nix` *EXPERIMENTAL***: Graphical environment declarations.
+- **`hyprland.nix` / `mangowm.nix` / `kde.nix`**: Graphical environment declarations.
 - **`gaming.nix`**: Dedicated gaming packages (Steam, Lutris, Heroic Games Launcher).
 - **`jovian-deck.nix` / `jovian-amd.nix`**: Steam Deck / Jovian compatibility layers.
 - **`server/`**: A segregated headless server stack including:
@@ -39,7 +39,7 @@ The system uses unified module blocks under `modules/` to manage target packages
 ├── flake.nix             # Flake configurations and inputs entrypoint
 ├── scripts/              # Helper scripts (cache bootstrapping, etc.)
 │   └── add-caches.sh     # Bootstrap binary caches on fresh systems
-├── modules/              # Unified system + user modules (Gaming, Jovian, Hyprland, KDE, KineticWE [EXPERIMENTAL], Server)
+├── modules/              # Unified system + user modules (Gaming, Jovian, Hyprland, KDE, Server)
 ├── hosts/                # Host-specific settings & hardware profiles
 │   ├── common/           # Shared base packages, CLI tools, shell, and configs
 │   ├── potatomonster/    # PotatoMonster system configuration
