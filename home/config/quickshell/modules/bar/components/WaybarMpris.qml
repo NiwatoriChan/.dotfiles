@@ -1,12 +1,12 @@
 import Quickshell
 import Quickshell.Io
 import QtQuick 6.10
-import qs.services
+import "../../../services" as QsServices
 
 Item {
     id: root
 
-    readonly property var player: Players.active
+    readonly property var player: QsServices.Players.active
     readonly property bool isPlaying: player !== null && player.isPlaying
 
     implicitWidth: player !== null ? mprisText.implicitWidth + 24 : 0
@@ -35,7 +35,8 @@ Item {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-            Players.togglePlaying(root.player?.desktopEntry ?? "")
+            QsServices.Players.togglePlaying(root.player?.desktopEntry ?? "")
         }
     }
 }
+

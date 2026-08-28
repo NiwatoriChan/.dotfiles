@@ -11,7 +11,6 @@ Scope {
 
         PanelWindow {
             id: window
-
             property var modelData
 
             screen: modelData
@@ -42,3 +41,4 @@ Scope {
         }
     }
 }
+

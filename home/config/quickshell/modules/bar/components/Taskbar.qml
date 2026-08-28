@@ -2,20 +2,46 @@ import Quickshell
 import Quickshell.Hyprland
 import QtQuick 6.10
 import QtQuick.Layouts 6.10
+import "../../../services" as QsServices
 
 Item {
     id: root
 
+    property var screen
+
+    function taskMatchesScreen(tl) {
+        if (!root.screen) return true
+        const screenName = root.screen.name
+        if (!screenName) return true
+
+        const ws = tl.workspace
+        const wsMon = ws?.monitor?.name ?? ws?.lastIpcObject?.monitor ?? tl.lastIpcObject?.monitor
+        if (wsMon) {
+            return wsMon === screenName
+        }
+
+        if (screenName === "DP-1") {
+            return ws ? (ws.id >= 1 && ws.id <= 10) : true
+        } else if (screenName === "HDMI-A-1") {
+            return ws ? (ws.id === 11 || ws.id > 10) : false
+        }
+
+        return true
+    }
+
     readonly property var toplevels: {
         const list = []
-        for (const tl of Hyprland.toplevels.values)
-            list.push(tl)
+        for (const tl of Hyprland.toplevels.values) {
+            if (taskMatchesScreen(tl))
+                list.push(tl)
+        }
         return list
     }
 
     implicitWidth: taskbarRow.implicitWidth + 8
     implicitHeight: 28
     visible: toplevels.length > 0
+
 
     RowLayout {
         id: taskbarRow
@@ -26,6 +52,7 @@ Item {
             model: root.toplevels
 
             delegate: Rectangle {
+                id: delegateRoot
                 required property var modelData
                 readonly property bool isActive: Hyprland.activeToplevel?.handle === modelData.handle
 
@@ -89,7 +116,7 @@ Item {
                             if (typeof modelData.workspace.activate === "function") {
                                 modelData.workspace.activate();
                             } else {
-                                Hyprland.dispatch("workspace " + modelData.workspace.id);
+                                QsServices.Hypr.dispatch("workspace " + modelData.workspace.id);
                             }
                         }
                         if (typeof modelData.focus === "function") {
@@ -97,7 +124,7 @@ Item {
                         } else if (typeof modelData.activate === "function") {
                             modelData.activate();
                         } else if (modelData.address) {
-                            Hyprland.dispatch("focuswindow address:" + modelData.address);
+                            QsServices.Hypr.dispatch("focuswindow address:" + modelData.address);
                         }
                     }
                 }

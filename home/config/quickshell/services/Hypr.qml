@@ -17,6 +17,29 @@ Singleton {
     readonly property int activeWsId: focusedWorkspace?.id ?? 1
 
     function dispatch(request: string): void {
+        if (!request || request.length === 0) return;
+        const trimmed = request.trim();
+
+        if (trimmed.startsWith("workspace ")) {
+            let target = trimmed.substring("workspace ".length).trim();
+            if (target === "e+1") target = "+1";
+            else if (target === "e-1") target = "-1";
+            Hyprland.dispatch(`hl.dsp.focus({ workspace = "${target}" })`);
+            return;
+        }
+
+        if (trimmed.startsWith("focuswindow address:")) {
+            const addr = trimmed.substring("focuswindow address:".length).trim();
+            Hyprland.dispatch(`hl.dsp.focus({ window = "address:${addr}" })`);
+            return;
+        }
+
+        if (trimmed.startsWith("focuswindow ")) {
+            const target = trimmed.substring("focuswindow ".length).trim();
+            Hyprland.dispatch(`hl.dsp.focus({ window = "${target}" })`);
+            return;
+        }
+
         Hyprland.dispatch(request);
     }
 

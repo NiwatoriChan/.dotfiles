@@ -35,7 +35,41 @@ elseif hostname == "PotatoMonster" then
         position = "auto",
         scale    = 1,
     })
+elseif hostname == "PwPoulet" then
+    -- Second screen (HDMI-A-1, LG Ultrawide) placed on top
+    hl.monitor({
+        output   = "HDMI-A-1",
+        mode     = "preferred",
+        position = "0x0",
+        scale    = 1,
+    })
+    -- Main screen (DP-1, LG QHD) placed below it at y=1080
+    hl.monitor({
+        output   = "DP-1",
+        mode     = "preferred",
+        position = "0x1080",
+        scale    = 1,
+    })
+    -- Fallback for any other display
+    hl.monitor({
+        output   = "",
+        mode     = "preferred",
+        position = "auto",
+        scale    = 1,
+    })
 else
+    hl.monitor({
+        output   = "HDMI-A-1",
+        mode     = "preferred",
+        position = "0x0",
+        scale    = 1,
+    })
+    hl.monitor({
+        output   = "DP-1",
+        mode     = "preferred",
+        position = "0x1080",
+        scale    = 1,
+    })
     hl.monitor({
         output   = "",
         mode     = "preferred",
@@ -43,6 +77,39 @@ else
         scale    = 1,
     })
 end
+
+--------------------
+---- WORKSPACES ----
+--------------------
+
+if hostname == "PwPoulet" or hostname == "" then
+    -- Pin all main workspaces (1 to 10) exclusively to DP-1 (main screen) with scrolling layout
+    for i = 1, 10 do
+        hl.workspace_rule({
+            workspace = tostring(i),
+            monitor = "DP-1",
+            layout = "scrolling",
+            default = (i == 1),
+        })
+    end
+
+    -- Pin dedicated workspace 11 to HDMI-A-1 (second screen) with scrolling layout
+    hl.workspace_rule({
+        workspace = "11",
+        monitor = "HDMI-A-1",
+        layout = "scrolling",
+        default = true,
+    })
+end
+
+-- Ensure all dynamic/fallback workspaces also explicitly use the scrolling layout
+for i = 12, 20 do
+    hl.workspace_rule({
+        workspace = tostring(i),
+        layout = "scrolling",
+    })
+end
+
 
 ---------------------
 ---- MY PROGRAMS ----

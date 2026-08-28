@@ -13,10 +13,11 @@ Item {
     readonly property var pywal: QsServices.Pywal
     readonly property var network: QsServices.Network
     readonly property bool isHovered: mouseArea.containsMouse
-    readonly property bool isConnected: network.active !== null
-    readonly property bool isEnabled: network.wifiEnabled
-    readonly property int signalStrength: isConnected ? network.active.strength : 0
-    readonly property string networkName: isConnected ? (network.active.ssid ?? "Connected") : ""
+    readonly property bool isConnected: (network?.active ?? null) !== null
+    readonly property bool isEnabled: network?.wifiEnabled ?? false
+    readonly property int signalStrength: network?.active?.strength ?? 0
+    readonly property string networkName: network?.active?.ssid ?? "Connected"
+
     
     implicitWidth: networkRow.implicitWidth + 16
     implicitHeight: 20

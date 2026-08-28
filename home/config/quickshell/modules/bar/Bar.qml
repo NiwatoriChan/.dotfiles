@@ -8,9 +8,11 @@ import "../../services" as QsServices
 
 Item {
     id: root
+    anchors.fill: parent
 
     property var screen
     property var barWindow
+
 
     property string activePopup: ""
     readonly property bool hasPopup: activePopup !== ""
@@ -90,9 +92,17 @@ Item {
             }
 
             Loader {
+                id: taskbarLoader
                 source: "components/Taskbar.qml"
+                Binding {
+                    target: taskbarLoader.item
+                    property: "screen"
+                    value: root.screen
+                    when: taskbarLoader.status === Loader.Ready && root.screen !== undefined
+                }
             }
         }
+
 
         RowLayout {
             id: centerSection

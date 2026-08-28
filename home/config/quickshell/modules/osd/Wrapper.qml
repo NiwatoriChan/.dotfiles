@@ -1,10 +1,11 @@
 import Quickshell
 import QtQuick
+import "../../services" as QsServices
 
 Scope {
     id: root
     
-    required property var pywal
+    property var pywal: QsServices.Pywal
     
     VolumeOSD {
         pywal: root.pywal
@@ -14,3 +15,4 @@ Scope {
         pywal: root.pywal
     }
 }
+

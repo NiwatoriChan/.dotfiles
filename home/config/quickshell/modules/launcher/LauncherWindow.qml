@@ -50,24 +50,29 @@ PanelWindow {
         }
     }
 
+    readonly property var iconCache: ({})
+
     function resolveIcon(iconName, name) {
+        if (!iconName && !name) return ""
+        const key = `${iconName || ""}|${name || ""}`
+        if (root.iconCache[key] !== undefined) return root.iconCache[key]
+
+        let path = ""
         if (iconName) {
-            let path = Quickshell.iconPath(iconName, true)
-            if (path) return path
-            path = Quickshell.iconPath(iconName.toLowerCase(), true)
-            if (path) return path
-            if (iconName.includes(".")) {
+            path = Quickshell.iconPath(iconName, true)
+            if (!path) path = Quickshell.iconPath(iconName.toLowerCase(), true)
+            if (!path && iconName.includes(".")) {
                 const parts = iconName.split(".")
                 const lastPart = parts[parts.length - 1]
                 path = Quickshell.iconPath(lastPart, true) || Quickshell.iconPath(lastPart.toLowerCase(), true)
-                if (path) return path
             }
         }
-        if (name) {
-            let path = Quickshell.iconPath(name.toLowerCase(), true)
-            if (path) return path
+        if (!path && name) {
+            path = Quickshell.iconPath(name.toLowerCase(), true)
         }
-        return ""
+
+        root.iconCache[key] = path || ""
+        return root.iconCache[key]
     }
 
     function reloadApps() {
@@ -99,15 +104,82 @@ PanelWindow {
         reloadApps()
     }
 
+    Timer {
+        id: reloadDebounceTimer
+        interval: 300
+        repeat: false
+        onTriggered: root.reloadApps()
+    }
+
     Connections {
         target: DesktopEntries.applications
         function onValuesChanged() {
-            root.reloadApps()
+            reloadDebounceTimer.restart()
         }
     }
 
+
+
+    readonly property var actionEntries: [
+        {
+            id: "action-terminal",
+            name: "Open Terminal",
+            comment: "Launch configured terminal",
+            glyph: "󰆍",
+            type: "action",
+            onTriggered: () => Quickshell.execDetached(terminalCommand)
+        },
+        {
+            id: "action-files",
+            name: "Open Files",
+            comment: "Open your home directory",
+            glyph: "󰉋",
+            type: "action",
+            onTriggered: () => Quickshell.execDetached(["xdg-open", Quickshell.env("HOME")])
+        },
+        {
+            id: "action-screenshots",
+            name: "Open Captures",
+            comment: "Browse screenshots and recordings",
+            glyph: "󰄄",
+            type: "action",
+            onTriggered: () => QsServices.Screenshot.openScreenshotsFolder()
+        },
+        {
+            id: "action-network",
+            name: "Network Settings",
+            comment: "Open nm-connection-editor",
+            glyph: "󰖩",
+            type: "action",
+            onTriggered: () => Quickshell.execDetached(["nm-connection-editor"])
+        }
+    ]
+
     readonly property var visibleEntries: {
-        const q = query.trim().toLowerCase()
+        const rawQ = query.trim()
+        if (rawQ.startsWith(">")) {
+            const actionQuery = rawQ.slice(1).trim()
+            const lowerAction = actionQuery.toLowerCase()
+            const list = []
+            if (actionQuery.length > 0) {
+                list.push({
+                    id: "action-run-terminal",
+                    name: `Run '${actionQuery}'`,
+                    comment: `Execute '${actionQuery}' in terminal`,
+                    glyph: "󰆍",
+                    type: "action",
+                    onTriggered: () => Quickshell.execDetached([...terminalCommand, "sh", "-c", `${actionQuery}; echo; read -n 1 -s -r -p 'Press any key to close...'`])
+                })
+            }
+            for (const act of actionEntries) {
+                if (!lowerAction.length || act.name.toLowerCase().includes(lowerAction) || act.comment.toLowerCase().includes(lowerAction)) {
+                    list.push(act)
+                }
+            }
+            return list
+        }
+
+        const q = rawQ.toLowerCase()
         const apps = cachedApps
 
         if (!q.length) {
@@ -135,7 +207,19 @@ PanelWindow {
             return a.item.name.localeCompare(b.item.name)
         })
 
-        return results.map(r => r.item)
+        const mapped = results.map(r => r.item)
+        if (mapped.length === 0 && rawQ.length > 0) {
+            return [{
+                id: "action-run-terminal-fallback",
+                name: `Run '${rawQ}'`,
+                comment: "Execute in terminal",
+                glyph: "󰆍",
+                type: "action",
+                onTriggered: () => Quickshell.execDetached([...terminalCommand, "sh", "-c", `${rawQ}; echo; read -n 1 -s -r -p 'Press any key to close...'`])
+            }]
+        }
+
+        return mapped
     }
 
     function closeLauncher() {
@@ -153,6 +237,13 @@ PanelWindow {
 
     function launchEntry(item) {
         if (!item) return
+
+        if (item.type === "action" && typeof item.onTriggered === "function") {
+            item.onTriggered()
+            closeLauncher()
+            return
+        }
+
         const entry = item.entry || item
 
         if (entry.runInTerminal) {
@@ -169,6 +260,7 @@ PanelWindow {
 
         closeLauncher()
     }
+
 
     onShouldShowChanged: {
         if (shouldShow) {
@@ -493,13 +585,18 @@ PanelWindow {
 
                                         Text {
                                             anchors.centerIn: parent
-                                            text: (resultItem.modelData.name ?? "?").slice(0, 1).toUpperCase()
-                                            font.family: QsConfig.Config.appearance.fontFamily
-                                            font.pixelSize: 16
+                                            text: resultItem.modelData.type === "action"
+                                                ? (resultItem.modelData.glyph ?? "󰣆")
+                                                : (resultItem.modelData.name ?? "?").slice(0, 1).toUpperCase()
+                                            font.family: resultItem.modelData.type === "action"
+                                                ? "Material Design Icons"
+                                                : QsConfig.Config.appearance.fontFamily
+                                            font.pixelSize: resultItem.modelData.type === "action" ? 20 : 16
                                             font.weight: Font.Bold
                                             color: root.cPrimary
                                         }
                                     }
+
                                 }
 
                                 // Application Title and Comment / Subtitle
