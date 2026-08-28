@@ -20,12 +20,22 @@ Singleton {
     
     property int currentValue: 0
     property int maxValue: 255
-    
+
+    property bool _isUserSetting: false
+
+    Timer {
+        id: cooldownTimer
+        interval: 350
+        running: false
+        repeat: false
+        onTriggered: {
+            root._isUserSetting = false
+            root.readBrightness()
+        }
+    }
+
     Component.onCompleted: {
         detectBacklightDevice()
-        readMaxBrightness()
-        readBrightness()
-        updateTimer.start()
     }
 
     function detectBacklightDevice() {
@@ -34,46 +44,44 @@ Singleton {
     
     function readMaxBrightness() {
         if (maxBrightnessPath === "") return
-        maxBrightnessProcess.command = ["/bin/cat", maxBrightnessPath]
+        maxBrightnessProcess.command = ["cat", maxBrightnessPath]
         maxBrightnessProcess.running = true
     }
 
     function readBrightness() {
-        if (backlightPath === "") return
-        brightnessProcess.command = ["/bin/cat", backlightPath]
-        brightnessProcess.running = true
+        if (backlightPath === "" || _isUserSetting) return
+        if (!brightnessProcess.running) {
+            brightnessProcess.command = ["cat", backlightPath]
+            brightnessProcess.running = true
+        }
     }
     
     function setBrightness(value) {
-        // Clamp between 0 and 1
-        const newValue = Math.max(0, Math.min(1, value))
+        // Clamp between 0.01 and 1.0
+        const newValue = Math.max(0.01, Math.min(1.0, value))
+        _isUserSetting = true
+        cooldownTimer.restart()
+        root.brightness = newValue
+        if (maxValue > 0) {
+            root.currentValue = Math.round(newValue * maxValue)
+        }
 
-        if (backlightPath === "")
-            return
-
-        // Use brightnessctl when available (works for most backlight devices)
-        // Fallback to sysfs write when brightnessctl isn't present.
         const percent = Math.round(newValue * 100)
-        const sysfsValue = Math.round(newValue * maxValue)
-        const cmd = `brightnessctl set ${percent}% || echo ${sysfsValue} | sudo tee "${backlightPath}" >/dev/null; cat "${backlightPath}"`
-        setBrightnessProcess.command = ["/bin/sh", "-c", cmd]
-        setBrightnessProcess.running = true
-        
-        // Read brightness will be triggered by the update timer
+        Quickshell.execDetached(["brightnessctl", "set", `${percent}%`])
     }
     
     function increaseBrightness() {
-        setBrightness(brightness + 0.05)
+        setBrightness(Math.min(1.0, Math.round((brightness + 0.05) * 100) / 100))
     }
     
     function decreaseBrightness() {
-        setBrightness(brightness - 0.05)
+        setBrightness(Math.max(0.01, Math.round((brightness - 0.05) * 100) / 100))
     }
     
-    // Read max brightness
+    // Read max brightness device
     Process {
         id: detectProc
-        command: ["/bin/sh", "-c", "ls -1 /sys/class/backlight 2>/dev/null | head -n 1"]
+        command: ["sh", "-c", "ls -1 /sys/class/backlight 2>/dev/null | head -n 1"]
         running: false
 
         stdout: StdioCollector {
@@ -85,8 +93,9 @@ Singleton {
                     root._backlightDevice = ""
                 }
 
-                readMaxBrightness()
-                readBrightness()
+                root.readMaxBrightness()
+                root.readBrightness()
+                updateTimer.start()
             }
         }
     }
@@ -100,6 +109,7 @@ Singleton {
                 const value = parseInt(data.trim())
                 if (!isNaN(value) && value > 0) {
                     maxValue = value
+                    readBrightness()
                 }
             }
         }
@@ -112,27 +122,24 @@ Singleton {
         
         stdout: SplitParser {
             onRead: data => {
+                if (root._isUserSetting) return
                 const value = parseInt(data.trim())
                 if (!isNaN(value)) {
                     currentValue = value
-                    brightness = maxValue > 0 ? value / maxValue : 0
+                    if (maxValue > 0) {
+                        brightness = Math.max(0.01, Math.min(1.0, value / maxValue))
+                    }
                 }
             }
         }
     }
     
-    // Set brightness process
-    Process {
-        id: setBrightnessProcess
-        running: false
-    }
-    
-    // Update timer - optimized interval
+    // Responsive update timer for external brightness changes (200ms)
     Timer {
         id: updateTimer
-        interval: 2000  // Reduced frequency from 1000ms to 2000ms (brightness changes infrequently)
+        interval: 200
         repeat: true
-        triggeredOnStart: true  // Get immediate first read
+        triggeredOnStart: true
         onTriggered: readBrightness()
     }
 }

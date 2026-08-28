@@ -131,17 +131,35 @@ Singleton {
             getStatusProc.running = true
     }
 
+    function pollVolume() {
+        if (!getSink.running)
+            getSink.running = true
+        if (!getSource.running)
+            getSource.running = true
+    }
+
+    // Fast volume polling timer for external keypresses / changes
     Timer {
-        interval: 1000
+        interval: 200
         running: true
         repeat: true
-        onTriggered: {
-            if (!getSink.running)
-                getSink.running = true
-            if (!getSource.running)
-                getSource.running = true
-            refreshStatus()
-        }
+        onTriggered: pollVolume()
+    }
+
+    // Periodic device & stream structure discovery (every 3 seconds)
+    Timer {
+        interval: 3000
+        running: true
+        repeat: true
+        onTriggered: refreshStatus()
+    }
+
+    Timer {
+        id: syncTimer
+        interval: 80
+        running: false
+        repeat: false
+        onTriggered: pollVolume()
     }
 
     Process {
@@ -200,85 +218,106 @@ Singleton {
     }
 
     function setVolume(newVolume) {
-        setMute(false)
-        setVolProc.command = ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", Math.max(0, Math.min(1.5, newVolume)).toFixed(3)]
-        setVolProc.running = true
+        const v = Math.max(0, Math.min(1.5, newVolume));
+        root.ready = true;
+        root.volume = v;
+        root.muted = false;
+        Quickshell.execDetached(["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SINK@", v.toFixed(3)]);
+        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "0"]);
+        syncTimer.restart();
     }
 
     function increaseVolume() {
-        setVolume(volume + 0.05)
+        setVolume(Math.min(1.5, Math.round((volume + 0.05) * 100) / 100));
     }
 
     function decreaseVolume() {
-        setVolume(volume - 0.05)
+        setVolume(Math.max(0, Math.round((volume - 0.05) * 100) / 100));
     }
 
     function setMute(m) {
-        setMuteProc.command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", m ? "1" : "0"]
-        setMuteProc.running = true
+        root.muted = m;
+        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", m ? "1" : "0"]);
+        syncTimer.restart();
     }
 
     function toggleMute() {
-        setMuteProc.command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"]
-        setMuteProc.running = true
+        root.muted = !root.muted;
+        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"]);
+        syncTimer.restart();
     }
 
     function setSourceVolume(newVolume) {
-        setSourceMute(false)
-        setSourceVolProc.command = ["wpctl", "set-volume", "@DEFAULT_AUDIO_SOURCE@", Math.max(0, Math.min(1.5, newVolume)).toFixed(3)]
-        setSourceVolProc.running = true
+        const v = Math.max(0, Math.min(1.5, newVolume));
+        root.sourceReady = true;
+        root.sourceVolume = v;
+        root.sourceMuted = false;
+        Quickshell.execDetached(["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SOURCE@", v.toFixed(3)]);
+        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "0"]);
+        syncTimer.restart();
     }
 
     function setSourceMute(m) {
-        setSourceMuteProc.command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", m ? "1" : "0"]
-        setSourceMuteProc.running = true
+        root.sourceMuted = m;
+        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", m ? "1" : "0"]);
+        syncTimer.restart();
     }
 
     function toggleSourceMute() {
-        setSourceMuteProc.command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"]
-        setSourceMuteProc.running = true
+        root.sourceMuted = !root.sourceMuted;
+        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"]);
+        syncTimer.restart();
+    }
+
+    function setDefaultSink(id) {
+        Quickshell.execDetached(["wpctl", "set-default", String(id)]);
+        refreshTimer.restart();
+    }
+
+    function setNodeVolume(id, vol) {
+        const v = Math.max(0, Math.min(1.5, vol));
+        if (streamCache[id] !== undefined) {
+            streamCache[id].volume = v;
+            streamCache[id].muted = false;
+            const parsedStreams = [];
+            const currentKeys = Object.keys(streamCache);
+            for (let k = 0; k < currentKeys.length; k++) {
+                parsedStreams.push(streamCache[currentKeys[k]]);
+            }
+            streams = parsedStreams;
+        }
+        Quickshell.execDetached(["wpctl", "set-volume", "-l", "1.5", String(id), v.toFixed(3)]);
+        Quickshell.execDetached(["wpctl", "set-mute", String(id), "0"]);
+        refreshTimer.restart();
+    }
+
+    function setNodeMute(id, mute) {
+        if (streamCache[id] !== undefined) {
+            streamCache[id].muted = mute;
+            const parsedStreams = [];
+            const currentKeys = Object.keys(streamCache);
+            for (let k = 0; k < currentKeys.length; k++) {
+                parsedStreams.push(streamCache[currentKeys[k]]);
+            }
+            streams = parsedStreams;
+        }
+        Quickshell.execDetached(["wpctl", "set-mute", String(id), mute ? "1" : "0"]);
+        refreshTimer.restart();
+    }
+
+    function moveStream(streamId, sinkId) {
+        Quickshell.execDetached(["pw-metadata", "-n", "default", String(streamId), "target.object", String(sinkId)]);
+        refreshTimer.restart();
     }
 
     Timer {
         id: refreshTimer
-        interval: 100
+        interval: 200
         running: false
         repeat: false
         onTriggered: refreshStatus()
     }
 
-    function setDefaultSink(id) {
-        setDefaultSinkProc.command = ["wpctl", "set-default", String(id)]
-        setDefaultSinkProc.running = true
-        refreshTimer.restart()
-    }
-
-    function setNodeVolume(id, vol) {
-        setNodeVolProc.command = ["wpctl", "set-volume", String(id), Math.max(0, Math.min(1.5, vol)).toFixed(3)]
-        setNodeVolProc.running = true
-        refreshTimer.restart()
-    }
-
-    function setNodeMute(id, mute) {
-        setNodeMuteProc.command = ["wpctl", "set-mute", String(id), mute ? "1" : "0"]
-        setNodeMuteProc.running = true
-        refreshTimer.restart()
-    }
-
-    function moveStream(streamId, sinkId) {
-        moveStreamProc.command = ["pw-metadata", "-n", "default", String(streamId), "target.object", String(sinkId)]
-        moveStreamProc.running = true
-        refreshTimer.restart()
-    }
-
-    Process { id: setVolProc; onRunningChanged: { if (!running) refreshStatus() } }
-    Process { id: setMuteProc; onRunningChanged: { if (!running) refreshStatus() } }
-    Process { id: setSourceVolProc; onRunningChanged: { if (!running) refreshStatus() } }
-    Process { id: setSourceMuteProc; onRunningChanged: { if (!running) refreshStatus() } }
-    Process { id: setDefaultSinkProc; onRunningChanged: { if (!running) refreshStatus() } }
-    Process { id: setNodeVolProc; onRunningChanged: { if (!running) refreshStatus() } }
-    Process { id: setNodeMuteProc; onRunningChanged: { if (!running) refreshStatus() } }
-    Process { id: moveStreamProc; onRunningChanged: { if (!running) refreshStatus() } }
     Process {
         id: queryAllStreamsProc
         stdout: StdioCollector {
@@ -289,6 +328,7 @@ Singleton {
     }
 
     Component.onCompleted: {
-        refreshStatus()
+        pollVolume();
+        refreshStatus();
     }
 }
