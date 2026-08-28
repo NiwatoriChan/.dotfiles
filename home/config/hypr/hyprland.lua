@@ -371,6 +371,12 @@ hl.window_rule({
 
 -- Explicitly enable blur only on selected styled applications
 hl.window_rule({
+    name = "kitty-blur",
+    match = { class = "kitty" },
+    no_blur = false,
+})
+
+hl.window_rule({
     name = "thunar-blur",
     match = { class = "[Tt]hunar" },
     no_blur = false,
