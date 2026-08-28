@@ -13,9 +13,25 @@ Singleton {
     property bool wifiEnabled: true
     readonly property bool scanning: rescanProc.running
     
-    // Convenience properties for Control Center
-    readonly property bool connected: active !== null
-    readonly property string ssid: active?.ssid ?? "Not Connected"
+    // Ethernet adapter properties
+    property bool _hasEthernet: false
+    property bool _ethernetPlugged: false
+    property bool _ethernetConnected: false
+    property string _ethernetDevice: ""
+    property string _ethernetConnection: ""
+    property bool _hasWifiDevice: true
+
+    readonly property bool hasEthernet: _hasEthernet
+    readonly property bool ethernetPlugged: _ethernetPlugged
+    readonly property bool ethernetConnected: _ethernetConnected
+    readonly property string ethernetDevice: _ethernetDevice
+    readonly property string ethernetConnection: _ethernetConnection
+    readonly property bool hasWifiDevice: _hasWifiDevice
+
+    // Convenience properties for UI
+    readonly property bool wifiConnected: active !== null
+    readonly property bool connected: wifiConnected || ethernetConnected
+    readonly property string ssid: active?.ssid ?? (ethernetConnected ? (_ethernetConnection || "Ethernet") : "Not Connected")
     readonly property int signalStrength: active?.strength ?? 0
     
     property var savedNetworks: []
@@ -35,6 +51,10 @@ Singleton {
 
     function rescanWifi(): void {
         rescanProc.running = true;
+    }
+
+    function refreshDevices(): void {
+        getDevices.running = true;
     }
 
     function connectToNetwork(ssid: string, password: string): void {
@@ -86,7 +106,10 @@ Singleton {
         running: true
         command: ["nmcli", "m"]
         stdout: SplitParser {
-            onRead: getNetworks.running = true
+            onRead: {
+                getNetworks.running = true;
+                getDevices.running = true;
+            }
         }
     }
 
@@ -112,6 +135,7 @@ Singleton {
         onExited: {
             root.getWifiStatus();
             getNetworks.running = true;
+            getDevices.running = true;
         }
     }
 
@@ -121,6 +145,7 @@ Singleton {
         command: ["nmcli", "dev", "wifi", "list", "--rescan", "yes"]
         onExited: {
             getNetworks.running = true;
+            getDevices.running = true;
         }
     }
 
@@ -131,6 +156,7 @@ Singleton {
             onRead: data => {
                 QsServices.Logger.debug("Network", `Connection output: ${data}`)
                 getNetworks.running = true
+                getDevices.running = true
             }
         }
         stderr: StdioCollector {
@@ -143,6 +169,7 @@ Singleton {
         onExited: (code, status) => {
             QsServices.Logger.debug("Network", `Connection exited code=${code} status=${status}`)
             getNetworks.running = true
+            getDevices.running = true
         }
     }
 
@@ -150,7 +177,69 @@ Singleton {
         id: disconnectProc
 
         stdout: SplitParser {
-            onRead: getNetworks.running = true
+            onRead: {
+                getNetworks.running = true;
+                getDevices.running = true;
+            }
+        }
+    }
+
+    Process {
+        id: getDevices
+
+        running: true
+        command: ["nmcli", "-g", "DEVICE,TYPE,STATE,CONNECTION", "d"]
+        environment: ({
+                LANG: "C.UTF-8",
+                LC_ALL: "C.UTF-8"
+            })
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let ethFound = false;
+                let ethPlugged = false;
+                let ethConnected = false;
+                let ethDev = "";
+                let ethConn = "";
+                let wifiFound = false;
+
+                const lines = text.trim().split("\n");
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    if (!line) continue;
+                    const parts = line.split(":");
+                    if (parts.length < 3) continue;
+                    const dev = parts[0];
+                    const type = parts[1];
+                    const state = parts[2];
+                    const conn = parts.slice(3).join(":");
+
+                    if (type === "ethernet" || type === "wired") {
+                        ethFound = true;
+                        // In NetworkManager, 'unavailable' means carrier lost / unplugged.
+                        // 'unmanaged' means NM is not managing it.
+                        const isPlugged = state !== "unavailable" && state !== "unmanaged" && state !== "";
+                        if (isPlugged) {
+                            ethPlugged = true;
+                            ethDev = dev;
+                            ethConn = conn || dev;
+                            if (state.startsWith("connected")) {
+                                ethConnected = true;
+                            }
+                        } else if (!ethDev) {
+                            ethDev = dev;
+                        }
+                    } else if (type === "wifi") {
+                        wifiFound = true;
+                    }
+                }
+
+                root._hasEthernet = ethFound;
+                root._ethernetPlugged = ethPlugged;
+                root._ethernetConnected = ethConnected;
+                root._ethernetDevice = ethDev;
+                root._ethernetConnection = ethConn;
+                root._hasWifiDevice = wifiFound;
+            }
         }
     }
     
@@ -189,13 +278,17 @@ Singleton {
     
     Component.onCompleted: {
         refreshSavedNetworks();
+        refreshDevices();
     }
     
     Timer {
-        interval: 10000 // Update saved networks every 10 seconds
+        interval: 10000 // Update networks and devices every 10 seconds
         running: root.pollingActive  // Pause when no consumer is visible
         repeat: true
-        onTriggered: refreshSavedNetworks()
+        onTriggered: {
+            refreshSavedNetworks();
+            refreshDevices();
+        }
     }
 
     Process {

@@ -154,8 +154,8 @@ PanelWindow {
                     }
 
                     SummaryChip {
-                        icon: root.network.connected ? "󰖩" : "󰖪"
-                        label: root.network.connected ? (root.network.ssid || "Wi‑Fi") : "Offline"
+                        icon: root.network.connected ? (root.network.ethernetConnected ? "󰈀" : "󰖩") : "󰖪"
+                        label: root.network.connected ? (root.network.ethernetConnected ? (root.network.ethernetConnection || "Ethernet") : (root.network.ssid || "Wi‑Fi")) : "Offline"
                         accent: root.network.connected ? pywal.info : root.cSubText
                     }
 
@@ -361,10 +361,11 @@ PanelWindow {
                                 }
 
                                 SurfaceMetricRow {
+                                    visible: (battery?.isPresent ?? false) && ((battery?.isLaptopBattery ?? false) || (battery?.powerSupply ?? false) || (battery?.type === UPowerDeviceType.Battery))
                                     icon: "󰂎"
                                     title: "Battery"
                                     value: `${root.batteryPercent}%`
-                                    detail: battery?.state === UPowerDevice.Charging ? "Charging" : battery?.state === UPowerDevice.FullyCharged ? "Full" : "Discharging"
+                                    detail: battery?.state === UPowerDeviceState.Charging ? "Charging" : battery?.state === UPowerDeviceState.FullyCharged ? "Full" : "Discharging"
                                     accent: root.batteryPercent <= 20 ? pywal.error : root.cPrimary
                                 }
                                 SurfaceMetricRow {
@@ -375,10 +376,10 @@ PanelWindow {
                                     accent: pywal.secondary
                                 }
                                 SurfaceMetricRow {
-                                    icon: root.network.connected ? "󰖩" : "󰖪"
+                                    icon: root.network.connected ? (root.network.ethernetConnected ? "󰈀" : "󰖩") : "󰖪"
                                     title: "Network"
-                                    value: root.network.connected ? (root.network.ssid || "Connected") : "Disconnected"
-                                    detail: root.network.connected ? `Signal ${root.network.signalStrength}%` : "Wi‑Fi idle"
+                                    value: root.network.connected ? (root.network.ethernetConnected ? (root.network.ethernetConnection || "Ethernet") : (root.network.ssid || "Connected")) : "Disconnected"
+                                    detail: root.network.connected ? (root.network.ethernetConnected ? (root.network.ethernetDevice || "Wired") : `Signal ${root.network.signalStrength}%`) : "Offline"
                                     accent: pywal.info
                                 }
                             }

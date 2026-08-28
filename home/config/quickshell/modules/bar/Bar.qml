@@ -160,6 +160,7 @@ Item {
 
             Loader {
                 source: "components/WaybarBattery.qml"
+                visible: item?.hasBattery ?? false
             }
 
             Loader {

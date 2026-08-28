@@ -5,11 +5,12 @@ Item {
     id: root
 
     readonly property var battery: UPower.displayDevice
+    readonly property bool hasBattery: (battery?.isPresent ?? false) && ((battery?.isLaptopBattery ?? false) || (battery?.powerSupply ?? false) || (battery?.type === UPowerDeviceType.Battery))
     // UPower percentage is in 0–1 range, convert to 0–100
     readonly property int level: Math.round((battery?.percentage ?? 0) * 100)
-    readonly property bool isCharging: battery?.state === UPowerDevice.Charging
-    readonly property bool isPlugged: isCharging || battery?.state === UPowerDevice.FullyCharged
-    readonly property bool isFull: battery?.state === UPowerDevice.FullyCharged
+    readonly property bool isCharging: battery?.state === UPowerDeviceState.Charging
+    readonly property bool isPlugged: isCharging || battery?.state === UPowerDeviceState.FullyCharged
+    readonly property bool isFull: battery?.state === UPowerDeviceState.FullyCharged
     readonly property bool isWarning: level <= 30 && level > 15
     readonly property bool isCritical: level <= 15 && !isPlugged
 
@@ -39,8 +40,9 @@ Item {
         return "#6ee7b7"                               // battery / battery.full
     }
 
-    implicitWidth: batteryText.implicitWidth + 24
-    implicitHeight: 28
+    visible: hasBattery
+    implicitWidth: hasBattery ? (batteryText.implicitWidth + 24) : 0
+    implicitHeight: hasBattery ? 28 : 0
 
     Text {
         id: batteryText

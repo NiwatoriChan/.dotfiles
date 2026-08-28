@@ -109,6 +109,58 @@ FocusScope {
                 }
             }
 
+            // Ethernet Status (only shown when plugged in)
+            Rectangle {
+                visible: network.ethernetPlugged
+                Layout.fillWidth: true
+                Layout.preferredHeight: 48
+                radius: 14
+                color: network.ethernetConnected ? Qt.rgba(cPrimary.r, cPrimary.g, cPrimary.b, 0.12) : Qt.rgba(cSurfaceContainer.r, cSurfaceContainer.g, cSurfaceContainer.b, 0.4)
+                border.width: 1
+                border.color: network.ethernetConnected ? Qt.rgba(cPrimary.r, cPrimary.g, cPrimary.b, 0.25) : Qt.rgba(1, 1, 1, 0.05)
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 12
+                    spacing: 12
+
+                    Text {
+                        text: "󰈀"
+                        font.family: "Material Design Icons"
+                        font.pixelSize: 20
+                        color: network.ethernetConnected ? cPrimary : cOnSurfaceVariant
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 1
+
+                        Text {
+                            text: "Ethernet"
+                            font.family: "Inter"
+                            font.pixelSize: 13
+                            font.weight: Font.SemiBold
+                            color: cOnSurface
+                        }
+
+                        Text {
+                            text: network.ethernetConnected ? (network.ethernetConnection || "Connected") : "Plugged in"
+                            font.family: "Inter"
+                            font.pixelSize: 11
+                            color: network.ethernetConnected ? cPrimary : cOnSurfaceVariant
+                        }
+                    }
+
+                    Rectangle {
+                        width: 8
+                        height: 8
+                        radius: 4
+                        color: network.ethernetConnected ? cPrimary : Qt.rgba(cOnSurfaceVariant.r, cOnSurfaceVariant.g, cOnSurfaceVariant.b, 0.4)
+                    }
+                }
+            }
+
             // Scan button
             Rectangle {
                 Layout.fillWidth: true
