@@ -196,7 +196,7 @@ hl.config({
             size           = 6,
             passes         = 2,
             vibrancy       = 0.1696,
-            popups         = true,
+            popups         = false,
             ignore_opacity = true,
         },
     },
@@ -361,22 +361,32 @@ hl.window_rule({
     no_focus = true,
 })
 
--- Blurry transparent overrides for target applications
+-- Default: disable blur on all regular windows for maximum performance
 hl.window_rule({
-    name = "thunar-opacity",
+    name = "default-no-blur",
+    match = { class = ".*" },
+    no_blur = true,
+})
+
+-- Explicitly enable blur only on selected styled applications
+hl.window_rule({
+    name = "thunar-blur",
     match = { class = "[Tt]hunar" },
+    no_blur = false,
     opacity = "0.85 0.75",
 })
 
 hl.window_rule({
-    name = "zed-opacity",
+    name = "zed-blur",
     match = { class = "dev.zed.Zed" },
+    no_blur = false,
     opacity = "0.90 0.80",
 })
 
 hl.window_rule({
-    name = "blueman-opacity",
+    name = "blueman-blur",
     match = { class = "blueman-manager" },
+    no_blur = false,
     opacity = "0.85 0.75",
 })
 
@@ -387,8 +397,9 @@ hl.window_rule({
 })
 
 hl.window_rule({
-    name = "xarchiver-opacity",
+    name = "xarchiver-blur",
     match = { class = "[Xx]archiver" },
+    no_blur = false,
     opacity = "0.85 0.75",
 })
 
@@ -404,22 +415,24 @@ hl.window_rule({
     float = true,
 })
 
-
 hl.window_rule({
-    name = "opencode-opacity-1",
+    name = "opencode-blur-1",
     match = { class = "opencode-desktop" },
+    no_blur = false,
     opacity = "0.85 0.75",
 })
 
 hl.window_rule({
-    name = "opencode-opacity-2",
+    name = "opencode-blur-2",
     match = { class = "OpenCode" },
+    no_blur = false,
     opacity = "0.85 0.75",
 })
 
 hl.window_rule({
-    name = "wofi-opacity",
+    name = "wofi-blur",
     match = { class = "wofi" },
+    no_blur = false,
     opacity = "0.85 0.75",
 })
 
@@ -433,8 +446,9 @@ hl.window_rule({
 })
 
 hl.window_rule({
-    name = "nixos-about-opacity",
+    name = "nixos-about-blur",
     match = { class = "nixos-about" },
+    no_blur = false,
     opacity = "0.90 0.85",
 })
 
