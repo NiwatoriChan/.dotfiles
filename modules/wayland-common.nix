@@ -14,7 +14,7 @@
     swaybg
     networkmanagerapplet
     blueman
-    wpaperd
+    awww
     kdePackages.gwenview
     wlsunset
     opencode-desktop
@@ -124,6 +124,7 @@
     home.file.".config/waybar/scripts/wlsunset.sh".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/waybar/scripts/wlsunset.sh";
     home.file.".config/waybar/scripts/power-menu.sh".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/waybar/scripts/power-menu.sh";
     home.file.".local/bin/gnome-disks-admin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/scripts/gnome-disks-admin.sh";
+    home.file.".local/bin/wallpaper-picker".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/scripts/wallpaper-picker.sh";
 
     home.packages = with pkgs; [
       libsForQt5.qt5ct
@@ -178,19 +179,6 @@
         padding=15
       '';
     };
-
-    # wpaperd Wallpaper Daemon
-    services.wpaperd = {
-      enable = true;
-      settings = {
-        default = {
-          path = "/home/niwatorichan/wallpaper";
-          duration = "15m";
-          sorting = "random";
-        };
-      };
-    };
-    systemd.user.services.wpaperd.Install.WantedBy = pkgs.lib.mkForce [ ];
 
     # KDE PolicyKit Authentication Agent for Wayland WMs (MangoWM, Hyprland)
     systemd.user.services.polkit-kde-authentication-agent-1 = {

@@ -128,7 +128,8 @@ hl.on("hyprland.start", function ()
     -- hl.exec_cmd("waybar")
     hl.exec_cmd("quickshell")  -- Waybar-style bar; swap with waybar above to try
     hl.exec_cmd("mako")
-    hl.exec_cmd("wpaperd")
+    hl.exec_cmd("awww-daemon")
+    hl.exec_cmd("/home/niwatorichan/.dotfiles/home/config/scripts/wallpaper-picker.sh --restore")
     hl.exec_cmd("nm-applet --indicator")
     hl.exec_cmd("blueman-applet")
     hl.exec_cmd("wlsunset -t 4000 -T 4000")
@@ -272,6 +273,7 @@ hl.bind(mainMod .. " + space", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("firefox"))
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(fileManager))
+hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("quickshell ipc call wallpaper toggle"))
 
 -- Window Actions
 hl.bind(mainMod .. " + X", hl.dsp.window.close())

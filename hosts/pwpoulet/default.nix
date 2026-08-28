@@ -5,7 +5,8 @@
 {
   imports = [
     ../common
-    ../../modules/kde.nix   # ← swap to change DE
+    ../../modules/hyprland.nix   # ← swap to change DE
+    #../../modules/kde.nix
     ../../modules/gaming.nix
     ../../modules/sunshine.nix
     ../../modules/developpement.nix

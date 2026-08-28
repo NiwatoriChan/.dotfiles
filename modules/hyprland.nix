@@ -1,5 +1,5 @@
 # Hyprland desktop profile — combines system-level and user-level settings
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   imports = [
@@ -33,6 +33,7 @@
 
   # Hyprland-specific packages
   environment.systemPackages = with pkgs; [
+    config.programs.hyprland.package
     jq  # For advanced monitor screenshot tools in binds
   ];
 

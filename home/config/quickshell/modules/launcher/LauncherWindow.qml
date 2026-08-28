@@ -224,14 +224,19 @@ PanelWindow {
 
     function closeLauncher() {
         shouldShow = false
+        searchField.text = ""
         query = ""
         selectedIndex = 0
     }
 
     function openLauncher() {
         shouldShow = true
+        searchField.text = ""
         query = ""
         selectedIndex = 0
+        if (resultsListView) {
+            resultsListView.positionViewAtBeginning()
+        }
         searchField.forceActiveFocus()
     }
 
@@ -264,8 +269,17 @@ PanelWindow {
 
     onShouldShowChanged: {
         if (shouldShow) {
+            searchField.text = ""
+            query = ""
             selectedIndex = 0
+            if (resultsListView) {
+                resultsListView.positionViewAtBeginning()
+            }
             searchField.forceActiveFocus()
+        } else {
+            searchField.text = ""
+            query = ""
+            selectedIndex = 0
         }
     }
 

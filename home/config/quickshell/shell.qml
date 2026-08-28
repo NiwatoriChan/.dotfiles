@@ -33,6 +33,11 @@ ShellRoot {
         source: "modules/launcher/LauncherWindow.qml"
     }
 
+    Loader {
+        id: wallpaperLoader
+        source: "modules/wallpaper/WallpaperWindow.qml"
+    }
+
     Component.onCompleted: {
         QsServices.Logger.info("Shell", "Waybar-style quickshell loaded")
     }
