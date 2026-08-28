@@ -36,19 +36,21 @@ elseif hostname == "PotatoMonster" then
         scale    = 1,
     })
 elseif hostname == "PwPoulet" then
-    -- Second screen (HDMI-A-1, LG Ultrawide) placed on top
+    -- Second screen (HDMI-A-1, LG Ultrawide) placed on top (no VRR)
     hl.monitor({
         output   = "HDMI-A-1",
         mode     = "preferred",
         position = "0x0",
         scale    = 1,
+        vrr      = 0,
     })
-    -- Main screen (DP-1, LG QHD) placed below it at y=1080
+    -- Main screen (DP-1, LG QHD) placed below it at y=1080 with 144Hz & VRR
     hl.monitor({
         output   = "DP-1",
-        mode     = "preferred",
+        mode     = "2560x1440@144",
         position = "0x1080",
         scale    = 1,
+        vrr      = 1,
     })
     -- Fallback for any other display
     hl.monitor({
@@ -63,12 +65,14 @@ else
         mode     = "preferred",
         position = "0x0",
         scale    = 1,
+        vrr      = 0,
     })
     hl.monitor({
         output   = "DP-1",
-        mode     = "preferred",
+        mode     = "2560x1440@144",
         position = "0x1080",
         scale    = 1,
+        vrr      = 1,
     })
     hl.monitor({
         output   = "",
