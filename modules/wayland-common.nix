@@ -56,12 +56,33 @@
     "application/x-rar" = "xarchiver.desktop";
   };
 
-  fonts.packages = with pkgs; [
-    font-awesome
-    nerd-fonts.symbols-only
-    nerd-fonts.hack
-    noto-fonts-color-emoji
-  ];
+  fonts = {
+    enableDefaultPackages = true;
+    packages = with pkgs; [
+      # Core UI & standard fallback fonts
+      noto-fonts
+      noto-fonts-cjk-sans
+      noto-fonts-color-emoji
+      cantarell-fonts
+      dejavu_fonts
+      liberation_ttf
+
+      # Icons & Monospace
+      font-awesome
+      nerd-fonts.symbols-only
+      nerd-fonts.hack
+    ];
+
+    fontconfig = {
+      defaultFonts = {
+        serif = [ "Noto Serif" "DejaVu Serif" ];
+        sansSerif = [ "Noto Sans" "Cantarell" "DejaVu Sans" ];
+        monospace = [ "Hack Nerd Font" "DejaVu Sans Mono" ];
+        emoji = [ "Noto Color Emoji" ];
+      };
+    };
+  };
+
 
   # --- User-Level (Home Manager) Configuration ---
   home-manager.users.niwatorichan = { config, pkgs, ... }: {
