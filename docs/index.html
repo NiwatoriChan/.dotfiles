@@ -734,6 +734,7 @@ The configuration files are organized as follows:
 ├── hosts/                # Machine-specific NixOS configurations
 │   ├── common/           # Shared system settings, packages, and services
 │   ├── potatomonster/    # Config for PotatoMonster (MangoWM system)
+│   ├── tamago/           # Config for Tamago (Hyprland laptop without gaming)
 │   ├── pwpoulet/         # Config for PwPoulet (KDE Plasma 6 system)
 │   ├── savage/           # Config for Savage (Steam Deck LCD system)
 │   ├── jeff/             # Config for Jeff (headless server profile)
@@ -742,6 +743,7 @@ The configuration files are organized as follows:
 │   ├── common/           # Shared user packages, shell (zsh/p10k), and git
 │   ├── config/           # User configuration files (waybar, hypr, mango, etc.)
 │   ├── potatomonster.nix # User environment for PotatoMonster (MangoWM configs)
+│   ├── tamago.nix        # User environment for Tamago (Hyprland configs)
 │   ├── pwpoulet.nix      # User environment for PwPoulet (KDE wrapper)
 │   ├── savage.nix        # User environment for Savage (Steam Deck common configs)
 │   └── petitepatate.nix  # User environment for PetitePatate (ARM64 configs)
@@ -751,11 +753,12 @@ The configuration files are organized as follows:
 
 ## 🖥️ System Profiles
 
-The configurations define four target machines and one headless server:
+The configurations define five target machines and one headless server:
 
 | Machine Name | Device Type | Window Manager / DE | NixOS Host Config | Home Manager Profile |
 | :--- | :--- | :--- | :--- | :--- |
 | **PotatoMonster** | Laptop (x86_64) | MangoWM / Hyprland | \`hosts/potatomonster\` | \`home/potatomonster.nix\` |
+| **Tamago** | Laptop (x86_64) | Hyprland | \`hosts/tamago\` | \`home/tamago.nix\` |
 | **PwPoulet** | Desktop (x86_64) | KDE Plasma 6 (Unstable) | \`hosts/pwpoulet\` | \`home/pwpoulet.nix\` |
 | **Savage** *BETA* | Steam Deck (x86_64) | Steam Deck Game Mode / KDE Plasma | \`hosts/savage\` | \`home/savage.nix\` |
 | **PetitePatate** | Pinebook Pro (aarch64) | Hyprland | \`hosts/petitepatate\` | \`home/petitepatate.nix\` |
@@ -960,22 +963,27 @@ Specific system host modules override or add system services:
 - **Packages**: \`alsa-utils\`, \`brightnessctl\` (for managing volume and backlight).
 - **Hardware**: Imports \`hosts/potatomonster/hardware.nix\` and system-specific hardware parameters.
 
-### 2. PwPoulet (\`hosts/pwpoulet\`)
+### 2. Tamago (\`hosts/tamago\`)
+- **Environment**: Hyprland desktop environment (\`modules/hyprland.nix\`).
+- **Profile**: Clean productivity laptop profile without gaming packages or game streaming services.
+- **Hardware**: Imports \`hosts/tamago/hardware.nix\` configured with Intel microcode, CPU governor management (TLP + auto-cpufreq), and performance tuning (\`mitigations=off\`).
+
+### 3. PwPoulet (\`hosts/pwpoulet\`)
 - **Kernel**: Configured to use the performance-optimized **CachyOS kernel** (\\\`boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest\\\`).
 - **Services**: KDE Plasma 6 (\\\`services.desktopManager.plasma6.enable = true\\\`). Configured modularly via \\\`modules/kde.nix\\\` to use an overlay replacing \\\`kdePackages\\\` with the latest unstable releases (\\\`pkgs-unstable.kdePackages\\\`).
 - **Packages**: Dolphin (\\\`kdePackages.dolphin\\\`) and Qt Multimedia support (\\\`kdePackages.qtmultimedia\\\`).
 - **Hardware**: Configured with standard desktop x86_64 hardware modules.
 
-### 3. PetitePatate (\`hosts/petitepatate\`)
+### 4. PetitePatate (\`hosts/petitepatate\`)
 - **Device/Architecture**: Pinebook Pro (aarch64 ARM64).
 - **Kernel/Hardware**: Integrates custom NixOS hardware modules alongside device tree overlay overrides for CPU/GPU overclocking (up to 2.08GHz) and stable undervolting.
 - **Graphical Environment**: Enables and configures Hyprland (\`modules/hyprland.nix\`).
 
-### 4. Jeff (\`hosts/jeff\`)
+### 5. Jeff (\`hosts/jeff\`)
 - **Type**: Headless Server.
 - **Services**: Imports core server modules (\`modules/server/default.nix\`) enabling declarative Samba storage sharing, Jellyfin media streaming server, Transmission BitTorrent daemon, OpenVPN tunneling, local DNS resolution, Nginx reverse proxy, and the Homepage portal.
 
-### 5. Savage (*BETA*) (\`hosts/savage\`)
+### 6. Savage (*BETA*) (\`hosts/savage\`)
 - **Status**: Beta.
 - **Device/Architecture**: Steam Deck LCD (x86_64).
 - **Steam Deck Integration (Jovian-NixOS)**: Configured using the Jovian-NixOS module system, enabling Steam Deck hardware profiles, performance optimizations, and controller driver layers.
@@ -1000,7 +1008,7 @@ Modular graphical desktop profiles under \`modules/\`:
 Unified server services are managed modularly under \`modules/server/\`:
 
 - **Homepage Dashboard** (\`homepage.nix\`): Launches a system dashboard on port \`8082\`. It displays server resources and custom service widgets for network apps.
-- **Jellyfin Media Server** (\`jellyfin.nix\`): Media streaming server pointing to \`/mnt/exp6/EXP6/MEDIAX/Videos\` with automated per-folder library mapping (excluding \`zzISSUE\` and \`Homemade\`).
+- **Jellyfin Media Server** (\`jellyfin.nix\`): Media streaming server pointing to \`/mnt/exp6/EXP6/MEDIAX/Videos\` with declarative POSIX ACLs, group permissions, and storage mount synchronization.
 - **OpenVPN Client** (\`openvpn.nix\`): Manages tunnel configuration to secure networks using credential keys.
 - **Samba Sharing** (\`samba.nix\`): Configures secure SMB folder sharing across the local network for system users.
 - **Transmission** (\`transmission.nix\`): Runs Transmission BitTorrent client daemon with custom ACLs and download directory bindings.

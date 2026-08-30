@@ -79,22 +79,27 @@ Specific system host modules override or add system services:
 - **Packages**: `alsa-utils`, `brightnessctl` (for managing volume and backlight).
 - **Hardware**: Imports `hosts/potatomonster/hardware.nix` and system-specific hardware parameters.
 
-### 2. PwPoulet (`hosts/pwpoulet`)
+### 2. Tamago (`hosts/tamago`)
+- **Environment**: Hyprland desktop environment (`modules/hyprland.nix`).
+- **Profile**: Clean productivity laptop profile without gaming packages or game streaming services.
+- **Hardware**: Imports `hosts/tamago/hardware.nix` configured with Intel microcode, CPU governor management (TLP + auto-cpufreq), and performance tuning (`mitigations=off`).
+
+### 3. PwPoulet (`hosts/pwpoulet`)
 - **Kernel**: Configured to use the performance-optimized **CachyOS kernel** (\`boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest\`).
 - **Services**: KDE Plasma 6 (\`services.desktopManager.plasma6.enable = true\`). Configured modularly via \`modules/kde.nix\` to use an overlay replacing \`kdePackages\` with the latest unstable releases (\`pkgs-unstable.kdePackages\`).
 - **Packages**: Dolphin (\`kdePackages.dolphin\`) and Qt Multimedia support (\`kdePackages.qtmultimedia\`).
 - **Hardware**: Configured with standard desktop x86_64 hardware modules.
 
-### 3. PetitePatate (`hosts/petitepatate`)
+### 4. PetitePatate (`hosts/petitepatate`)
 - **Device/Architecture**: Pinebook Pro (aarch64 ARM64).
 - **Kernel/Hardware**: Integrates custom NixOS hardware modules alongside device tree overlay overrides for CPU/GPU overclocking (up to 2.08GHz) and stable undervolting.
 - **Graphical Environment**: Enables and configures Hyprland (`modules/hyprland.nix`).
 
-### 4. Jeff (`hosts/jeff`)
+### 5. Jeff (`hosts/jeff`)
 - **Type**: Headless Server.
 - **Services**: Imports core server modules (`modules/server/default.nix`) enabling declarative Samba storage sharing, Jellyfin media streaming server, Transmission BitTorrent daemon, OpenVPN tunneling, local DNS resolution, Nginx reverse proxy, and the Homepage portal.
 
-### 5. Savage (*BETA*) (`hosts/savage`)
+### 6. Savage (*BETA*) (`hosts/savage`)
 - **Status**: Beta.
 - **Device/Architecture**: Steam Deck LCD (x86_64).
 - **Steam Deck Integration (Jovian-NixOS)**: Configured using the Jovian-NixOS module system, enabling Steam Deck hardware profiles, performance optimizations, and controller driver layers.
