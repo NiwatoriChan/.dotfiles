@@ -22,7 +22,7 @@ if hostname == "Jeff" then
         position = "0x0",
         scale    = 1,
     })
-elseif hostname == "PotatoMonster" or hostname == "Tamago" then
+elseif hostname == "PotatoMonster" or hostname == "PetitOeuf" then
     hl.monitor({
         output   = "eDP-1",
         mode     = "1920x1080@60",

@@ -120,14 +120,14 @@
           ];
         };
 
-        # --- Tamago — Laptop Configuration ---
-        Tamago = nixpkgs.lib.nixosSystem {
+        # --- PetitOeuf — Laptop Configuration ---
+        PetitOeuf = nixpkgs.lib.nixosSystem {
           specialArgs = sharedArgsFor "x86_64-linux";
           system = "x86_64-linux";
           modules = [
             sharedKernelAndCache
             inputs.mangowm.nixosModules.mango
-            ./hosts/tamago
+            ./hosts/petitoeuf
 
             # Home-Manager as NixOS module
             home-manager.nixosModules.home-manager
@@ -135,7 +135,7 @@
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "hm-bak";
-              home-manager.users.niwatorichan = import ./home/tamago.nix;
+              home-manager.users.niwatorichan = import ./home/petitoeuf.nix;
             }
           ];
         };

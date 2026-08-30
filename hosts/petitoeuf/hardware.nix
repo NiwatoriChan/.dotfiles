@@ -1,4 +1,4 @@
-# Tamago hardware configuration
+# PetitOeuf hardware configuration
 { config, pkgs, lib, ... }:
 
 {

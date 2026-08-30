@@ -1,4 +1,4 @@
-# Tamago home-manager profile
+# PetitOeuf home-manager profile
 # To switch DE: change the profile import below
 { ... }:
 

@@ -79,10 +79,10 @@ Specific system host modules override or add system services:
 - **Packages**: `alsa-utils`, `brightnessctl` (for managing volume and backlight).
 - **Hardware**: Imports `hosts/potatomonster/hardware.nix` and system-specific hardware parameters.
 
-### 2. Tamago (`hosts/tamago`)
+### 2. PetitOeuf (`hosts/petitoeuf`)
 - **Environment**: Hyprland desktop environment (`modules/hyprland.nix`).
 - **Profile**: Clean productivity laptop profile without gaming packages or game streaming services.
-- **Hardware**: Imports `hosts/tamago/hardware.nix` configured with Intel microcode, CPU governor management (TLP + auto-cpufreq), and performance tuning (`mitigations=off`).
+- **Hardware**: Imports `hosts/petitoeuf/hardware.nix` configured with Intel microcode, CPU governor management (TLP + auto-cpufreq), and performance tuning (`mitigations=off`).
 
 ### 3. PwPoulet (`hosts/pwpoulet`)
 - **Kernel**: Configured to use the performance-optimized **CachyOS kernel** (\`boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest\`).

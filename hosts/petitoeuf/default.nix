@@ -1,4 +1,4 @@
-# Tamago — physical machine config
+# PetitOeuf — physical machine config
 # To switch DE: change the profile import below
 { pkgs, ... }:
 
@@ -18,5 +18,5 @@
   ];
 
   # Hostname
-  networking.hostName = "Tamago";
+  networking.hostName = "PetitOeuf";
 }

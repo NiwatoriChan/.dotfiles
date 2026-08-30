@@ -11,7 +11,7 @@ A modular, unified, and declarative NixOS flake configuration managing multiple 
 | **🍗 PwPoulet** | Primary Desktop | Ryzen 9 3900X + Radeon RX 6750 XT | KDE Plasma 6 | [`hosts/pwpoulet`](./hosts/pwpoulet) | [`home/pwpoulet.nix`](./home/pwpoulet.nix) |
 | **🦖 Savage** *BETA* | Steam Deck LCD | Custom AMD APU + RDNA 2 GPU | Steam Deck Game Mode / Plasma | [`hosts/savage`](./hosts/savage) | [`home/savage.nix`](./home/savage.nix) |
 | **🥔 PotatoMonster** | Laptop (Inspiron 7559) | Intel i7 + NVIDIA GTX 960M | MangoWM | [`hosts/potatomonster`](./hosts/potatomonster) | [`home/potatomonster.nix`](./home/potatomonster.nix) |
-| **🥚 Tamago** | Laptop (Inspiron 7559) | Intel i7 (Intel iGPU) | Hyprland | [`hosts/tamago`](./hosts/tamago) | [`home/tamago.nix`](./home/tamago.nix) |
+| **🥚 PetitOeuf** | Laptop (Inspiron 7559) | Intel i7 (Intel iGPU) | Hyprland | [`hosts/petitoeuf`](./hosts/petitoeuf) | [`home/petitoeuf.nix`](./home/petitoeuf.nix) |
 | **🍠 PetitePatate** *EXPERIMENTAL* | Laptop (Pinebook Pro) | Rockchip RK3399 (OC 2.08GHz) + Mali | Hyprland | [`hosts/petitepatate`](./hosts/petitepatate) | [`home/petitepatate.nix`](./home/petitepatate.nix) |
 | **🦙 Jeff** *EXPERIMENTAL* | Headless Server | Ryzen 5 1600X + GTX 1070 | Headless CLI / Server Services | [`hosts/jeff`](./hosts/jeff) | [`home/jeff.nix`](./home/jeff.nix) |
 
@@ -44,7 +44,7 @@ The system uses unified module blocks under `modules/` to manage target packages
 ├── hosts/                # Host-specific settings & hardware profiles
 │   ├── common/           # Shared base packages, CLI tools, shell, and configs
 │   ├── potatomonster/    # PotatoMonster system configuration
-│   ├── tamago/           # Tamago system configuration
+│   ├── petitoeuf/        # PetitOeuf system configuration
 │   ├── pwpoulet/         # PwPoulet system configuration
 │   ├── savage/           # Savage (Steam Deck LCD) system configuration
 │   ├── jeff/             # Headless server (Jeff) system configuration
