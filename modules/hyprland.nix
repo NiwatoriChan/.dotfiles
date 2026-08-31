@@ -11,6 +11,7 @@
   # Hyprland compositor (customized package to remove UWSM desktop entry from SDDM)
   programs.hyprland = {
     enable = true;
+    withUWSM = false;
     package = (pkgs.symlinkJoin {
       name = "hyprland-no-uwsm";
       paths = [ pkgs.hyprland ];
