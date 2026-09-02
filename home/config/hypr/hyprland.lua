@@ -362,6 +362,16 @@ hl.window_rule({
     no_focus = true,
 })
 
+-- Suppress Wine / Proton / DirectX dummy and helper windows
+hl.window_rule({
+    name = "suppress-wine-dummy-windows",
+    match = {
+        title = "^(Default IME|MSCTFIME UI|OleMainThreadWndName|Direct3D.*|IDirect3D.*)$",
+    },
+    no_focus = true,
+    no_initial_focus = true,
+})
+
 -- Default: disable blur on all regular windows for maximum performance
 hl.window_rule({
     name = "default-no-blur",
