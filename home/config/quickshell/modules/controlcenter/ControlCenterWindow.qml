@@ -69,6 +69,10 @@ PanelWindow {
         function close(): void {
             root.closeMenu()
         }
+
+        function toggleCaffeine(): void {
+            root.idleInhibitor.inhibited = !root.idleInhibitor.inhibited
+        }
     }
 
     // M3 Solid Color Tokens

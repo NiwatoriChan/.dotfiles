@@ -137,6 +137,7 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("nm-applet --indicator")
     hl.exec_cmd("blueman-applet")
     hl.exec_cmd("wlsunset -t 4000 -T 4000")
+    hl.exec_cmd("hypridle")
     hl.exec_cmd("hyprctl setcursor breeze_cursors 24")
 end)
 

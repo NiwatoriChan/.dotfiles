@@ -35,6 +35,7 @@
   # Hyprland-specific packages
   environment.systemPackages = with pkgs; [
     config.programs.hyprland.package
+    hypridle
     jq  # For advanced monitor screenshot tools in binds
   ];
 
@@ -42,6 +43,7 @@
   home-manager.users.niwatorichan = { config, ... }: {
     # Hyprland Lua configuration symlink
     home.file.".config/hypr/hyprland.lua".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/hypr/hyprland.lua";
+    home.file.".config/hypr/hypridle.conf".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/hypr/hypridle.conf";
 
     # Waybar Status Bar — Hyprland workspace module
     programs.waybar.custom = {
