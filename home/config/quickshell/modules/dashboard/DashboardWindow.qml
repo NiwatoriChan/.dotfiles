@@ -1,13 +1,11 @@
 import QtQuick 6.10
 import QtQuick.Layouts 6.10
-import QtQuick.Controls 6.10 as QQC
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Services.UPower
+import Quickshell.Io
 import "../../config" as QsConfig
 import "../../services" as QsServices
 import "../../components"
-import "../controlcenter/components"
 
 PanelWindow {
     id: root
@@ -17,15 +15,6 @@ PanelWindow {
     readonly property var config: QsConfig.Config
     readonly property var pywal: QsServices.Pywal
     readonly property var time: QsServices.Time
-    readonly property var systemUsage: QsServices.SystemUsage
-    readonly property var players: QsServices.Players
-    readonly property var screenshot: QsServices.Screenshot
-    readonly property var network: QsServices.Network
-    readonly property var audio: QsServices.Audio
-    readonly property var powerProfiles: QsServices.PowerProfiles
-    readonly property var notifs: QsServices.Notifs
-    readonly property var bluetooth: QsServices.Bluetooth
-    readonly property var battery: UPower.displayDevice
 
     readonly property color cSurface: pywal.surfaceContainerHighest
     readonly property color cSurfaceContainer: pywal.surfaceContainerHigh
@@ -34,21 +23,34 @@ PanelWindow {
     readonly property color cText: pywal.foreground
     readonly property color cSubText: pywal.onSurfaceMuted
     readonly property color cBorder: pywal.outlineVariant
-    readonly property int batteryPercent: Math.round((battery?.percentage ?? 0) * 100)
-    readonly property bool hasMedia: players?.active !== null
+
+    // Date & Calendar State
     readonly property var currentDate: time.date
     readonly property int currentMonth: currentDate.getMonth()
     readonly property int currentYear: currentDate.getFullYear()
     readonly property int currentDay: currentDate.getDate()
+
+    property int monthOffset: 0
+
+    readonly property var displayDate: new Date(currentYear, currentMonth + monthOffset, 1)
+    readonly property int displayMonth: displayDate.getMonth()
+    readonly property int displayYear: displayDate.getFullYear()
+
+    readonly property var monthNames: [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ]
     readonly property var dayLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
     readonly property int calendarOffset: {
-        const first = new Date(currentYear, currentMonth, 1).getDay()
+        const first = new Date(displayYear, displayMonth, 1).getDay()
         return (first + 6) % 7
     }
-    readonly property int calendarDays: new Date(currentYear, currentMonth + 1, 0).getDate()
+    readonly property int calendarDays: new Date(displayYear, displayMonth + 1, 0).getDate()
     readonly property var calendarCells: {
         const cells = []
-        const prevMonthDays = new Date(currentYear, currentMonth, 0).getDate()
+        const prevMonthDays = new Date(displayYear, displayMonth, 0).getDate()
+        const isCurrentRealMonth = (displayYear === currentYear && displayMonth === currentMonth)
         for (let index = 0; index < 42; index++) {
             const dayNumber = index - calendarOffset + 1
             if (dayNumber < 1) {
@@ -56,18 +58,48 @@ PanelWindow {
             } else if (dayNumber > calendarDays) {
                 cells.push({ day: dayNumber - calendarDays, current: false, today: false })
             } else {
-                cells.push({ day: dayNumber, current: true, today: dayNumber === currentDay })
+                cells.push({
+                    day: dayNumber,
+                    current: true,
+                    today: isCurrentRealMonth && (dayNumber === currentDay)
+                })
             }
         }
         return cells
+    }
+
+    function toggleDashboard() {
+        if (root.shouldShow) {
+            closeDashboard()
+        } else {
+            openDashboard()
+        }
+    }
+
+    function openDashboard() {
+        monthOffset = 0
+        shouldShow = true
+        Qt.callLater(() => panel.forceActiveFocus())
     }
 
     function closeDashboard() {
         shouldShow = false
     }
 
-    function daysInMonth(year, month) {
-        return new Date(year, month + 1, 0).getDate()
+    IpcHandler {
+        target: "dashboard"
+
+        function toggle(): void {
+            root.toggleDashboard()
+        }
+
+        function open(): void {
+            root.openDashboard()
+        }
+
+        function close(): void {
+            root.closeDashboard()
+        }
     }
 
     screen: Quickshell.screens[0]
@@ -76,12 +108,12 @@ PanelWindow {
         left: true
     }
     margins {
-        top: (config.bar.height ?? 34) + config.dashboard.margin
-        left: Math.max(0, Math.round((screen.width - config.dashboard.width) / 2))
+        top: (config.bar.height ?? 34) + (config.dashboard.margin ?? 12)
+        left: Math.max(0, Math.round((screen.width - root.implicitWidth) / 2))
     }
-    implicitWidth: config.dashboard.width
-    implicitHeight: shouldShow || panel.opacity > 0 ? Math.min(config.dashboard.height, screen.height - margins.top - 24) : 0
-    visible: config.dashboard.enabled && (shouldShow || panel.opacity > 0)
+    implicitWidth: config.dashboard.width ?? 360
+    implicitHeight: shouldShow || panel.opacity > 0 ? Math.min(config.dashboard.height ?? 410, screen.height - margins.top - 24) : 0
+    visible: (config.dashboard.enabled ?? true) && (shouldShow || panel.opacity > 0)
     color: "transparent"
 
     WlrLayershell.keyboardFocus: shouldShow ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
@@ -111,7 +143,7 @@ PanelWindow {
 
         AuroraSurface {
             anchors.fill: parent
-            radius: 28
+            radius: 24
             color: root.cSurface
             strokeColor: root.cBorder
             accentColor: root.cPrimary
@@ -119,560 +151,215 @@ PanelWindow {
             highlighted: root.shouldShow
 
             ColumnLayout {
+                id: contentColumn
                 anchors.fill: parent
                 anchors.margins: 18
-                spacing: 16
+                spacing: 14
 
+                // Date Header Section
                 RowLayout {
                     Layout.fillWidth: true
+                    spacing: 12
 
                     ColumnLayout {
+                        Layout.fillWidth: true
                         spacing: 2
 
                         Text {
                             text: time.format("dddd")
                             font.family: QsConfig.Config.appearance.fontFamily
-                            font.pixelSize: 28
+                            font.pixelSize: 22
                             font.weight: Font.Bold
                             color: root.cText
                         }
 
                         Text {
-                            text: time.format("MMMM d, yyyy  •  hh:mm")
+                            text: time.format("MMMM d, yyyy")
                             font.family: QsConfig.Config.appearance.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: 13
+                            font.weight: Font.Medium
                             color: root.cSubText
                         }
                     }
 
-                    Item { Layout.fillWidth: true }
+                    // "Today" jump button if user navigated away from current month
+                    Rectangle {
+                        visible: root.monthOffset !== 0
+                        Layout.preferredHeight: 28
+                        Layout.preferredWidth: todayLabel.implicitWidth + 16
+                        radius: 14
+                        color: todayMouse.containsMouse
+                            ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.24)
+                            : Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.12)
+                        border.width: 1
+                        border.color: Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.35)
 
-                    SummaryChip {
-                        icon: root.notifs.unreadCount > 0 ? "󰂚" : "󰂜"
-                        label: root.notifs.unreadCount > 0 ? `${root.notifs.unreadCount} unread` : "Inbox clear"
-                        accent: root.cPrimary
-                    }
+                        Text {
+                            id: todayLabel
+                            anchors.centerIn: parent
+                            text: "Today"
+                            font.family: QsConfig.Config.appearance.fontFamily
+                            font.pixelSize: 11
+                            font.weight: Font.DemiBold
+                            color: root.cPrimary
+                        }
 
-                    SummaryChip {
-                        icon: root.network.connected ? (root.network.ethernetConnected ? "󰈀" : "󰖩") : "󰖪"
-                        label: root.network.connected ? (root.network.ethernetConnected ? (root.network.ethernetConnection || "Ethernet") : (root.network.ssid || "Wi‑Fi")) : "Offline"
-                        accent: root.network.connected ? pywal.info : root.cSubText
-                    }
-
-                    SummaryChip {
-                        icon: root.bluetooth.connected ? "󰂱" : "󰂲"
-                        label: root.bluetooth.connected ? (root.bluetooth.deviceName || "Bluetooth") : "Bluetooth"
-                        accent: root.bluetooth.connected ? pywal.secondary : root.cSubText
+                        MouseArea {
+                            id: todayMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.monthOffset = 0
+                        }
                     }
                 }
 
+                // Divider line
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 1
+                    color: Qt.rgba(root.cBorder.r, root.cBorder.g, root.cBorder.b, 0.35)
+                }
+
+                // Month & Navigation Header
                 RowLayout {
                     Layout.fillWidth: true
+
+                    Text {
+                        text: `${root.monthNames[root.displayMonth]} ${root.displayYear}`
+                        font.family: QsConfig.Config.appearance.fontFamily
+                        font.pixelSize: 15
+                        font.weight: Font.Bold
+                        color: root.cText
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    // Previous Month
+                    Rectangle {
+                        Layout.preferredWidth: 28
+                        Layout.preferredHeight: 28
+                        radius: 14
+                        color: prevMouse.containsMouse ? root.cSurfaceContainerHigh : "transparent"
+                        border.width: prevMouse.containsMouse ? 1 : 0
+                        border.color: root.cBorder
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "‹"
+                            font.family: QsConfig.Config.appearance.fontFamily
+                            font.pixelSize: 18
+                            font.weight: Font.Bold
+                            color: prevMouse.containsMouse ? root.cText : root.cSubText
+                        }
+
+                        MouseArea {
+                            id: prevMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.monthOffset--
+                        }
+                    }
+
+                    // Next Month
+                    Rectangle {
+                        Layout.preferredWidth: 28
+                        Layout.preferredHeight: 28
+                        radius: 14
+                        color: nextMouse.containsMouse ? root.cSurfaceContainerHigh : "transparent"
+                        border.width: nextMouse.containsMouse ? 1 : 0
+                        border.color: root.cBorder
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "›"
+                            font.family: QsConfig.Config.appearance.fontFamily
+                            font.pixelSize: 18
+                            font.weight: Font.Bold
+                            color: nextMouse.containsMouse ? root.cText : root.cSubText
+                        }
+
+                        MouseArea {
+                            id: nextMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.monthOffset++
+                        }
+                    }
+                }
+
+                // Calendar Grid
+                GridLayout {
+                    Layout.fillWidth: true
                     Layout.fillHeight: true
-                    spacing: 16
+                    columns: 7
+                    rowSpacing: 4
+                    columnSpacing: 4
 
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        Layout.preferredWidth: 1
-                        spacing: 16
+                    // Day of week headers
+                    Repeater {
+                        model: root.dayLabels
 
-                        SurfaceCard {
+                        Text {
+                            id: dayHeader
+                            required property var modelData
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 254
-
-                            ColumnLayout {
-                                anchors.fill: parent
-                                anchors.margins: 16
-                                spacing: 12
-
-                                RowLayout {
-                                    Layout.fillWidth: true
-                                    Text {
-                                        text: "Calendar"
-                                        font.family: QsConfig.Config.appearance.fontFamily
-                                        font.pixelSize: 15
-                                        font.weight: Font.Bold
-                                        color: root.cText
-                                    }
-                                    Item { Layout.fillWidth: true }
-                                    Text {
-                                        text: time.format("MMMM yyyy")
-                                        font.family: QsConfig.Config.appearance.fontFamily
-                                        font.pixelSize: 12
-                                        color: root.cSubText
-                                    }
-                                }
-
-                                GridLayout {
-                                    Layout.fillWidth: true
-                                    Layout.fillHeight: true
-                                    columns: 7
-                                    rowSpacing: 6
-                                    columnSpacing: 6
-
-                                    Repeater {
-                                        model: root.dayLabels
-
-                                        Text {
-                                            id: dayHeader
-                                            required property var modelData
-                                            Layout.fillWidth: true
-                                            horizontalAlignment: Text.AlignHCenter
-                                            text: dayHeader.modelData
-                                            font.family: QsConfig.Config.appearance.fontFamily
-                                            font.pixelSize: 11
-                                            font.weight: Font.Medium
-                                            color: root.cSubText
-                                        }
-                                    }
-
-                                    Repeater {
-                                        model: root.calendarCells
-
-                                        Rectangle {
-                                            id: dayCell
-                                            required property var modelData
-                                            Layout.fillWidth: true
-                                            Layout.fillHeight: true
-                                            Layout.preferredHeight: 24
-                                            radius: 12
-                                            color: dayCell.modelData.today
-                                                ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.18)
-                                                : dayCell.modelData.current
-                                                    ? "transparent"
-                                                    : Qt.rgba(root.cText.r, root.cText.g, root.cText.b, 0.03)
-                                            border.width: dayCell.modelData.today ? 1 : 0
-                                            border.color: Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.36)
-
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: `${dayCell.modelData.day}`
-                                                font.family: QsConfig.Config.appearance.fontFamily
-                                                font.pixelSize: 11
-                                                font.weight: dayCell.modelData.today ? Font.Bold : Font.Medium
-                                                color: dayCell.modelData.current ? root.cText : root.cSubText
-                                                opacity: dayCell.modelData.current ? 1.0 : 0.45
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        SurfaceCard {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-
-                            ColumnLayout {
-                                anchors.fill: parent
-                                anchors.margins: 16
-                                spacing: 14
-
-                                RowLayout {
-                                    Layout.fillWidth: true
-                                    Text {
-                                        text: "Daily Controls"
-                                        font.family: QsConfig.Config.appearance.fontFamily
-                                        font.pixelSize: 15
-                                        font.weight: Font.Bold
-                                        color: root.cText
-                                    }
-                                    Item { Layout.fillWidth: true }
-                                    Text {
-                                        text: root.powerProfiles.isAvailable ? root.powerProfiles.getProfileLabel(root.powerProfiles.activeProfile) : "Power"
-                                        font.family: QsConfig.Config.appearance.fontFamily
-                                        font.pixelSize: 11
-                                        color: root.cSubText
-                                    }
-                                }
-
-                                RowLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 10
-
-                                    QuickAction {
-                                        Layout.fillWidth: true
-                                        icon: "󰄀"
-                                        label: "Region"
-                                        subLabel: "Screenshot"
-                                        accent: root.cPrimary
-                                        onClicked: root.screenshot.takeScreenshot("region")
-                                    }
-                                    QuickAction {
-                                        Layout.fillWidth: true
-                                        icon: root.screenshot.isRecording ? "󰛿" : "󰻃"
-                                        label: root.screenshot.isRecording ? "Stop" : "Record"
-                                        subLabel: "Screen"
-                                        accent: pywal.error
-                                        onClicked: {
-                                            if (root.screenshot.isRecording)
-                                                root.screenshot.stopRecording()
-                                            else
-                                                root.screenshot.startRecording()
-                                        }
-                                    }
-                                    QuickAction {
-                                        Layout.fillWidth: true
-                                        icon: "󰆍"
-                                        label: "Terminal"
-                                        subLabel: "Foot"
-                                        accent: pywal.secondary
-                                        onClicked: Quickshell.execDetached(config.launcher.terminalCommand ?? ["foot"])
-                                    }
-                                }
-
-                                RowLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 8
-
-                                    Repeater {
-                                        model: root.powerProfiles.availableProfiles
-
-                                        Rectangle {
-                                            required property var modelData
-                                            Layout.fillWidth: true
-                                            Layout.preferredHeight: 36
-                                            radius: 18
-                                            color: root.powerProfiles.activeProfile === modelData
-                                                ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.16)
-                                                : root.cSurfaceContainerHigh
-                                            border.width: 1
-                                            border.color: root.powerProfiles.activeProfile === modelData
-                                                ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.36)
-                                                : Qt.rgba(root.cText.r, root.cText.g, root.cText.b, 0.05)
-
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: root.powerProfiles.getProfileLabel(modelData)
-                                                font.family: QsConfig.Config.appearance.fontFamily
-                                                font.pixelSize: 11
-                                                font.weight: Font.Medium
-                                                color: root.powerProfiles.activeProfile === modelData ? root.cPrimary : root.cText
-                                            }
-
-                                            MouseArea {
-                                                anchors.fill: parent
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: root.powerProfiles.setProfile(modelData)
-                                            }
-                                        }
-                                    }
-                                }
-
-                                SurfaceMetricRow {
-                                    visible: (battery?.isPresent ?? false) && ((battery?.isLaptopBattery ?? false) || (battery?.powerSupply ?? false) || (battery?.type === UPowerDeviceType.Battery))
-                                    icon: "󰂎"
-                                    title: "Battery"
-                                    value: `${root.batteryPercent}%`
-                                    detail: battery?.state === UPowerDeviceState.Charging ? "Charging" : battery?.state === UPowerDeviceState.FullyCharged ? "Full" : "Discharging"
-                                    accent: root.batteryPercent <= 20 ? pywal.error : root.cPrimary
-                                }
-                                SurfaceMetricRow {
-                                    icon: root.audio.muted ? "󰖁" : "󰕾"
-                                    title: "Volume"
-                                    value: `${Math.round((root.audio.percentage ?? 0))}%`
-                                    detail: root.audio.muted ? "Muted" : "Default output"
-                                    accent: pywal.secondary
-                                }
-                                SurfaceMetricRow {
-                                    icon: root.network.connected ? (root.network.ethernetConnected ? "󰈀" : "󰖩") : "󰖪"
-                                    title: "Network"
-                                    value: root.network.connected ? (root.network.ethernetConnected ? (root.network.ethernetConnection || "Ethernet") : (root.network.ssid || "Connected")) : "Disconnected"
-                                    detail: root.network.connected ? (root.network.ethernetConnected ? (root.network.ethernetDevice || "Wired") : `Signal ${root.network.signalStrength}%`) : "Offline"
-                                    accent: pywal.info
-                                }
-                            }
+                            horizontalAlignment: Text.AlignHCenter
+                            text: dayHeader.modelData
+                            font.family: QsConfig.Config.appearance.fontFamily
+                            font.pixelSize: 11
+                            font.weight: Font.DemiBold
+                            color: root.cSubText
                         }
                     }
 
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        Layout.preferredWidth: 1
-                        spacing: 16
+                    // Day cells
+                    Repeater {
+                        model: root.calendarCells
 
-                        SystemStats {
-                            Layout.fillWidth: true
-                            systemUsage: root.systemUsage
-                            pywal: root.pywal
-                        }
-
-                        SurfaceCard {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: root.hasMedia ? 124 : 88
-
-                            ColumnLayout {
-                                anchors.fill: parent
-                                anchors.margins: 0
-                                spacing: 0
-
-                                Text {
-                                    visible: !root.hasMedia
-                                    Layout.alignment: Qt.AlignHCenter
-                                    Layout.topMargin: 22
-                                    text: "No media playing"
-                                    font.family: QsConfig.Config.appearance.fontFamily
-                                    font.pixelSize: 13
-                                    font.weight: Font.Medium
-                                    color: root.cSubText
-                                }
-
-                                MediaCard {
-                                    visible: root.hasMedia
-                                    Layout.fillWidth: true
-                                    Layout.fillHeight: true
-                                    mpris: root.players
-                                    pywal: root.pywal
-                                }
-                            }
-                        }
-
-                        SurfaceCard {
+                        Rectangle {
+                            id: dayCell
+                            required property var modelData
                             Layout.fillWidth: true
                             Layout.fillHeight: true
+                            Layout.preferredHeight: 28
+                            radius: 14
+                            color: dayCell.modelData.today
+                                ? root.cPrimary
+                                : cellMouse.containsMouse && dayCell.modelData.current
+                                    ? Qt.rgba(root.cText.r, root.cText.g, root.cText.b, 0.08)
+                                    : dayCell.modelData.current
+                                        ? "transparent"
+                                        : Qt.rgba(root.cText.r, root.cText.g, root.cText.b, 0.02)
 
-                            ColumnLayout {
+                            Behavior on color {
+                                ColorAnimation { duration: 120 }
+                            }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: `${dayCell.modelData.day}`
+                                font.family: QsConfig.Config.appearance.fontFamily
+                                font.pixelSize: 12
+                                font.weight: dayCell.modelData.today ? Font.Bold : Font.Medium
+                                color: dayCell.modelData.today
+                                    ? pywal.onPrimary
+                                    : dayCell.modelData.current
+                                        ? root.cText
+                                        : root.cSubText
+                                opacity: dayCell.modelData.today ? 1.0 : dayCell.modelData.current ? 1.0 : 0.35
+                            }
+
+                            MouseArea {
+                                id: cellMouse
                                 anchors.fill: parent
-                                anchors.margins: 16
-                                spacing: 12
-
-                                RowLayout {
-                                    Layout.fillWidth: true
-                                    Text {
-                                        text: "Today at a Glance"
-                                        font.family: QsConfig.Config.appearance.fontFamily
-                                        font.pixelSize: 15
-                                        font.weight: Font.Bold
-                                        color: root.cText
-                                    }
-                                    Item { Layout.fillWidth: true }
-                                    Text {
-                                        text: root.time.format("ddd")
-                                        font.family: QsConfig.Config.appearance.fontFamily
-                                        font.pixelSize: 11
-                                        color: root.cSubText
-                                    }
-                                }
-
-                                InsightCard {
-                                    title: "CPU and memory"
-                                    body: `CPU ${Math.round((root.systemUsage.cpuPerc ?? 0) * 100)}% · RAM ${Math.round((root.systemUsage.memPerc ?? 0) * 100)}%`
-                                    accent: pywal.error
-                                }
-                                InsightCard {
-                                    title: "Network activity"
-                                    body: `↓ ${Math.round((root.systemUsage.downloadSpeed ?? 0) / 1024)} KB/s · ↑ ${Math.round((root.systemUsage.uploadSpeed ?? 0) / 1024)} KB/s`
-                                    accent: pywal.info
-                                }
-                                InsightCard {
-                                    title: "Inbox status"
-                                    body: root.notifs.unreadCount > 0
-                                        ? `${root.notifs.unreadCount} unread notifications waiting`
-                                        : "No unread notifications — you’re clear"
-                                    accent: pywal.primary
-                                }
-                                InsightCard {
-                                    title: "Power mode"
-                                    body: root.powerProfiles.isAvailable
-                                        ? `${root.powerProfiles.getProfileLabel(root.powerProfiles.activeProfile)} profile active`
-                                        : "powerprofilesctl not available"
-                                    accent: pywal.secondary
-                                }
-                                InsightCard {
-                                    title: "Top processes"
-                                    body: {
-                                        var tops = root.systemUsage.topProcesses
-                                        if (tops.length === 0) return "Collecting..."
-                                        var lines = []
-                                        for (var i = 0; i < Math.min(tops.length, 3); i++) {
-                                            var p = tops[i]
-                                            lines.push(p.name.substring(0, 20) + " " + Math.round(p.cpu) + "%")
-                                        }
-                                        return lines.join(" · ")
-                                    }
-                                    accent: pywal.warning
-                                }
+                                hoverEnabled: true
                             }
                         }
                     }
                 }
-            }
-        }
-    }
-
-    component SurfaceCard: Rectangle {
-        radius: 22
-        color: root.cSurfaceContainer
-        border.width: 1
-        border.color: root.cBorder
-    }
-
-    component SummaryChip: Rectangle {
-        id: chipRoot
-        required property string icon
-        required property string label
-        required property color accent
-        width: chipRow.implicitWidth + 18
-        height: 34
-        radius: 17
-        color: Qt.rgba(accent.r, accent.g, accent.b, 0.14)
-        border.width: 1
-        border.color: Qt.rgba(accent.r, accent.g, accent.b, 0.18)
-
-        RowLayout {
-            id: chipRow
-            anchors.centerIn: parent
-            spacing: 6
-            Text {
-                text: chipRoot.icon
-                font.family: "Material Design Icons"
-                font.pixelSize: 15
-                color: chipRoot.accent
-            }
-            Text {
-                text: chipRoot.label
-                font.family: QsConfig.Config.appearance.fontFamily
-                font.pixelSize: 11
-                font.weight: Font.Medium
-                color: root.cText
-            }
-        }
-    }
-
-    component QuickAction: Rectangle {
-        id: actionRoot
-        required property string icon
-        required property string label
-        required property string subLabel
-        required property color accent
-        signal clicked()
-
-        radius: 18
-        color: mouse.containsMouse ? Qt.lighter(root.cSurfaceContainerHigh, 1.03) : root.cSurfaceContainerHigh
-        border.width: 1
-        border.color: Qt.rgba(actionRoot.accent.r, actionRoot.accent.g, actionRoot.accent.b, 0.22)
-        implicitHeight: 84
-        scale: mouse.pressed ? 0.985 : mouse.containsMouse ? 1.01 : 1.0
-
-        Behavior on scale {
-            NumberAnimation { duration: 180; easing.bezierCurve: [0.22, 1.0, 0.36, 1.0] }
-        }
-
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 4
-
-            Text {
-                text: actionRoot.icon
-                font.family: "Material Design Icons"
-                font.pixelSize: 20
-                color: actionRoot.accent
-            }
-            Text {
-                text: actionRoot.label
-                font.family: QsConfig.Config.appearance.fontFamily
-                font.pixelSize: 12
-                font.weight: Font.DemiBold
-                color: root.cText
-            }
-            Text {
-                text: actionRoot.subLabel
-                font.family: QsConfig.Config.appearance.fontFamily
-                font.pixelSize: 10
-                color: root.cSubText
-            }
-        }
-
-        MouseArea {
-            id: mouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: actionRoot.clicked()
-        }
-    }
-
-    component SurfaceMetricRow: Rectangle {
-        id: metricRoot
-        required property string icon
-        required property string title
-        required property string value
-        required property string detail
-        required property color accent
-        radius: 16
-        color: root.cSurfaceContainerHigh
-        border.width: 1
-        border.color: Qt.rgba(metricRoot.accent.r, metricRoot.accent.g, metricRoot.accent.b, 0.14)
-        implicitHeight: 52
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 10
-
-            Text {
-                text: metricRoot.icon
-                font.family: "Material Design Icons"
-                font.pixelSize: 18
-                color: metricRoot.accent
-            }
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 1
-                Text {
-                    text: metricRoot.title
-                    font.family: QsConfig.Config.appearance.fontFamily
-                    font.pixelSize: 11
-                    color: root.cSubText
-                }
-                Text {
-                    text: metricRoot.detail
-                    font.family: QsConfig.Config.appearance.fontFamily
-                    font.pixelSize: 11
-                    font.weight: Font.Medium
-                    color: root.cText
-                }
-            }
-            Text {
-                text: metricRoot.value
-                font.family: QsConfig.Config.appearance.fontFamily
-                font.pixelSize: 12
-                font.weight: Font.Bold
-                color: root.cText
-            }
-        }
-    }
-
-    component InsightCard: Rectangle {
-        id: insightRoot
-        required property string title
-        required property string body
-        required property color accent
-        radius: 18
-        color: root.cSurfaceContainerHigh
-        border.width: 1
-        border.color: Qt.rgba(accent.r, accent.g, accent.b, 0.18)
-        implicitHeight: 74
-
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 4
-            Text {
-                text: insightRoot.title
-                font.family: QsConfig.Config.appearance.fontFamily
-                font.pixelSize: 12
-                font.weight: Font.DemiBold
-                color: insightRoot.accent
-            }
-            Text {
-                text: insightRoot.body
-                wrapMode: Text.WordWrap
-                font.family: QsConfig.Config.appearance.fontFamily
-                font.pixelSize: 11
-                color: root.cText
             }
         }
     }

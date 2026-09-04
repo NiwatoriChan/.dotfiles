@@ -18,7 +18,7 @@ Item {
     Text {
         id: volumeText
         anchors.centerIn: parent
-        text: isMuted ? "\uf669   Muted" : "\uf028   " + percentage + "%"
+        text: isMuted ? "\ueee8   Muted" : "\uf028   " + percentage + "%"
         color: "#fde047"
         font.family: "Inter Variable"
         font.pixelSize: 13

@@ -208,6 +208,11 @@ Item {
                     when: trayLoader.status === Loader.Ready && root.barWindow !== undefined
                 }
             }
+
+            Loader {
+                id: controlCenterToggleLoader
+                source: "components/ControlCenterToggle.qml"
+            }
         }
     }
 

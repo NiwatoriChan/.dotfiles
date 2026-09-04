@@ -278,6 +278,10 @@ hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("firefox"))
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("quickshell ipc call wallpaper toggle"))
+hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("quickshell ipc call controlcenter toggle"))
+hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("quickshell ipc call dashboard toggle"))
+hl.bind(mainMod .. " + Tab", hl.dsp.exec_cmd("quickshell ipc call switcher toggle"))
+hl.bind("ALT + Tab", hl.dsp.exec_cmd("quickshell ipc call switcher toggle"))
 
 -- Window Actions
 hl.bind(mainMod .. " + X", hl.dsp.window.close())

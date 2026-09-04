@@ -24,7 +24,6 @@ PanelWindow {
     readonly property var idleInhibitor: QsServices.IdleInhibitor
     readonly property var gamingMode: QsServices.GamingMode
     readonly property var settings: QsServices.Settings
-    readonly property var screenshot: QsServices.Screenshot
 
     property bool shouldShow: false
 
@@ -32,14 +31,45 @@ PanelWindow {
     anchors { top: true; right: true }
     margins { right: 12; top: 12 }
     
-    implicitWidth: 440
-    implicitHeight: Math.min(860, screen.height - 40)
+    implicitWidth: 420
+    implicitHeight: Math.min(760, screen.height - 40)
     color: "transparent"
     visible: shouldShow || panelContent.opacity > 0
 
     WlrLayershell.keyboardFocus: shouldShow ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
+    function toggleMenu(): void {
+        if (root.shouldShow) {
+            closeMenu()
+        } else {
+            openMenu()
+        }
+    }
 
+    function openMenu(): void {
+        root.shouldShow = true
+        Qt.callLater(() => panelContent.forceActiveFocus())
+    }
+
+    function closeMenu(): void {
+        root.shouldShow = false
+    }
+
+    IpcHandler {
+        target: "controlcenter"
+
+        function toggle(): void {
+            root.toggleMenu()
+        }
+
+        function open(): void {
+            root.openMenu()
+        }
+
+        function close(): void {
+            root.closeMenu()
+        }
+    }
 
     // M3 Solid Color Tokens
     readonly property color cSurface: pywal.surface
@@ -59,19 +89,9 @@ PanelWindow {
         opacity: root.shouldShow ? 1.0 : 0.0
 
         focus: true
-        Keys.onEscapePressed: root.shouldShow = false
+        Keys.onEscapePressed: root.closeMenu()
 
-        HoverHandler {
-            id: hoverHandler
-            onHoveredChanged: {
-                if (hovered) closeTimer.stop()
-                else if (root.shouldShow) closeTimer.restart()
-            }
-        }
-
-        Timer { id: closeTimer; interval: 600; onTriggered: if (!hoverHandler.hovered) root.shouldShow = false }
-
-        MouseArea { anchors.fill: parent; z: -1; onClicked: root.shouldShow = false }
+        MouseArea { anchors.fill: parent; z: -1; onClicked: root.closeMenu() }
 
         Behavior on scale { NumberAnimation { duration: 350; easing.bezierCurve: Material3Anim.springBounce } }
         Behavior on opacity { NumberAnimation { duration: 200; easing.bezierCurve: Material3Anim.standard } }
@@ -87,120 +107,268 @@ PanelWindow {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 24
-                spacing: 24
+                anchors.margins: 20
+                spacing: 16
 
-                // Header - M3 Expressive Typography
-                RowLayout {
+                // 1. Top Sliders Card (Volume & Brightness)
+                Rectangle {
                     Layout.fillWidth: true
-                    spacing: 16
+                    Layout.preferredHeight: 128
+                    radius: 22
+                    color: root.cSurfaceContainer
 
                     ColumnLayout {
+                        anchors.fill: parent
                         spacing: 0
-                        Text {
-                            id: timeText
-                            text: Qt.formatTime(new Date(), "hh:mm")
-                            font.family: "Inter"
-                            font.pixelSize: 42
-                            font.weight: Font.Black
-                            color: root.cOnSurface
-                            lineHeight: 0.9
-                        }
-                        Text {
-                            text: Qt.formatDate(new Date(), "dddd, MMMM d").toUpperCase()
-                            font.family: "Inter"
-                            font.pixelSize: 12
-                            font.weight: Font.Medium
-                            color: root.cOnSurfaceVariant
-                            font.letterSpacing: 1.5
-                        }
-                        Timer { interval: 1000; running: true; repeat: true; onTriggered: timeText.text = Qt.formatTime(new Date(), "hh:mm") }
-                    }
-                    Item { Layout.fillWidth: true }
 
-                    RowLayout {
-                        spacing: 8
-
-                        Rectangle {
-                            width: 48; height: 48; radius: 24
-                            color: settingsBtnMouse.pressed ? Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.12) : settingsBtnMouse.containsMouse ? Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.08) : "transparent"
-                            Behavior on color { ColorAnimation { duration: 150 } }
-                            scale: settingsBtnMouse.pressed ? 0.95 : 1.0
-                            Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: Material3Anim.springGentle } }
-
-                            Text { anchors.centerIn: parent; text: "󰒓"; font.family: "Material Design Icons"; font.pixelSize: 24; color: root.cOnSurfaceVariant }
-                            MouseArea { id: settingsBtnMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; hoverEnabled: true; onClicked: Quickshell.execDetached(["nm-connection-editor"]) }
+                        VolumeSlider {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            audio: root.audio
+                            pywal: root.pywal
                         }
 
                         Rectangle {
-                            width: 48; height: 48; radius: 24
-                            color: lockBtnMouse.pressed ? Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.12) : lockBtnMouse.containsMouse ? Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.08) : "transparent"
-                            Behavior on color { ColorAnimation { duration: 150 } }
-                            scale: lockBtnMouse.pressed ? 0.95 : 1.0
-                            Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: Material3Anim.springGentle } }
-
-                            Text { anchors.centerIn: parent; text: "󰍜"; font.family: "Material Design Icons"; font.pixelSize: 24; color: root.cOnSurfaceVariant }
-                            MouseArea { id: lockBtnMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; hoverEnabled: true; onClicked: Quickshell.execDetached(["dbus-send", "--system", "--type=method_call", "--print-reply", "--dest=org.freedesktop.DisplayManager", "/org/freedesktop/DisplayManager/Seat0", "org.freedesktop.DisplayManager.Seat.SwitchToGreeter"]) }
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 20
+                            Layout.rightMargin: 20
+                            height: 1
+                            color: Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.06)
                         }
 
-                        Rectangle {
-                            width: 48; height: 48; radius: 24
-                            color: powerBtnMouse.pressed ? Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.12) : powerBtnMouse.containsMouse ? Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.08) : "transparent"
-                            Behavior on color { ColorAnimation { duration: 150 } }
-                            scale: powerBtnMouse.pressed ? 0.95 : 1.0
-                            Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: Material3Anim.springGentle } }
-
-                            Text { anchors.centerIn: parent; text: "󰐥"; font.family: "Material Design Icons"; font.pixelSize: 24; color: root.cOnSurfaceVariant }
-                            MouseArea { id: powerBtnMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; hoverEnabled: true; onClicked: Quickshell.execDetached(["wlogout"]) }
+                        BrightnessSlider {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            brightness: root.brightness
+                            pywal: root.pywal
                         }
                     }
                 }
 
-                StyledFlickable {
-                    id: contentFlick
+                // 2. Quick Toggles Grid (6 system toggles)
+                GridLayout {
+                    Layout.fillWidth: true
+                    columns: 2
+                    rowSpacing: 10
+                    columnSpacing: 10
+
+                    QuickToggle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 72
+                        icon: "󰖩"
+                        label: "Wi-Fi"
+                        subLabel: root.network.connected ? root.network.ssid : "Off"
+                        active: root.network.wifiEnabled
+                        activeColor: root.cPrimary
+                        onClicked: root.network.toggleWifi()
+                    }
+
+                    QuickToggle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 72
+                        icon: "󰂯"
+                        label: "Bluetooth"
+                        subLabel: root.bluetooth.powered ? "On" : "Off"
+                        active: root.bluetooth.powered
+                        activeColor: root.cPrimary
+                        onClicked: root.bluetooth.togglePower()
+                    }
+
+                    QuickToggle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 72
+                        icon: "󰔎"
+                        label: "Do Not Disturb"
+                        subLabel: root.notifs.dnd ? "On" : "Off"
+                        active: root.notifs.dnd
+                        activeColor: pywal.warning
+                        onClicked: root.notifs.toggleDnd()
+                    }
+
+                    QuickToggle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 72
+                        icon: "󰅶"
+                        label: "Caffeine"
+                        subLabel: root.idleInhibitor.inhibited ? "Active" : "Off"
+                        active: root.idleInhibitor.inhibited
+                        activeColor: pywal.info
+                        onClicked: root.idleInhibitor.inhibited = !root.idleInhibitor.inhibited
+                    }
+
+                    QuickToggle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 72
+                        icon: "󰾴"
+                        label: "Gaming Mode"
+                        subLabel: root.gamingMode.enabled ? "Performance" : "Balanced"
+                        active: root.gamingMode.enabled
+                        activeColor: pywal.success
+                        onClicked: root.gamingMode.toggle()
+                    }
+
+                    QuickToggle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 72
+                        icon: "󰄉"
+                        label: "Focus Mode"
+                        subLabel: root.settings.focusModeEnabled ? `${root.settings.focusModeMinutesLeft} min remaining` : "25 min timer"
+                        active: root.settings.focusModeEnabled
+                        activeColor: pywal.info
+                        onClicked: {
+                            root.settings.focusModeEnabled = !root.settings.focusModeEnabled
+                            if (root.settings.focusModeEnabled) {
+                                root.settings.focusModeMinutesLeft = 25
+                                root.notifs.dnd = true
+                            }
+                        }
+                    }
+                }
+
+                // 3. Media Player Card (Visible only when playing)
+                MediaCard {
+                    Layout.fillWidth: true
+                    visible: root.mpris?.active !== null
+                    mpris: root.mpris
+                    pywal: root.pywal
+                }
+
+                // 4. Notifications Section
+                NotificationList {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    contentHeight: contentColumn.height
-                    clip: true
+                    Layout.minimumHeight: 140
+                    notifs: root.notifs
+                    pywal: root.pywal
+                }
 
-                    ColumnLayout {
-                        id: contentColumn
-                        width: contentFlick.width
-                        spacing: 20
+                // 5. Bottom Action Bar (Close, Settings, Lock, Power)
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 46
+                    spacing: 10
 
-                        // Quick Toggles Grid
-                        GridLayout {
-                            Layout.fillWidth: true
-                            columns: 2
-                            rowSpacing: 12
-                            columnSpacing: 12
+                    // Bouton Fermer
+                    Rectangle {
+                        width: 46; height: 46; radius: 23
+                        color: closeBtnMouse.pressed ? Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.15)
+                             : closeBtnMouse.containsMouse ? Qt.rgba(pywal.error.r, pywal.error.g, pywal.error.b, 0.15)
+                             : root.cSurfaceContainer
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                        scale: closeBtnMouse.pressed ? 0.92 : 1.0
+                        Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: Material3Anim.springGentle } }
 
-                            QuickToggle { Layout.fillWidth: true; icon: "󰖩"; label: "Wi-Fi"; subLabel: root.network.connected ? root.network.ssid : "Off"; active: root.network.wifiEnabled; activeColor: root.cPrimary; onClicked: root.network.toggleWifi() }
-                            QuickToggle { Layout.fillWidth: true; icon: "󰂯"; label: "Bluetooth"; subLabel: root.bluetooth.powered ? "On" : "Off"; active: root.bluetooth.powered; activeColor: root.cPrimary; onClicked: root.bluetooth.togglePower() }
-                            QuickToggle { Layout.fillWidth: true; icon: "󰔎"; label: "Do Not Disturb"; subLabel: root.notifs.dnd ? "On" : "Off"; active: root.notifs.dnd; activeColor: pywal.warning; onClicked: root.notifs.toggleDnd() }
-                            QuickToggle { Layout.fillWidth: true; icon: "󰅶"; label: "Caffeine"; subLabel: root.idleInhibitor.inhibited ? "Active" : "Off"; active: root.idleInhibitor.inhibited; activeColor: pywal.info; onClicked: root.idleInhibitor.inhibited = !root.idleInhibitor.inhibited }
-                            QuickToggle { Layout.fillWidth: true; icon: "󰾴"; label: "Gaming Mode"; subLabel: root.gamingMode.enabled ? "Performance" : "Balanced"; active: root.gamingMode.enabled; activeColor: pywal.success; onClicked: root.gamingMode.toggle() }
-                            QuickToggle { Layout.fillWidth: true; icon: "󰄉"; label: "Focus Mode"; subLabel: root.settings.focusModeEnabled ? `${root.settings.focusModeMinutesLeft} min remaining` : "25 min timer"; active: root.settings.focusModeEnabled; activeColor: pywal.info; onClicked: { root.settings.focusModeEnabled = !root.settings.focusModeEnabled; if (root.settings.focusModeEnabled) { root.settings.focusModeMinutesLeft = 25; root.notifs.dnd = true } } }
-                            QuickToggle { Layout.fillWidth: true; Layout.columnSpan: 2; icon: "󰹑"; label: "Screenshot"; subLabel: "Capture Screen"; active: false; activeColor: root.cSecondary; onClicked: root.screenshot.takeScreenshot("screen") }
-                            QuickToggle { Layout.fillWidth: true; icon: root.screenshot.isRecording ? "󰛿" : "󰻃"; label: root.screenshot.isRecording ? "Stop Recording" : "Record Screen"; subLabel: root.screenshot.isRecording ? "Recording in progress" : "Start wf-recorder"; active: root.screenshot.isRecording; activeColor: pywal.error; onClicked: { if (root.screenshot.isRecording) root.screenshot.stopRecording(); else root.screenshot.startRecording() } }
-                            QuickToggle { Layout.fillWidth: true; icon: "󰉋"; label: "Open Captures"; subLabel: "Screenshots & recordings"; active: false; activeColor: root.cSecondary; onClicked: { Quickshell.execDetached(["xdg-open", root.screenshot.screenshotsDir]); root.shouldShow = false } }
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰅖"
+                            font.family: "Material Design Icons"
+                            font.pixelSize: 22
+                            color: closeBtnMouse.containsMouse ? pywal.error : root.cOnSurfaceVariant
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
 
-                        // Sliders Container
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 0
+                        MouseArea {
+                            id: closeBtnMouse
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            hoverEnabled: true
+                            onClicked: root.closeMenu()
+                        }
+                    }
 
-                            VolumeSlider { Layout.fillWidth: true; audio: root.audio; pywal: root.pywal }
-                            Rectangle { Layout.fillWidth: true; height: 1; color: Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.05) }
-                            BrightnessSlider { Layout.fillWidth: true; brightness: root.brightness; pywal: root.pywal }
+                    Item { Layout.fillWidth: true }
+
+                    // Bouton Paramètres
+                    Rectangle {
+                        width: 46; height: 46; radius: 23
+                        color: settingsBtnMouse.pressed ? Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.15)
+                             : settingsBtnMouse.containsMouse ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.15)
+                             : root.cSurfaceContainer
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                        scale: settingsBtnMouse.pressed ? 0.92 : 1.0
+                        Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: Material3Anim.springGentle } }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰒓"
+                            font.family: "Material Design Icons"
+                            font.pixelSize: 22
+                            color: settingsBtnMouse.containsMouse ? root.cPrimary : root.cOnSurfaceVariant
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
 
-                        SystemStats { Layout.fillWidth: true; systemUsage: root.systemUsage; pywal: root.pywal }
-                        MediaCard { Layout.fillWidth: true; mpris: root.mpris; pywal: root.pywal }
-                        NotificationList { Layout.fillWidth: true; Layout.preferredHeight: Math.min(340, Math.max(100, root.height - 650)); notifs: root.notifs; pywal: root.pywal }
+                        MouseArea {
+                            id: settingsBtnMouse
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            hoverEnabled: true
+                            onClicked: {
+                                root.closeMenu()
+                                Quickshell.execDetached(["nm-connection-editor"])
+                            }
+                        }
+                    }
 
-                        Item { Layout.preferredHeight: 4 }
+                    // Bouton Verrouillage
+                    Rectangle {
+                        width: 46; height: 46; radius: 23
+                        color: lockBtnMouse.pressed ? Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.15)
+                             : lockBtnMouse.containsMouse ? Qt.rgba(pywal.warning.r, pywal.warning.g, pywal.warning.b, 0.15)
+                             : root.cSurfaceContainer
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                        scale: lockBtnMouse.pressed ? 0.92 : 1.0
+                        Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: Material3Anim.springGentle } }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰌾"
+                            font.family: "Material Design Icons"
+                            font.pixelSize: 22
+                            color: lockBtnMouse.containsMouse ? pywal.warning : root.cOnSurfaceVariant
+                            Behavior on color { ColorAnimation { duration: 150 } }
+                        }
+
+                        MouseArea {
+                            id: lockBtnMouse
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            hoverEnabled: true
+                            onClicked: {
+                                root.closeMenu()
+                                Quickshell.execDetached(["dbus-send", "--system", "--type=method_call", "--print-reply", "--dest=org.freedesktop.DisplayManager", "/org/freedesktop/DisplayManager/Seat0", "org.freedesktop.DisplayManager.Seat.SwitchToGreeter"])
+                            }
+                        }
+                    }
+
+                    // Bouton Éteindre / Session
+                    Rectangle {
+                        width: 46; height: 46; radius: 23
+                        color: powerBtnMouse.pressed ? Qt.rgba(pywal.error.r, pywal.error.g, pywal.error.b, 0.25)
+                             : powerBtnMouse.containsMouse ? Qt.rgba(pywal.error.r, pywal.error.g, pywal.error.b, 0.15)
+                             : root.cSurfaceContainer
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                        scale: powerBtnMouse.pressed ? 0.92 : 1.0
+                        Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: Material3Anim.springGentle } }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰐥"
+                            font.family: "Material Design Icons"
+                            font.pixelSize: 22
+                            color: powerBtnMouse.containsMouse ? pywal.error : root.cOnSurfaceVariant
+                            Behavior on color { ColorAnimation { duration: 150 } }
+                        }
+
+                        MouseArea {
+                            id: powerBtnMouse
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            hoverEnabled: true
+                            onClicked: {
+                                root.closeMenu()
+                                Quickshell.execDetached(["wlogout"])
+                            }
+                        }
                     }
                 }
             }

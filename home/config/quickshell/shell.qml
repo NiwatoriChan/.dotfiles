@@ -38,6 +38,21 @@ ShellRoot {
         source: "modules/wallpaper/WallpaperWindow.qml"
     }
 
+    Loader {
+        id: controlCenterLoader
+        source: "modules/controlcenter/ControlCenterWindow.qml"
+    }
+
+    Loader {
+        id: dashboardLoader
+        source: "modules/dashboard/DashboardWindow.qml"
+    }
+
+    Loader {
+        id: switcherLoader
+        source: "modules/switcher/SwitcherWindow.qml"
+    }
+
     Component.onCompleted: {
         QsServices.Logger.info("Shell", "Waybar-style quickshell loaded")
     }

@@ -29,7 +29,8 @@ Singleton {
         }
 
         if (trimmed.startsWith("focuswindow address:")) {
-            const addr = trimmed.substring("focuswindow address:".length).trim();
+            let addr = trimmed.substring("focuswindow address:".length).trim();
+            if (!addr.startsWith("0x")) addr = "0x" + addr;
             Hyprland.dispatch(`hl.dsp.focus({ window = "address:${addr}" })`);
             return;
         }

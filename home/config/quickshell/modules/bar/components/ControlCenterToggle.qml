@@ -24,9 +24,7 @@ Item {
         cursorShape: Qt.PointingHandCursor
         
         onClicked: {
-            if (controlCenter) {
-                controlCenter.shouldShow = !controlCenter.shouldShow
-            }
+            Quickshell.execDetached(["quickshell", "ipc", "call", "controlcenter", "toggle"])
         }
     }
     

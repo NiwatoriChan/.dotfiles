@@ -33,10 +33,10 @@
     "maxHistory": 80
   },
   "dashboard": {
-    "enabled": false,
-    "width": 860,
-    "height": 640,
-    "margin": 18
+    "enabled": true,
+    "width": 360,
+    "height": 410,
+    "margin": 12
   },
   "tray": {
     "ignoredItems": [
