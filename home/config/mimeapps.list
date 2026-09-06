@@ -11,6 +11,10 @@ application/xhtml+xml=firefox.desktop;
 application/x-extension-xhtml=firefox.desktop;
 application/x-extension-xht=firefox.desktop;
 image/svg+xml=org.inkscape.Inkscape.desktop;
+application/vnd.efi.img=gnome-disk-image-mounter.desktop;
+application/json=dev.zed.Zed.desktop;
+text/plain=dev.zed.Zed.desktop;
+application/x-shellscript=dev.zed.Zed.desktop;
 
 [Default Applications]
 application/pdf=com.brave.Browser.desktop
