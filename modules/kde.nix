@@ -26,5 +26,10 @@
   home-manager.users.niwatorichan = { ... }: {
     imports = [
     ];
+
+    xdg.configFile."kde-mimeapps.list".text = ''
+      [Default Applications]
+      inode/directory=org.kde.dolphin.desktop
+    '';
   };
 }

@@ -93,6 +93,10 @@
 
     programs.quickshell.enable = true;
 
+    home.sessionVariables = {
+      FILEMANAGER = "thunar";
+    };
+
     # Qt theming — use qtct to manage styling for any Qt apps
     qt = {
       enable = true;

@@ -13,10 +13,6 @@
   programs.mango.enable = true;
   programs.dms-shell.enable = false;
 
-  # MangoWM-specific packages
-  environment.systemPackages = with pkgs; [
-    nemo
-  ];
 
   # --- User-Level (Home Manager) Configuration ---
   home-manager.users.niwatorichan = { config, ... }: {
