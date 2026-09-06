@@ -36,10 +36,10 @@ elseif hostname == "PotatoMonster" or hostname == "PetitOeuf" then
         scale    = 1,
     })
 elseif hostname == "PwPoulet" then
-    -- Second screen (HDMI-A-1, LG Ultrawide) placed on top (no VRR)
+    -- Second screen (HDMI-A-1, LG Ultrawide) placed on top (no VRR, native 75Hz)
     hl.monitor({
         output   = "HDMI-A-1",
-        mode     = "preferred",
+        mode     = "2560x1080@74.99",
         position = "0x0",
         scale    = 1,
         vrr      = 0,
@@ -62,7 +62,7 @@ elseif hostname == "PwPoulet" then
 else
     hl.monitor({
         output   = "HDMI-A-1",
-        mode     = "preferred",
+        mode     = "2560x1080@74.99",
         position = "0x0",
         scale    = 1,
         vrr      = 0,
@@ -148,10 +148,15 @@ end)
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
 hl.env("XCURSOR_THEME", "breeze_cursors")
-hl.env("AQ_NO_MODIFIERS", "1")
-hl.env("LIBVA_DRIVER_NAME", "nvidia")
-hl.env("GBM_BACKEND", "nvidia-drm")
-hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
+
+-- Only set Nvidia-specific variables on hosts with Nvidia hardware (Jeff, PotatoMonster).
+-- On AMD hosts (PwPoulet), AQ_NO_MODIFIERS degrades DCC memory bandwidth, and LIBVA nvidia breaks VA-API.
+if hostname == "Jeff" or hostname == "PotatoMonster" then
+    hl.env("AQ_NO_MODIFIERS", "1")
+    hl.env("LIBVA_DRIVER_NAME", "nvidia")
+    hl.env("GBM_BACKEND", "nvidia-drm")
+    hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
+end
 
 -----------------------
 ---- LOOK AND FEEL ----
@@ -171,10 +176,16 @@ hl.config({
         },
 
         resize_on_border = false,
-        allow_tearing = false,
+        allow_tearing = true,
 
         -- Using the native scrolling layout for Niri-like column behavior
         layout = "scrolling",
+    },
+
+    -- Hardware scanout optimizations (zero compositor overhead for fullscreen apps)
+    render = {
+        direct_scanout             = 2, -- Auto direct scanout for fullscreen windows/games
+        expand_undersized_textures = true,
     },
 
     decoration = {
@@ -199,6 +210,7 @@ hl.config({
             vibrancy       = 0.1696,
             popups         = false,
             ignore_opacity = true,
+            xray           = true, -- Optimized blur layering: blurs desktop directly, reducing multi-pass redraws
         },
     },
 
@@ -215,6 +227,8 @@ hl.config({
     misc = {
         force_default_wallpaper = 0,
         disable_hyprland_logo   = true,
+        vrr                     = 1, -- Adaptive Sync enabled
+        render_unfocused_fps    = 15, -- Throttles redraws on background windows to conserve GPU/CPU
     },
 
     -- ca layout from xkb_rules_layout=ca
@@ -375,6 +389,13 @@ hl.window_rule({
     },
     no_focus = true,
     no_initial_focus = true,
+})
+
+-- Allow immediate tearing for Steam/Proton games to minimize latency without affecting desktop
+hl.window_rule({
+    name = "steam-games-tearing",
+    match = { class = "^(steam_app_.*)$" },
+    immediate = true,
 })
 
 -- Default: disable blur on all regular windows for maximum performance
