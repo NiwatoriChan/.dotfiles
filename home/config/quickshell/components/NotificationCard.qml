@@ -94,7 +94,7 @@ Item {
                     Layout.fillWidth: true
                     text: notification?.summary ?? "Notification"
                     font.family: QsConfig.Config.appearance.fontFamily ?? "Inter"
-                    font.pixelSize: 13.5
+                    font.pixelSize: 13
                     font.weight: Font.DemiBold
                     color: onSurfaceColor
                     elide: Text.ElideRight
@@ -127,7 +127,7 @@ Item {
                         visible: showTimestamp
                         text: notification?.timeString ?? ""
                         font.family: QsConfig.Config.appearance.fontFamily ?? "Inter"
-                        font.pixelSize: 10.5
+                        font.pixelSize: 11
                         color: onSurfaceVariantColor
                     }
                 }
