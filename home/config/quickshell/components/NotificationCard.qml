@@ -50,20 +50,24 @@ Item {
             Layout.fillWidth: true
             spacing: 10
 
-            // App icon
+            // App icon badge
             Rectangle {
-                Layout.preferredWidth: 36
-                Layout.preferredHeight: 36
+                Layout.preferredWidth: 38
+                Layout.preferredHeight: 38
                 Layout.alignment: Qt.AlignTop
                 radius: 12
                 visible: showAppIcon
                 color: Qt.rgba(urgencyColor(notification?.urgency ?? 1).r,
                                urgencyColor(notification?.urgency ?? 1).g,
-                               urgencyColor(notification?.urgency ?? 1).b, 0.12)
+                               urgencyColor(notification?.urgency ?? 1).b, 0.14)
+                border.width: 1
+                border.color: Qt.rgba(urgencyColor(notification?.urgency ?? 1).r,
+                                      urgencyColor(notification?.urgency ?? 1).g,
+                                      urgencyColor(notification?.urgency ?? 1).b, 0.28)
 
                 Image {
                     anchors.centerIn: parent
-                    width: 20; height: 20
+                    width: 22; height: 22
                     visible: notification?.appIcon && notification.appIcon.length > 0
                     source: root.iconSource(notification?.appIcon ?? "")
                     fillMode: Image.PreserveAspectFit
@@ -75,36 +79,57 @@ Item {
                     visible: !notification?.appIcon || notification.appIcon.length === 0
                     text: "󰂚"
                     font.family: "Material Design Icons"
-                    font.pixelSize: 18
+                    font.pixelSize: 20
                     color: urgencyColor(notification?.urgency ?? 1)
-                    opacity: 0.8
+                    opacity: 0.85
                 }
             }
 
             // Summary + app name
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
+                spacing: 3
 
                 Text {
                     Layout.fillWidth: true
                     text: notification?.summary ?? "Notification"
                     font.family: QsConfig.Config.appearance.fontFamily ?? "Inter"
-                    font.pixelSize: 13
+                    font.pixelSize: 13.5
                     font.weight: Font.DemiBold
                     color: onSurfaceColor
                     elide: Text.ElideRight
-                    font.letterSpacing: -0.15
+                    font.letterSpacing: -0.1
                 }
 
-                Text {
+                RowLayout {
                     Layout.fillWidth: true
-                    text: notification?.appName ?? ""
-                    font.family: QsConfig.Config.appearance.fontFamily ?? "Inter"
-                    font.pixelSize: 11
-                    color: onSurfaceVariantColor
-                    elide: Text.ElideRight
-                    visible: text.length > 0
+                    spacing: 6
+                    visible: (notification?.appName?.length ?? 0) > 0 || (showTimestamp && (notification?.timeString?.length ?? 0) > 0)
+
+                    Text {
+                        text: notification?.appName ?? ""
+                        font.family: QsConfig.Config.appearance.fontFamily ?? "Inter"
+                        font.pixelSize: 11
+                        font.weight: Font.Medium
+                        color: onSurfaceVariantColor
+                        elide: Text.ElideRight
+                        visible: text.length > 0
+                    }
+
+                    Text {
+                        text: "•"
+                        font.pixelSize: 10
+                        color: Qt.rgba(onSurfaceVariantColor.r, onSurfaceVariantColor.g, onSurfaceVariantColor.b, 0.5)
+                        visible: (notification?.appName?.length ?? 0) > 0 && showTimestamp && (notification?.timeString?.length ?? 0) > 0
+                    }
+
+                    Text {
+                        visible: showTimestamp
+                        text: notification?.timeString ?? ""
+                        font.family: QsConfig.Config.appearance.fontFamily ?? "Inter"
+                        font.pixelSize: 10.5
+                        color: onSurfaceVariantColor
+                    }
                 }
             }
 
@@ -119,17 +144,6 @@ Item {
                 Layout.topMargin: 4
             }
 
-            // Timestamp
-            Text {
-                visible: showTimestamp
-                text: notification?.timeString ?? ""
-                font.family: QsConfig.Config.appearance.fontFamily ?? "Inter"
-                font.pixelSize: 10
-                color: onSurfaceVariantColor
-                Layout.alignment: Qt.AlignTop
-                Layout.topMargin: 2
-            }
-
             // Close button
             Rectangle {
                 Layout.preferredWidth: 26
@@ -138,16 +152,21 @@ Item {
                 radius: 13
                 visible: showCloseButton
                 color: closeMouse.containsMouse
-                    ? Qt.rgba(errorColor.r, errorColor.g, errorColor.b, 0.12)
-                    : "transparent"
+                    ? Qt.rgba(errorColor.r, errorColor.g, errorColor.b, 0.16)
+                    : Qt.rgba(1, 1, 1, 0.04)
+                border.width: 1
+                border.color: closeMouse.containsMouse
+                    ? Qt.rgba(errorColor.r, errorColor.g, errorColor.b, 0.3)
+                    : Qt.rgba(1, 1, 1, 0.06)
                 Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on border.color { ColorAnimation { duration: 120 } }
 
                 Text {
                     anchors.centerIn: parent
                     text: "󰅖"
                     font.family: "Material Design Icons"
                     font.pixelSize: 13
-                    color: closeMouse.containsMouse ? errorColor : Qt.rgba(onSurfaceColor.r, onSurfaceColor.g, onSurfaceColor.b, 0.45)
+                    color: closeMouse.containsMouse ? errorColor : Qt.rgba(onSurfaceColor.r, onSurfaceColor.g, onSurfaceColor.b, 0.55)
                     Behavior on color { ColorAnimation { duration: 120 } }
                 }
 
@@ -170,11 +189,11 @@ Item {
             text: notification?.body ?? ""
             font.family: QsConfig.Config.appearance.fontFamily ?? "Inter"
             font.pixelSize: 12
-            color: onSurfaceVariantColor
+            color: Qt.rgba(onSurfaceColor.r, onSurfaceColor.g, onSurfaceColor.b, 0.75)
             wrapMode: Text.WordWrap
             maximumLineCount: 3
             elide: Text.ElideRight
-            lineHeight: 1.4
+            lineHeight: 1.35
             visible: showBody && text.length > 0
         }
 
@@ -186,6 +205,8 @@ Item {
             clip: true
             visible: notification?.image && notification.image.length > 0
             color: surfaceContainerHighColor
+            border.width: 1
+            border.color: Qt.rgba(1, 1, 1, 0.06)
 
             Image {
                 anchors.fill: parent
@@ -199,7 +220,7 @@ Item {
         // --- Action buttons ---
         Flow {
             Layout.fillWidth: true
-            spacing: 6
+            spacing: 8
             visible: showActions && notification?.actions && notification.actions.length > 0
 
             Repeater {
@@ -207,14 +228,19 @@ Item {
 
                 Rectangle {
                     required property var modelData
-                    width: actionLabel.implicitWidth + 22
+                    width: actionLabel.implicitWidth + 24
                     height: 28
                     radius: 14
                     color: actionMouse.containsMouse
-                        ? Qt.rgba(primaryColor.r, primaryColor.g, primaryColor.b, 0.18)
+                        ? Qt.rgba(primaryColor.r, primaryColor.g, primaryColor.b, 0.22)
                         : Qt.rgba(primaryColor.r, primaryColor.g, primaryColor.b, 0.10)
+                    border.width: 1
+                    border.color: actionMouse.containsMouse
+                        ? Qt.rgba(primaryColor.r, primaryColor.g, primaryColor.b, 0.45)
+                        : Qt.rgba(primaryColor.r, primaryColor.g, primaryColor.b, 0.22)
                     Behavior on color { ColorAnimation { duration: 120 } }
-                    scale: actionMouse.pressed ? 0.94 : 1.0
+                    Behavior on border.color { ColorAnimation { duration: 120 } }
+                    scale: actionMouse.pressed ? 0.95 : 1.0
                     Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
 
                     Text {
@@ -222,9 +248,9 @@ Item {
                         anchors.centerIn: parent
                         text: modelData.text ?? modelData.identifier ?? ""
                         font.pixelSize: 11
-                        font.weight: Font.Medium
+                        font.weight: Font.DemiBold
                         font.family: QsConfig.Config.appearance.fontFamily ?? "Inter"
-                        font.letterSpacing: 0.3
+                        font.letterSpacing: 0.2
                         color: primaryColor
                     }
 

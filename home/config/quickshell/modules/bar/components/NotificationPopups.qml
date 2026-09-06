@@ -21,6 +21,7 @@ PanelWindow {
 
     // ── Color Tokens (semantic, from Pywal) ──
     readonly property color m3Surface: pywal.background
+    readonly property color cSurface: pywal.surface
     readonly property color m3SurfaceContainer: pywal.surfaceContainer
     readonly property color m3SurfaceContainerHigh: pywal.surfaceContainerHigh
     readonly property color m3Primary: pywal.primary
@@ -29,7 +30,7 @@ PanelWindow {
     readonly property color m3Error: pywal.error
     readonly property color m3Warning: pywal.warning
     readonly property color m3Success: pywal.success
-    readonly property color m3Border: Qt.rgba(m3OnSurface.r, m3OnSurface.g, m3OnSurface.b, 0.06)
+    readonly property color m3Border: Qt.rgba(1, 1, 1, 0.08)
 
     // Swipe dismiss threshold (fraction of popup width)
     readonly property real swipeThreshold: 0.30
@@ -47,6 +48,8 @@ PanelWindow {
 
     // ── Window Setup ──
     screen: Quickshell.screens[0]
+    WlrLayershell.namespace: "quickshell"
+    WlrLayershell.layer: WlrLayer.Overlay
     anchors { top: true; right: true }
     margins { top: config.notifications.margin; right: config.notifications.margin }
     visible: activePopups.length > 0
@@ -269,8 +272,12 @@ PanelWindow {
                             (config.notifications.popupWidth * root.swipeThreshold * 1.5))
 
                         color: notifCard.dragX > 0
-                            ? Qt.rgba(root.m3Error.r, root.m3Error.g, root.m3Error.b, 0.06)
-                            : Qt.rgba(root.m3Primary.r, root.m3Primary.g, root.m3Primary.b, 0.06)
+                            ? Qt.rgba(root.m3Error.r, root.m3Error.g, root.m3Error.b, 0.12)
+                            : Qt.rgba(root.m3Primary.r, root.m3Primary.g, root.m3Primary.b, 0.12)
+                        border.width: 1
+                        border.color: notifCard.dragX > 0
+                            ? Qt.rgba(root.m3Error.r, root.m3Error.g, root.m3Error.b, 0.3)
+                            : Qt.rgba(root.m3Primary.r, root.m3Primary.g, root.m3Primary.b, 0.3)
 
                         Text {
                             anchors.centerIn: parent
@@ -278,32 +285,32 @@ PanelWindow {
                             font.family: "Material Design Icons"
                             font.pixelSize: 26
                             color: notifCard.dragX > 0 ? root.m3Error : root.m3Primary
-                            opacity: 0.55
+                            opacity: 0.7
                         }
                     }
 
                     // ═══════════════════════════════════════════════════════
-                    // CARD BACKGROUND
+                    // CARD BACKGROUND (Frosted Glass)
                     // ═══════════════════════════════════════════════════════
                     Rectangle {
                         id: cardBg
                         width: parent.width
                         height: contentCard.implicitHeight + 34
-                        radius: 18
-                        color: root.m3Surface
+                        radius: 20
+                        color: Qt.rgba(root.cSurface.r, root.cSurface.g, root.cSurface.b, 0.68)
 
-                        // Hover-responsive border
+                        // Hover-responsive border matching launcher
                         border.width: 1
                         border.color: {
                             if (notifCard.isHovered)
-                                return Qt.rgba(root.m3Primary.r, root.m3Primary.g, root.m3Primary.b, 0.2)
+                                return Qt.rgba(root.m3Primary.r, root.m3Primary.g, root.m3Primary.b, 0.35)
                             if (modelData.urgency === NotificationUrgency.Critical)
-                                return Qt.rgba(root.m3Error.r, root.m3Error.g, root.m3Error.b, 0.2)
+                                return Qt.rgba(root.m3Error.r, root.m3Error.g, root.m3Error.b, 0.40)
                             return root.m3Border
                         }
 
                         Behavior on border.color {
-                            ColorAnimation { duration: 250; easing.type: Easing.OutCubic }
+                            ColorAnimation { duration: 150; easing.type: Easing.OutCubic }
                         }
 
                         // Elevation shadow — lifts on hover
@@ -311,8 +318,8 @@ PanelWindow {
                         layer.effect: MultiEffect {
                             shadowEnabled: true
                             shadowColor: Qt.rgba(0, 0, 0,
-                                notifCard.isHovered ? 0.28 : 0.16)
-                            shadowBlur: notifCard.isHovered ? 0.9 : 0.55
+                                notifCard.isHovered ? 0.38 : 0.24)
+                            shadowBlur: notifCard.isHovered ? 0.85 : 0.55
                             shadowVerticalOffset: notifCard.isHovered ? 8 : 4
                         }
 
@@ -385,8 +392,7 @@ PanelWindow {
                             }
                             height: 2
                             radius: 1
-                            color: Qt.rgba(root.m3OnSurface.r, root.m3OnSurface.g,
-                                           root.m3OnSurface.b, 0.04)
+                            color: Qt.rgba(1, 1, 1, 0.06)
                             visible: notifCard.isVisible && !notifCard.isHovered
                             clip: true
 
@@ -398,10 +404,8 @@ PanelWindow {
                                 }
                                 width: progressTrack.width * notifCard.timeoutProgress
                                 radius: parent.radius
-                                color: {
-                                    const c = root._urgencyColor(modelData.urgency)
-                                    return Qt.rgba(c.r, c.g, c.b, 0.45)
-                                }
+                                color: root._urgencyColor(modelData.urgency)
+                                opacity: 0.70
 
                                 NumberAnimation {
                                     id: progressAnim

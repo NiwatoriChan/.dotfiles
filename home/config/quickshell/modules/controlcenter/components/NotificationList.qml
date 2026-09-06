@@ -21,28 +21,33 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: 28
-        color: root.cSurfaceContainer
+        radius: 20
+        color: Qt.rgba(root.cSurfaceContainer.r, root.cSurfaceContainer.g, root.cSurfaceContainer.b, 0.45)
+        border.width: 1
+        border.color: Qt.rgba(1, 1, 1, 0.06)
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 16
+            anchors.margins: 14
             spacing: 12
 
             RowLayout {
                 Layout.fillWidth: true
-                Text { text: "Notifications"; font.family: "Inter"; font.pixelSize: 16; font.weight: Font.Bold; color: root.cOnSurface }
+                Text { text: "Notifications"; font.family: "Inter"; font.pixelSize: 15; font.weight: Font.Bold; color: root.cOnSurface }
                 Item { Layout.fillWidth: true }
 
                 Rectangle {
                     visible: (notifs.recentNotifications?.length ?? 0) > 0
-                    width: clearAllText.implicitWidth + 24; height: 32; radius: 16
-                    color: clearAllMouse.pressed ? Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.12) : clearAllMouse.containsMouse ? Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.08) : "transparent"
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    width: clearAllText.implicitWidth + 22; height: 26; radius: 13
+                    color: clearAllMouse.pressed ? Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.15) : clearAllMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.03)
+                    border.width: 1
+                    border.color: clearAllMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.15) : Qt.rgba(1, 1, 1, 0.06)
+                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on border.color { ColorAnimation { duration: 120 } }
                     scale: clearAllMouse.pressed ? 0.95 : 1.0
                     Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: Material3Anim.springGentle } }
 
-                    Text { id: clearAllText; anchors.centerIn: parent; text: "Clear All"; font.family: "Inter"; font.pixelSize: 12; font.weight: Font.Medium; color: root.cOnSurfaceVariant }
+                    Text { id: clearAllText; anchors.centerIn: parent; text: "Clear All"; font.family: "Inter"; font.pixelSize: 11; font.weight: Font.Medium; color: root.cOnSurfaceVariant }
                     MouseArea { id: clearAllMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; hoverEnabled: true; onClicked: notifs.clearAll() }
                 }
             }
@@ -55,17 +60,17 @@ Item {
 
                 // M3 Spatial Entrance
                 add: Transition {
-                    NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 300; easing.bezierCurve: Material3Anim.emphasizedDecelerate }
-                    NumberAnimation { property: "x"; from: 50; to: 0; duration: 300; easing.bezierCurve: Material3Anim.emphasizedDecelerate }
+                    NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 250; easing.bezierCurve: Material3Anim.emphasizedDecelerate }
+                    NumberAnimation { property: "x"; from: 30; to: 0; duration: 250; easing.bezierCurve: Material3Anim.emphasizedDecelerate }
                 }
 
                 remove: Transition {
                     NumberAnimation { property: "opacity"; to: 0; duration: 150; easing.bezierCurve: Material3Anim.emphasizedAccelerate }
-                    NumberAnimation { property: "x"; to: 50; duration: 150; easing.bezierCurve: Material3Anim.emphasizedAccelerate }
+                    NumberAnimation { property: "x"; to: 30; duration: 150; easing.bezierCurve: Material3Anim.emphasizedAccelerate }
                 }
 
                 displaced: Transition {
-                    NumberAnimation { properties: "x,y"; duration: 250; easing.bezierCurve: Material3Anim.standard }
+                    NumberAnimation { properties: "x,y"; duration: 200; easing.bezierCurve: Material3Anim.standard }
                 }
 
                 delegate: Rectangle {
@@ -73,10 +78,19 @@ Item {
                     required property var modelData
 
                     width: notifListView.width
-                    height: cardContent.implicitHeight + 24
-                    radius: 20
-                    color: notifMouse.pressed ? Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.12) : notifMouse.containsMouse ? Qt.rgba(root.cOnSurface.r, root.cOnSurface.g, root.cOnSurface.b, 0.08) : root.cSurfaceContainerHigh
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    height: cardContent.implicitHeight + 22
+                    radius: 14
+                    color: notifMouse.pressed
+                        ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.14)
+                        : notifMouse.containsMouse
+                            ? Qt.rgba(1, 1, 1, 0.07)
+                            : Qt.rgba(1, 1, 1, 0.03)
+                    border.width: 1
+                    border.color: notifMouse.containsMouse
+                        ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.35)
+                        : Qt.rgba(1, 1, 1, 0.05)
+                    Behavior on color { ColorAnimation { duration: 100 } }
+                    Behavior on border.color { ColorAnimation { duration: 100 } }
 
                     MouseArea {
                         id: notifMouse
@@ -90,14 +104,14 @@ Item {
                     NotificationCard {
                         id: cardContent
                         anchors.fill: parent
-                        anchors.margins: 14
+                        anchors.margins: 12
                         notification: notifDelegate.modelData
                         pywal: root.pywal
                         showCloseButton: true
-                        showTimestamp: false
+                        showTimestamp: true
                         showActions: false
                         showBody: true
-                        showAppIcon: false
+                        showAppIcon: true
 
                         primaryColor: root.cPrimary
                         onSurfaceColor: root.cOnSurface

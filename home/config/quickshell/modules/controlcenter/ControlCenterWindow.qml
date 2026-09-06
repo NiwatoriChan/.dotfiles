@@ -36,6 +36,7 @@ PanelWindow {
     color: "transparent"
     visible: shouldShow || panelContent.opacity > 0
 
+    WlrLayershell.namespace: "quickshell"
     WlrLayershell.keyboardFocus: shouldShow ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     function toggleMenu(): void {
@@ -103,8 +104,10 @@ PanelWindow {
         Rectangle {
             id: panel
             anchors.fill: parent
-            radius: 28
-            color: root.cSurface
+            radius: 24
+            color: Qt.rgba(root.cSurface.r, root.cSurface.g, root.cSurface.b, 0.68)
+            border.width: 1
+            border.color: Qt.rgba(1, 1, 1, 0.08)
             clip: true
 
             MouseArea { anchors.fill: parent; onClicked: (mouse) => mouse.accepted = true }
@@ -118,8 +121,10 @@ PanelWindow {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 128
-                    radius: 22
-                    color: root.cSurfaceContainer
+                    radius: 20
+                    color: Qt.rgba(root.cSurfaceContainer.r, root.cSurfaceContainer.g, root.cSurfaceContainer.b, 0.50)
+                    border.width: 1
+                    border.color: Qt.rgba(1, 1, 1, 0.06)
 
                     ColumnLayout {
                         anchors.fill: parent

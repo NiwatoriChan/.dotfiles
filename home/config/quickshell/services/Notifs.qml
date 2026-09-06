@@ -53,6 +53,17 @@ Singleton {
     property bool dnd: false
     property double lastReadAt: 0
 
+    NotificationServer {
+        id: server
+        bodySupported: true
+        bodyMarkupSupported: true
+        actionsSupported: true
+        imageSupported: true
+        onNotification: notif => {
+            root.addNotification(notif)
+        }
+    }
+
     PersistentProperties {
         id: persist
         property alias dnd: root.dnd

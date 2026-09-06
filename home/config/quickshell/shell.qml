@@ -53,6 +53,11 @@ ShellRoot {
         source: "modules/switcher/SwitcherWindow.qml"
     }
 
+    Loader {
+        id: notificationPopupsLoader
+        source: "modules/bar/components/NotificationPopups.qml"
+    }
+
     Component.onCompleted: {
         QsServices.Logger.info("Shell", "Waybar-style quickshell loaded")
     }

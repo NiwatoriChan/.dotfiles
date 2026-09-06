@@ -116,6 +116,7 @@ PanelWindow {
     visible: (config.dashboard.enabled ?? true) && (shouldShow || panel.opacity > 0)
     color: "transparent"
 
+    WlrLayershell.namespace: "quickshell"
     WlrLayershell.keyboardFocus: shouldShow ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     FocusScope {
@@ -141,14 +142,20 @@ PanelWindow {
             NumberAnimation { duration: 260; easing.bezierCurve: [0.05, 0.7, 0.1, 1.0] }
         }
 
-        AuroraSurface {
+        // Frosted Glass Window Container
+        Rectangle {
+            id: panelBg
             anchors.fill: parent
             radius: 24
-            color: root.cSurface
-            strokeColor: root.cBorder
-            accentColor: root.cPrimary
-            elevation: 4
-            highlighted: root.shouldShow
+            color: Qt.rgba(root.cSurface.r, root.cSurface.g, root.cSurface.b, 0.68)
+            border.width: 1
+            border.color: root.cBorder
+
+            // Consume clicks inside window to prevent closing
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {}
+            }
 
             ColumnLayout {
                 id: contentColumn
@@ -240,9 +247,11 @@ PanelWindow {
                         Layout.preferredWidth: 28
                         Layout.preferredHeight: 28
                         radius: 14
-                        color: prevMouse.containsMouse ? root.cSurfaceContainerHigh : "transparent"
-                        border.width: prevMouse.containsMouse ? 1 : 0
-                        border.color: root.cBorder
+                        color: prevMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.03)
+                        border.width: 1
+                        border.color: prevMouse.containsMouse ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.35) : Qt.rgba(1, 1, 1, 0.06)
+                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on border.color { ColorAnimation { duration: 100 } }
 
                         Text {
                             anchors.centerIn: parent
@@ -267,9 +276,11 @@ PanelWindow {
                         Layout.preferredWidth: 28
                         Layout.preferredHeight: 28
                         radius: 14
-                        color: nextMouse.containsMouse ? root.cSurfaceContainerHigh : "transparent"
-                        border.width: nextMouse.containsMouse ? 1 : 0
-                        border.color: root.cBorder
+                        color: nextMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.03)
+                        border.width: 1
+                        border.color: nextMouse.containsMouse ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.35) : Qt.rgba(1, 1, 1, 0.06)
+                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on border.color { ColorAnimation { duration: 100 } }
 
                         Text {
                             anchors.centerIn: parent
@@ -329,13 +340,22 @@ PanelWindow {
                             color: dayCell.modelData.today
                                 ? root.cPrimary
                                 : cellMouse.containsMouse && dayCell.modelData.current
-                                    ? Qt.rgba(root.cText.r, root.cText.g, root.cText.b, 0.08)
+                                    ? Qt.rgba(1, 1, 1, 0.08)
                                     : dayCell.modelData.current
                                         ? "transparent"
                                         : Qt.rgba(root.cText.r, root.cText.g, root.cText.b, 0.02)
+                            border.width: 1
+                            border.color: dayCell.modelData.today
+                                ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.5)
+                                : (cellMouse.containsMouse && dayCell.modelData.current
+                                    ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.3)
+                                    : "transparent")
 
                             Behavior on color {
-                                ColorAnimation { duration: 120 }
+                                ColorAnimation { duration: 100 }
+                            }
+                            Behavior on border.color {
+                                ColorAnimation { duration: 100 }
                             }
 
                             Text {

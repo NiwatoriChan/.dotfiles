@@ -131,7 +131,7 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("xhost +si:localuser:root")
     -- hl.exec_cmd("waybar")
     hl.exec_cmd("quickshell")  -- Waybar-style bar; swap with waybar above to try
-    hl.exec_cmd("mako")
+    -- hl.exec_cmd("mako")     -- Handled natively by Quickshell NotificationServer
     hl.exec_cmd("awww-daemon")
     hl.exec_cmd("/home/niwatorichan/.dotfiles/home/config/scripts/wallpaper-picker.sh --restore")
     hl.exec_cmd("nm-applet --indicator")
