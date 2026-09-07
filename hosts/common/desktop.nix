@@ -28,7 +28,7 @@
   programs.appimage.binfmt = true;
 
   # KDE Connect configurations
-  home-manager.users.niwatorichan.services.kdeconnect.enable = true
+  home-manager.users.niwatorichan.services.kdeconnect.enable = true;
 
   networking.firewall = rec {
     allowedTCPPortRanges = [ { from = 1714; to = 1764; } ];
