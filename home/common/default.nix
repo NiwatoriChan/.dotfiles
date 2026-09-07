@@ -14,6 +14,10 @@
   home.username = "niwatorichan";
   home.homeDirectory = "/home/niwatorichan";
 
+  home.sessionPath = [
+    "${config.home.homeDirectory}/.local/bin"
+  ];
+
   programs.direnv.enable = true;
 
   # Let home-manager manage itself

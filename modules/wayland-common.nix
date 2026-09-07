@@ -150,6 +150,10 @@
     home.file.".config/waybar/scripts/power-menu.sh".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/waybar/scripts/power-menu.sh";
     home.file.".local/bin/gnome-disks-admin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/scripts/gnome-disks-admin.sh";
     home.file.".local/bin/wallpaper-picker".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/scripts/wallpaper-picker.sh";
+    home.file.".local/bin/thunar-open-terminal".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/scripts/thunar-open-terminal.sh";
+    home.file.".local/bin/exo-open".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/scripts/exo-open.sh";
+    home.file.".config/Thunar/uca.xml".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/Thunar/uca.xml";
+    home.file.".config/Thunar/accels.scm".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/Thunar/accels.scm";
 
     home.packages = with pkgs; [
       libsForQt5.qt5ct
