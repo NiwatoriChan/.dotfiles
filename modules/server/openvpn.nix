@@ -22,8 +22,8 @@ in
       ifconfig-pool-persist /var/lib/openvpn/ipp.txt
 
       push "redirect-gateway def1 bypass-dhcp"
+      push "dhcp-option DNS 10.8.0.1"
       push "dhcp-option DNS 1.1.1.1"
-      push "dhcp-option DNS 8.8.8.8"
 
       keepalive 10 120
       cipher AES-256-GCM

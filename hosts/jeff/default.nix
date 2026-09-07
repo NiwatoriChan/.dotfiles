@@ -10,6 +10,7 @@
     ../../modules/mangowm.nix
     ../../modules/developpement.nix
     ../../modules/sunshine.nix
+    ../../modules/server/noip.nix
     ./storage.nix
   ];
 

@@ -1,5 +1,5 @@
 # Shared system-level packages — installed on all desktop hosts
-{ pkgs, customPackages, ... }:
+{ pkgs, lib, config, customPackages, ... }:
 
 {
   environment.systemPackages = with pkgs; [
@@ -39,6 +39,8 @@
     # Theming
     papirus-icon-theme
     sddm-astronaut
+  ] ++ lib.optionals (config.networking.hostName != "Jeff") [
+    nextcloud-client
   ];
 
   

@@ -12,6 +12,34 @@ in
     recommendedTlsSettings = true;
 
     virtualHosts = {
+      # Plain HTTP helper for downloading the Root CA certificate to mobile devices
+      "cert-download" = {
+        listen = [
+          { addr = "0.0.0.0"; port = 8080; }
+          { addr = "[::0]"; port = 8080; }
+        ];
+        locations."/" = {
+          alias = "${sslCertDir}/";
+          extraConfig = ''
+            types {
+              application/x-x509-ca-cert crt pem;
+            }
+            default_type application/x-x509-ca-cert;
+            add_header Content-Disposition 'attachment; filename="ca.crt"';
+          '';
+        };
+        locations."= /ca.crt" = {
+          alias = "${sslCertDir}/ca.crt";
+          extraConfig = ''
+            types {
+              application/x-x509-ca-cert crt pem;
+            }
+            default_type application/x-x509-ca-cert;
+            add_header Content-Disposition 'attachment; filename="ca.crt"';
+          '';
+        };
+      };
+
       "jeff.lan" = {
         forceSSL = true;
         sslCertificate = sslCert;
@@ -70,9 +98,9 @@ in
         chmod 0600 ca.key
       fi
 
-      # 2. Generate Server Wildcard Certificate & Key if not present
-      if [ ! -f cert.pem ] || [ ! -f key.pem ]; then
-        echo "Generating wildcard server certificate for *.jeff.lan and jeff.lan..."
+      # 2. Generate Server Wildcard Certificate & Key if not present or missing niwatorichan.ddns.net
+      if [ ! -f cert.pem ] || [ ! -f key.pem ] || ! openssl x509 -in cert.pem -noout -text 2>/dev/null | grep -q "niwatorichan.ddns.net"; then
+        echo "Generating wildcard server certificate for *.jeff.lan, jeff.lan, and niwatorichan.ddns.net..."
         openssl req -new -newkey rsa:2048 -nodes \
           -keyout key.pem -out cert.csr \
           -subj "/C=CA/ST=QC/O=Jeff HomeLab/CN=jeff.lan"
@@ -86,8 +114,11 @@ subjectAltName = @alt_names
 DNS.1 = jeff.lan
 DNS.2 = *.jeff.lan
 DNS.3 = localhost
+DNS.4 = niwatorichan.ddns.net
+DNS.5 = *.niwatorichan.ddns.net
 IP.1 = 192.168.0.10
 IP.2 = 127.0.0.1
+IP.3 = 10.8.0.1
 EOF
 
         openssl x509 -req -in cert.csr \
@@ -117,5 +148,5 @@ EOF
   };
 
   # Open HTTP and HTTPS ports in the firewall
-  networking.firewall.allowedTCPPorts = [ 80 443 ];
+  networking.firewall.allowedTCPPorts = [ 80 443 8080 ];
 }

@@ -2,6 +2,10 @@
 { config, pkgs, lib, ... }:
 
 {
+  environment.systemPackages = with pkgs; [
+    noip
+  ];
+
   systemd.services.noip-duc = {
     description = "No-IP Dynamic DNS Update Client (niwatorichan.ddns.net)";
     wantedBy = [ "multi-user.target" ];
