@@ -15,6 +15,20 @@ PanelWindow {
     property string query: ""
     property int selectedIndex: 0
     property var cachedApps: []
+    property var fdResults: []
+    property string activeFdQuery: ""
+    function cleanLeft(str) {
+        return (str || "").replace(/^\s+/, "")
+    }
+
+    readonly property bool isFileMode: {
+        const q = cleanLeft(query)
+        return q.startsWith("d ") || q.startsWith("d/") || q.startsWith("~/") || q.startsWith("/")
+    }
+    readonly property bool isTerminalMode: {
+        const q = cleanLeft(query)
+        return q.startsWith("t ") || q.startsWith("t.") || q.startsWith("t/") || q.startsWith(">")
+    }
 
     readonly property var config: QsConfig.Config
     readonly property var pywal: QsServices.Pywal
@@ -118,7 +132,159 @@ PanelWindow {
         }
     }
 
+    function prettyPath(p) {
+        if (!p) return ""
+        const home = Quickshell.env("HOME")
+        if (p === home) return "~"
+        if (p.startsWith(home + "/")) {
+            return "~/" + p.slice(home.length + 1)
+        }
+        return p
+    }
 
+    function baseName(p) {
+        if (!p) return ""
+        let clean = p
+        if (clean.length > 1 && clean.endsWith("/")) clean = clean.slice(0, -1)
+        const idx = clean.lastIndexOf("/")
+        return idx !== -1 ? clean.slice(idx + 1) : clean
+    }
+
+    function fileIconGlyph(filename, isDir) {
+        if (isDir) return "󰉋"
+        const parts = filename.split(".")
+        const ext = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : ""
+        switch (ext) {
+            case "png": case "jpg": case "jpeg": case "webp": case "gif": case "svg":
+                return "󰋩"
+            case "mp3": case "flac": case "ogg": case "wav": case "m4a":
+                return "󰎈"
+            case "mp4": case "mkv": case "webm": case "avi": case "mov":
+                return "󰕼"
+            case "pdf": case "epub":
+                return "󰈦"
+            case "zip": case "tar": case "gz": case "xz": case "7z": case "bz2":
+                return "󰛫"
+            case "nix": case "sh": case "bash": case "zsh": case "py": case "js": case "ts": case "qml": case "rs": case "c": case "cpp": case "lua": case "json":
+                return "󰅩"
+            case "md": case "txt": case "doc": case "docx":
+                return "󰈙"
+            default:
+                return "󰈔"
+        }
+    }
+
+    readonly property var favoriteItems: {
+        const rawPaths = config.launcher.favoritePaths ?? []
+        const home = Quickshell.env("HOME")
+        const list = []
+        for (let i = 0; i < rawPaths.length; ++i) {
+            let p = rawPaths[i]
+            if (!p) continue
+            if (p.startsWith("~/")) p = `${home}/${p.slice(2)}`
+            else if (p === "~") p = home
+
+            const name = baseName(p)
+            list.push({
+                id: `fav-${p}`,
+                name: name,
+                comment: prettyPath(p),
+                path: p,
+                type: "directory",
+                isFavorite: true,
+                glyph: "󰉋",
+                lowerName: name.toLowerCase(),
+                lowerPath: p.toLowerCase()
+            })
+        }
+        return list
+    }
+
+    Timer {
+        id: fdDebounceTimer
+        interval: 120
+        repeat: false
+        onTriggered: {
+            const qStart = root.cleanLeft(root.query)
+            let searchTarget = ""
+            if (qStart.startsWith("d ")) {
+                searchTarget = qStart.slice(2).trim()
+            } else if (qStart.startsWith("d/")) {
+                searchTarget = "/" + qStart.slice(2).trim()
+            } else if (qStart.startsWith("~/") || qStart.startsWith("/")) {
+                searchTarget = qStart.trim()
+            }
+
+            if (searchTarget.length === 0) {
+                root.fdResults = []
+                root.activeFdQuery = ""
+                if (fdProc.running) fdProc.running = false
+                return
+            }
+
+            root.activeFdQuery = searchTarget
+            if (fdProc.running) fdProc.running = false
+
+            fdProc.command = [
+                "fd",
+                "--hidden",
+                "-c", "never",
+                "--max-depth", "5",
+                "--max-results", "30",
+                "--exclude", ".git",
+                "--exclude", ".cache",
+                "--exclude", "node_modules",
+                "--exclude", ".steam",
+                "--exclude", ".local",
+                "--exclude", "containers",
+                searchTarget,
+                Quickshell.env("HOME")
+            ]
+            fdProc.running = true
+        }
+    }
+
+    Process {
+        id: fdProc
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const lines = text.trim().split("\n").filter(l => l.length > 0)
+                const items = []
+                const home = Quickshell.env("HOME")
+                const favPaths = (root.config.launcher.favoritePaths ?? []).map(p => {
+                    let ep = p
+                    if (ep.startsWith("~/")) ep = `${home}/${ep.slice(2)}`
+                    else if (ep === "~") ep = home
+                    return ep.endsWith("/") ? ep.slice(0, -1) : ep
+                })
+
+                for (let i = 0; i < lines.length; ++i) {
+                    let rawPath = lines[i].trim()
+                    if (!rawPath.length) continue
+
+                    const isDir = rawPath.endsWith("/")
+                    const cleanPath = isDir ? rawPath.slice(0, -1) : rawPath
+                    const name = root.baseName(cleanPath)
+                    const isFav = favPaths.includes(cleanPath)
+
+                    if (isFav) continue
+
+                    items.push({
+                        id: `fd-${cleanPath}`,
+                        name: name,
+                        comment: root.prettyPath(cleanPath),
+                        path: cleanPath,
+                        type: isDir ? "directory" : "file",
+                        isFavorite: false,
+                        glyph: root.fileIconGlyph(name, isDir),
+                        lowerName: name.toLowerCase(),
+                        lowerPath: cleanPath.toLowerCase()
+                    })
+                }
+                root.fdResults = items
+            }
+        }
+    }
 
     readonly property var actionEntries: [
         {
@@ -156,27 +322,125 @@ PanelWindow {
     ]
 
     readonly property var visibleEntries: {
-        const rawQ = query.trim()
-        if (rawQ.startsWith(">")) {
-            const actionQuery = rawQ.slice(1).trim()
+        const qStart = root.cleanLeft(root.query)
+        const rawQ = root.query.trim()
+
+        // 1. Terminal / Shell command mode (starts with 't ', 't.', 't/', or '>')
+        if (root.isTerminalMode) {
+            let actionQuery = ""
+            if (qStart.startsWith("t ")) {
+                actionQuery = qStart.slice(2).trim()
+            } else if (qStart.startsWith("t.")) {
+                actionQuery = qStart.slice(2).trim()
+                if (actionQuery === "") actionQuery = "."
+            } else if (qStart.startsWith("t/")) {
+                actionQuery = qStart.slice(1).trim()
+            } else if (qStart.startsWith(">")) {
+                actionQuery = qStart.slice(1).trim()
+            }
+
             const lowerAction = actionQuery.toLowerCase()
             const list = []
-            if (actionQuery.length > 0) {
+            const home = Quickshell.env("HOME") || "/home/niwatorichan"
+
+            if (actionQuery === "." || actionQuery === "" || actionQuery === "~") {
+                list.push({
+                    id: "action-open-terminal-home",
+                    name: "Open Terminal in Home (~)",
+                    comment: "Launch Kitty in " + home,
+                    glyph: "󰆍",
+                    type: "action",
+                    onTriggered: () => Quickshell.execDetached([...terminalCommand, "--directory", home])
+                })
+            } else if (actionQuery.startsWith("~/") || actionQuery.startsWith("/") || actionQuery.startsWith("./")) {
+                let resolvedDir = actionQuery
+                if (resolvedDir.startsWith("~/")) resolvedDir = `${home}/${resolvedDir.slice(2)}`
+                else if (resolvedDir.startsWith("./")) resolvedDir = `${home}/${resolvedDir.slice(2)}`
+                list.push({
+                    id: `action-open-term-${actionQuery}`,
+                    name: `Open Terminal in ${root.prettyPath(resolvedDir)}`,
+                    comment: `Launch Kitty at ${resolvedDir}`,
+                    glyph: "󰆍",
+                    type: "action",
+                    onTriggered: () => Quickshell.execDetached([...terminalCommand, "--directory", resolvedDir])
+                })
+            } else if (actionQuery.length > 0) {
+                // Check if actionQuery matches a favorite folder
+                let favMatched = null
+                for (let i = 0; i < root.favoriteItems.length; ++i) {
+                    const fav = root.favoriteItems[i]
+                    if (fav.lowerName === lowerAction || fav.lowerPath === lowerAction) {
+                        favMatched = fav
+                        break
+                    }
+                }
+
+                if (favMatched) {
+                    list.push({
+                        id: `action-open-fav-term-${favMatched.name}`,
+                        name: `Open Terminal in ${favMatched.name}`,
+                        comment: `Launch Kitty at ${favMatched.path}`,
+                        glyph: "󰆍",
+                        type: "action",
+                        onTriggered: () => Quickshell.execDetached([...terminalCommand, "--directory", favMatched.path])
+                    })
+                }
+
                 list.push({
                     id: "action-run-terminal",
                     name: `Run '${actionQuery}'`,
-                    comment: `Execute '${actionQuery}' in terminal`,
+                    comment: `Execute '${actionQuery}' in Kitty`,
                     glyph: "󰆍",
                     type: "action",
                     onTriggered: () => Quickshell.execDetached([...terminalCommand, "sh", "-c", `${actionQuery}; echo; read -n 1 -s -r -p 'Press any key to close...'`])
                 })
             }
+
             for (const act of actionEntries) {
                 if (!lowerAction.length || act.name.toLowerCase().includes(lowerAction) || act.comment.toLowerCase().includes(lowerAction)) {
                     list.push(act)
                 }
             }
             return list
+        }
+
+        // 2. Directory / File search mode ('d ', 'd/...', '~/...', '/...')
+        if (root.isFileMode) {
+            let fileQuery = ""
+            if (qStart.startsWith("d ")) {
+                fileQuery = qStart.slice(2).trim().toLowerCase()
+            } else if (qStart.startsWith("d/")) {
+                fileQuery = "/" + qStart.slice(2).trim().toLowerCase()
+            } else {
+                fileQuery = qStart.trim().toLowerCase()
+            }
+
+            // If empty file search: show all favorites
+            if (!fileQuery.length) {
+                return root.favoriteItems
+            }
+
+            // Filter favorites matching query
+            const matchedFavs = []
+            for (let i = 0; i < root.favoriteItems.length; ++i) {
+                const fav = root.favoriteItems[i]
+                if (fav.lowerName.includes(fileQuery) || fav.lowerPath.includes(fileQuery)) {
+                    matchedFavs.push(fav)
+                }
+            }
+
+            // Combine: matched favorites FIRST, then fd results
+            const combined = [...matchedFavs, ...root.fdResults]
+            if (combined.length === 0) {
+                return [{
+                    id: "empty-file-results",
+                    name: `No files or folders matching '${fileQuery}'`,
+                    comment: "Try a different search term or path",
+                    glyph: "󰍉",
+                    type: "info"
+                }]
+            }
+            return combined
         }
 
         const q = rawQ.toLowerCase()
@@ -227,6 +491,9 @@ PanelWindow {
         searchField.text = ""
         query = ""
         selectedIndex = 0
+        fdResults = []
+        activeFdQuery = ""
+        if (fdProc.running) fdProc.running = false
     }
 
     function openLauncher() {
@@ -234,14 +501,16 @@ PanelWindow {
         searchField.text = ""
         query = ""
         selectedIndex = 0
+        fdResults = []
+        activeFdQuery = ""
         if (resultsListView) {
             resultsListView.positionViewAtBeginning()
         }
         searchField.forceActiveFocus()
     }
 
-    function launchEntry(item) {
-        if (!item) return
+    function launchEntry(item, inTerminal) {
+        if (!item || item.type === "info") return
 
         if (item.type === "action" && typeof item.onTriggered === "function") {
             item.onTriggered()
@@ -249,9 +518,30 @@ PanelWindow {
             return
         }
 
+        if (item.type === "directory") {
+            if (inTerminal) {
+                Quickshell.execDetached([...terminalCommand, "--directory", item.path])
+            } else {
+                Quickshell.execDetached(["thunar", item.path])
+            }
+            closeLauncher()
+            return
+        }
+
+        if (item.type === "file") {
+            if (inTerminal) {
+                const parentDir = item.path.substring(0, item.path.lastIndexOf("/")) || "/"
+                Quickshell.execDetached(["thunar", parentDir])
+            } else {
+                Quickshell.execDetached(["xdg-open", item.path])
+            }
+            closeLauncher()
+            return
+        }
+
         const entry = item.entry || item
 
-        if (entry.runInTerminal) {
+        if (entry.runInTerminal || inTerminal) {
             Quickshell.execDetached({
                 command: [...terminalCommand, ...entry.command],
                 workingDirectory: entry.workingDirectory
@@ -348,14 +638,22 @@ PanelWindow {
                 resultsListView.positionViewAtIndex(root.selectedIndex, ListView.Contain)
             }
         }
-        Keys.onReturnPressed: {
+        Keys.onReturnPressed: (event) => {
             if (root.visibleEntries.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < root.visibleEntries.length) {
-                root.launchEntry(root.visibleEntries[root.selectedIndex])
+                root.launchEntry(root.visibleEntries[root.selectedIndex], (event.modifiers & Qt.ShiftModifier) !== 0)
             }
         }
-        Keys.onEnterPressed: {
+        Keys.onEnterPressed: (event) => {
             if (root.visibleEntries.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < root.visibleEntries.length) {
-                root.launchEntry(root.visibleEntries[root.selectedIndex])
+                root.launchEntry(root.visibleEntries[root.selectedIndex], (event.modifiers & Qt.ShiftModifier) !== 0)
+            }
+        }
+        Keys.onPressed: (event) => {
+            if (event.key === Qt.Key_T && (event.modifiers & Qt.ControlModifier)) {
+                if (root.visibleEntries.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < root.visibleEntries.length) {
+                    root.launchEntry(root.visibleEntries[root.selectedIndex], true)
+                    event.accepted = true
+                }
             }
         }
 
@@ -386,7 +684,7 @@ PanelWindow {
                     Layout.fillWidth: true
                     spacing: 12
 
-                    // "Application launcher" icon badge (Grid of squares)
+                    // "Application launcher" icon badge (Grid of squares or Folder)
                     Rectangle {
                         Layout.preferredWidth: 48
                         Layout.preferredHeight: 48
@@ -397,7 +695,7 @@ PanelWindow {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "󰕰" // 3x3 App Grid glyph
+                            text: root.isFileMode ? "󰉋" : (root.isTerminalMode ? "󰆍" : "󰕰")
                             font.family: "Material Design Icons"
                             font.pixelSize: 24
                             color: root.cPrimary
@@ -429,7 +727,11 @@ PanelWindow {
                                 color: root.cText
                                 font.family: QsConfig.Config.appearance.fontFamily
                                 font.pixelSize: 15
-                                placeholderText: "Search applications..."
+                                placeholderText: root.isFileMode
+                                    ? "Search files & folders... (Enter: Thunar, Shift+Enter: Kitty)"
+                                    : (root.isTerminalMode
+                                        ? "Run in terminal... (e.g. 't htop', 't .', 't ~/...')"
+                                        : "Search applications... (type 'd ' for files, 't ' for terminal)")
                                 placeholderTextColor: root.cSubText
                                 background: Item {}
                                 selectByMouse: true
@@ -437,9 +739,27 @@ PanelWindow {
                                 onTextChanged: {
                                     root.query = text
                                     root.selectedIndex = 0
+                                    fdDebounceTimer.restart()
                                 }
 
                                 Keys.onEscapePressed: root.closeLauncher()
+                                Keys.onTabPressed: (event) => {
+                                    if (searchField.text === "" || searchField.text === "d") {
+                                        searchField.text = "d "
+                                        searchField.cursorPosition = 2
+                                        event.accepted = true
+                                    } else if (searchField.text === "t") {
+                                        searchField.text = "t "
+                                        searchField.cursorPosition = 2
+                                        event.accepted = true
+                                    } else if (searchField.text.startsWith("d ")) {
+                                        searchField.text = "t " + searchField.text.slice(2)
+                                        event.accepted = true
+                                    } else if (searchField.text.startsWith("t ")) {
+                                        searchField.text = searchField.text.slice(2)
+                                        event.accepted = true
+                                    }
+                                }
                                 Keys.onDownPressed: {
                                     if (root.visibleEntries.length > 0) {
                                         root.selectedIndex = Math.min(root.selectedIndex + 1, root.visibleEntries.length - 1)
@@ -452,14 +772,22 @@ PanelWindow {
                                         resultsListView.positionViewAtIndex(root.selectedIndex, ListView.Contain)
                                     }
                                 }
-                                Keys.onReturnPressed: {
+                                Keys.onReturnPressed: (event) => {
                                     if (root.visibleEntries.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < root.visibleEntries.length) {
-                                        root.launchEntry(root.visibleEntries[root.selectedIndex])
+                                        root.launchEntry(root.visibleEntries[root.selectedIndex], (event.modifiers & Qt.ShiftModifier) !== 0)
                                     }
                                 }
-                                Keys.onEnterPressed: {
+                                Keys.onEnterPressed: (event) => {
                                     if (root.visibleEntries.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < root.visibleEntries.length) {
-                                        root.launchEntry(root.visibleEntries[root.selectedIndex])
+                                        root.launchEntry(root.visibleEntries[root.selectedIndex], (event.modifiers & Qt.ShiftModifier) !== 0)
+                                    }
+                                }
+                                Keys.onPressed: (event) => {
+                                    if (event.key === Qt.Key_T && (event.modifiers & Qt.ControlModifier)) {
+                                        if (root.visibleEntries.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < root.visibleEntries.length) {
+                                            root.launchEntry(root.visibleEntries[root.selectedIndex], true)
+                                            event.accepted = true
+                                        }
                                     }
                                 }
                             }
@@ -564,7 +892,7 @@ PanelWindow {
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onEntered: root.selectedIndex = resultItem.index
-                                onClicked: root.launchEntry(resultItem.modelData)
+                                onClicked: (mouse) => root.launchEntry(resultItem.modelData, (mouse.modifiers & Qt.ShiftModifier) !== 0)
                             }
 
                             RowLayout {
@@ -573,7 +901,7 @@ PanelWindow {
                                 anchors.rightMargin: 14
                                 spacing: 14
 
-                                // Application Icon
+                                // Application or File/Folder Icon
                                 Item {
                                     Layout.preferredWidth: 36
                                     Layout.preferredHeight: 36
@@ -594,18 +922,20 @@ PanelWindow {
                                     Rectangle {
                                         anchors.fill: parent
                                         radius: 10
-                                        color: Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.12)
+                                        color: resultItem.modelData.isFavorite
+                                            ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.22)
+                                            : Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.12)
                                         visible: !appIconImage.visible
 
                                         Text {
                                             anchors.centerIn: parent
-                                            text: resultItem.modelData.type === "action"
+                                            text: (resultItem.modelData.type === "action" || resultItem.modelData.type === "directory" || resultItem.modelData.type === "file" || resultItem.modelData.type === "info")
                                                 ? (resultItem.modelData.glyph ?? "󰣆")
                                                 : (resultItem.modelData.name ?? "?").slice(0, 1).toUpperCase()
-                                            font.family: resultItem.modelData.type === "action"
+                                            font.family: (resultItem.modelData.type === "action" || resultItem.modelData.type === "directory" || resultItem.modelData.type === "file" || resultItem.modelData.type === "info")
                                                 ? "Material Design Icons"
                                                 : QsConfig.Config.appearance.fontFamily
-                                            font.pixelSize: resultItem.modelData.type === "action" ? 20 : 16
+                                            font.pixelSize: (resultItem.modelData.type === "directory" || resultItem.modelData.type === "file") ? 22 : (resultItem.modelData.type === "action" ? 20 : 16)
                                             font.weight: Font.Bold
                                             color: root.cPrimary
                                         }
@@ -613,20 +943,53 @@ PanelWindow {
 
                                 }
 
-                                // Application Title and Comment / Subtitle
+                                // Application / File Title and Comment / Subtitle
                                 ColumnLayout {
                                     Layout.fillWidth: true
                                     spacing: 2
 
-                                    Text {
+                                    RowLayout {
                                         Layout.fillWidth: true
-                                        text: resultItem.modelData.name ?? "Application"
-                                        font.family: QsConfig.Config.appearance.fontFamily
-                                        font.pixelSize: 14
-                                        font.weight: Font.DemiBold
-                                        color: resultItem.isSelected ? root.cPrimary : root.cText
-                                        elide: Text.ElideRight
-                                        Behavior on color { ColorAnimation { duration: 80 } }
+                                        spacing: 6
+
+                                        Text {
+                                            text: resultItem.modelData.name ?? "Application"
+                                            font.family: QsConfig.Config.appearance.fontFamily
+                                            font.pixelSize: 14
+                                            font.weight: Font.DemiBold
+                                            color: resultItem.isSelected ? root.cPrimary : root.cText
+                                            elide: Text.ElideRight
+                                            Behavior on color { ColorAnimation { duration: 80 } }
+                                        }
+
+                                        Rectangle {
+                                            visible: resultItem.modelData.isFavorite ?? false
+                                            Layout.preferredHeight: 18
+                                            Layout.preferredWidth: 62
+                                            radius: 6
+                                            color: Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.18)
+                                            border.width: 1
+                                            border.color: Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.35)
+
+                                            RowLayout {
+                                                anchors.centerIn: parent
+                                                spacing: 2
+                                                Text {
+                                                    text: "★"
+                                                    font.pixelSize: 10
+                                                    color: root.cPrimary
+                                                }
+                                                Text {
+                                                    text: "Favorite"
+                                                    font.family: QsConfig.Config.appearance.fontFamily
+                                                    font.pixelSize: 10
+                                                    font.weight: Font.Medium
+                                                    color: root.cPrimary
+                                                }
+                                            }
+                                        }
+
+                                        Item { Layout.fillWidth: true }
                                     }
 
                                     Text {
@@ -821,6 +1184,27 @@ PanelWindow {
                         QQC.ToolTip.visible: hoverLock.hovered
                         QQC.ToolTip.text: "Lock Session"
                         QQC.ToolTip.delay: 150
+                    }
+
+                    // Mode hints in footer
+                    RowLayout {
+                        spacing: 12
+                        visible: root.isFileMode || root.isTerminalMode
+
+                        Text {
+                            text: root.isTerminalMode ? "↵ Run in Kitty" : "↵ Open in Thunar"
+                            font.family: QsConfig.Config.appearance.fontFamily
+                            font.pixelSize: 11
+                            color: root.cSubText
+                        }
+
+                        Text {
+                            text: "⇧↵ / Ctrl+T Open in Kitty"
+                            visible: root.isFileMode
+                            font.family: QsConfig.Config.appearance.fontFamily
+                            font.pixelSize: 11
+                            color: root.cPrimary
+                        }
                     }
 
                     // Spacer between left buttons and right button

@@ -46,7 +46,7 @@ Singleton {
         enabled: data.launcher?.enabled ?? true,
         width: data.launcher?.width ?? 720,
         maxResults: data.launcher?.maxResults ?? 8,
-        terminalCommand: data.launcher?.terminalCommand ?? ["foot"],
+        terminalCommand: data.launcher?.terminalCommand ?? ["kitty"],
         favorites: data.launcher?.favorites ?? [
             "org.wezfurlong.wezterm",
             "kitty",
@@ -57,7 +57,13 @@ Singleton {
             "org.gnome.Nautilus",
             "code",
             "Code"
-        ]
+        ],
+        favoritePaths: (data.launcher?.favoritePaths ?? [
+            "~/.dotfiles",
+            "~/Downloads",
+            "~/Documents",
+            "~/Pictures"
+        ]).map(p => _expandHome(p))
     })
 
     readonly property var sidebar: ({

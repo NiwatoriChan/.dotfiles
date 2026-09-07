@@ -24,7 +24,13 @@
     "width": 640,
     "maxResults": 10,
     "terminalCommand": ["kitty"],
-    "favorites": []
+    "favorites": [],
+    "favoritePaths": [
+      "~/.dotfiles",
+      "~/Downloads",
+      "~/Documents",
+      "~/Pictures"
+    ]
   },
   "sidebar": {
     "enabled": false,
