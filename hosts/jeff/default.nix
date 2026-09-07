@@ -3,10 +3,8 @@
 
 {
   imports = [
-    ../common
-    # Server base + Hyprland desktop environment
+    ../common/base.nix
     ../../modules/server
-    #../../modules/hyprland.nix
     ../../modules/mangowm.nix
     ../../modules/developpement.nix
     ../../modules/sunshine.nix
@@ -30,48 +28,7 @@
   # Hostname
   networking.hostName = "Jeff";
 
-  # --- Scaffold / Server configuration (commented out while using ../common) ---
-  # Bootloader
-  # boot.loader.systemd-boot.enable = true;
-  # boot.loader.efi.canTouchEfiVariables = true;
-
-  # networking.networkmanager.enable = true;
-
-  # Locale & Timezone
-  # time.timeZone = "America/Toronto";
-  # i18n.defaultLocale = "en_CA.UTF-8";
-  # console.keyMap = "ca";
-
-  # User account
-  # users.users."niwatorichan" = {
-  #   isNormalUser = true;
-  #   description = "niwatorichan";
-  #   extraGroups = [ "networkmanager" "wheel" ];
-  #   shell = pkgs.zsh;
-  #   openssh.authorizedKeys.keys = [
-  #     # Add your SSH public keys here
-  #     # "ssh-ed25519 AAAA..."
-  #   ];
-  # };
-
   boot.kernelParams = [
     "amd_iommu=off"
   ];
-
-  # programs.zsh.enable = true;
-
-  # Additional server-specific configurations can be added here.
-  # Base SSH, firewall, and minimal packages are now defined in ../../modules/server.
-
-  # Containers
-  # virtualisation.podman = {
-  #   enable = true;
-  #   dockerCompat = true;
-  # };
-
-  # Nix settings
-  # nixpkgs.config.allowUnfree = true;
-  # nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
-  # system.stateVersion = "26.05";
 }

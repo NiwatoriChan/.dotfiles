@@ -9,6 +9,7 @@ Singleton {
     id: root
     
     property bool enabled: false
+    property bool manualToggle: false
     property bool dndEnabled: false
     property real previousBrightness: 0.5
     property bool didSetBrightness: false
@@ -21,6 +22,11 @@ Singleton {
         QsServices.Logger.info("GamingMode", `Gaming mode ${enabled ? "ENABLED" : "DISABLED"}`)
         
         if (enabled) {
+            // If toggled manually from UI, keep gamemoded active via simulated game
+            if (manualToggle && !gamemodeSimProc.running) {
+                gamemodeSimProc.running = true
+            }
+
             // Save current DND state
             dndEnabled = notifs.dnd
             didSetBrightness = false
@@ -38,6 +44,11 @@ Singleton {
                 didSetBrightness = true
             }
         } else {
+            manualToggle = false
+            if (gamemodeSimProc.running) {
+                gamemodeSimProc.running = false
+            }
+
             // Restore balanced mode
             setCpuGovernor(balancedGovernor)
             
@@ -52,6 +63,7 @@ Singleton {
     }
     
     function toggle() {
+        manualToggle = !enabled
         enabled = !enabled
     }
     
@@ -85,7 +97,45 @@ Singleton {
             onStreamFinished: {
                 if (text.trim().length > 0) {
                     QsServices.Logger.warn("GamingMode", `CPU governor error: ${text.trim()}`)
-                    QsServices.Logger.info("GamingMode", "Tip: add passwordless tee to /etc/sudoers.d/cpufreq if desired")
+                }
+            }
+        }
+    }
+
+    // Process to hold Feral GameMode active when toggled manually
+    Process {
+        id: gamemodeSimProc
+        command: ["gamemode-simulate-game"]
+        running: false
+    }
+
+    // Poll gamemoded status so external game launches (e.g. Steam gamemoderun) reflect in the UI
+    Timer {
+        id: statusTimer
+        interval: 3000
+        running: true
+        repeat: true
+        onTriggered: {
+            if (!gamemodeStatusProc.running) {
+                gamemodeStatusProc.running = true
+            }
+        }
+    }
+
+    Process {
+        id: gamemodeStatusProc
+        command: ["gamemoded", "-s"]
+        running: false
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const out = text.trim().toLowerCase()
+                const isActive = out.includes("is active")
+                if (isActive && !root.enabled) {
+                    root.manualToggle = false
+                    root.enabled = true
+                } else if (!isActive && root.enabled && !root.manualToggle) {
+                    root.enabled = false
                 }
             }
         }

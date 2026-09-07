@@ -6,41 +6,26 @@
     # Browser / Custom Packages
     customPackages.brave-origin
 
-    # Command line utilities
-    neovim
-    wget
-    git
-    fastfetch
+    # Terminal emulators & GUI utilities
     kitty
-    gnumake
-    curl
-    jq
-    bat
     alacritty
-    ripgrep
     xhost
-    fd
-    zip
-    tree
-    nnn
-    gh
 
-    # System
+    # System & GUI utilities
     bazaar
     distrobox
     mission-center
 
-    # Apps (shared across machines)
+    # Apps (shared across desktop machines)
     discord
     mpv
     gnome-disk-utility
     moonlight-qt
+    nextcloud-client
 
     # Theming
     papirus-icon-theme
     sddm-astronaut
-  ] ++ lib.optionals (config.networking.hostName != "Jeff") [
-    nextcloud-client
   ];
 
   

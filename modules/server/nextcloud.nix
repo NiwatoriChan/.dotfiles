@@ -166,4 +166,27 @@ in
       RequiresMountsFor = [ "/mnt/exp6" ];
     };
   };
+
+  # Automated PostgreSQL database backup to RAID5
+  services.postgresqlBackup = {
+    enable = true;
+    databases = [ "nextcloud" ];
+    location = "/mnt/exp6/EXP6/Backups/postgresql";
+    startAt = "*-*-* 03:00:00";
+    compression = "zstd";
+  };
+
+  # Ensure RAID5 array is mounted before database backup runs
+  systemd.services.postgresqlBackup-nextcloud = {
+    wants = [ "mnt-exp6.mount" ];
+    after = [ "mnt-exp6.mount" ];
+    unitConfig = {
+      RequiresMountsFor = [ "/mnt/exp6" ];
+    };
+  };
+
+  # Ensure backup directory permissions
+  systemd.tmpfiles.rules = [
+    "d /mnt/exp6/EXP6/Backups/postgresql 0700 postgres postgres -"
+  ];
 }
