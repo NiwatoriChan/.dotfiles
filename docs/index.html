@@ -981,7 +981,7 @@ Specific system host modules override or add system services:
 
 ### 5. Jeff (\`hosts/jeff\`)
 - **Type**: Headless Server.
-- **Services**: Imports core server modules (\`modules/server/default.nix\`) enabling declarative Samba storage sharing, Jellyfin media streaming server, Transmission BitTorrent daemon, OpenVPN tunneling, local DNS resolution, Nginx reverse proxy, and the Homepage portal.
+- **Services**: Imports core server modules (\`modules/server/default.nix\`) enabling declarative Samba storage sharing, Jellyfin media streaming server, Nextcloud cloud hub, Transmission BitTorrent daemon, OpenVPN tunneling, local DNS resolution, Nginx reverse proxy, and the Homepage portal.
 
 ### 6. Savage (*BETA*) (\`hosts/savage\`)
 - **Status**: Beta.
@@ -1009,10 +1009,11 @@ Unified server services are managed modularly under \`modules/server/\`:
 
 - **Homepage Dashboard** (\`homepage.nix\`): Launches a system dashboard on port \`8082\`. It displays server resources and custom service widgets for network apps.
 - **Jellyfin Media Server** (\`jellyfin.nix\`): Media streaming server pointing to \`/mnt/exp6/EXP6/MEDIAX/Videos\` with declarative POSIX ACLs, group permissions, and storage mount synchronization.
+- **Nextcloud Hub** (\`nextcloud.nix\`): Self-hosted cloud storage, files, and collaboration platform served at \`nextcloud.jeff.lan\` backed by local PostgreSQL and Redis caching.
 - **OpenVPN Client** (\`openvpn.nix\`): Manages tunnel configuration to secure networks using credential keys.
 - **Samba Sharing** (\`samba.nix\`): Configures secure SMB folder sharing across the local network for system users.
 - **Transmission** (\`transmission.nix\`): Runs Transmission BitTorrent client daemon with custom ACLs and download directory bindings.
-- **Reverse Proxy & DNS** (\`reverse-proxy.nix\`, \`dns.nix\`): Local Nginx reverse proxy routing \`jeff.lan\` subdomains (\`jellyfin.jeff.lan\`, \`transmission.jeff.lan\`) with dnsmasq resolution.
+- **Reverse Proxy & DNS** (\`reverse-proxy.nix\`, \`dns.nix\`): Local Nginx reverse proxy routing \`jeff.lan\` subdomains (\`nextcloud.jeff.lan\`, \`jellyfin.jeff.lan\`, \`transmission.jeff.lan\`) with dnsmasq resolution.
 
 ---
 

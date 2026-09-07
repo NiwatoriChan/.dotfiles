@@ -84,6 +84,13 @@
       {
         "Network Services" = [
           {
+            Nextcloud = {
+              icon = "nextcloud.png";
+              href = "http://nextcloud.jeff.lan";
+              description = "Cloud Storage & Collaboration";
+            };
+          }
+          {
             Samba = {
               icon = "samba.png";
               href = "smb://localhost/private";
