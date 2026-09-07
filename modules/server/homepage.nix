@@ -60,7 +60,7 @@
           {
             Jellyfin = {
               icon = "jellyfin.png";
-              href = "http://192.168.0.10:8096";
+              href = "https://jellyfin.jeff.lan";
               description = "Media Streaming Server";
               widget = {
                 type = "jellyfin";
@@ -71,7 +71,7 @@
           {
             Transmission = {
               icon = "transmission.png";
-              href = "http://192.168.0.10:9091";
+              href = "https://transmission.jeff.lan";
               description = "Torrent Downloader";
               widget = {
                 type = "transmission";
@@ -86,7 +86,7 @@
           {
             Nextcloud = {
               icon = "nextcloud.png";
-              href = "http://nextcloud.jeff.lan";
+              href = "https://nextcloud.jeff.lan";
               description = "Cloud Storage & Collaboration";
             };
           }

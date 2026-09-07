@@ -1013,7 +1013,7 @@ Unified server services are managed modularly under \`modules/server/\`:
 - **OpenVPN Client** (\`openvpn.nix\`): Manages tunnel configuration to secure networks using credential keys.
 - **Samba Sharing** (\`samba.nix\`): Configures secure SMB folder sharing across the local network for system users.
 - **Transmission** (\`transmission.nix\`): Runs Transmission BitTorrent client daemon with custom ACLs and download directory bindings.
-- **Reverse Proxy & DNS** (\`reverse-proxy.nix\`, \`dns.nix\`): Local Nginx reverse proxy routing \`jeff.lan\` subdomains (\`nextcloud.jeff.lan\`, \`jellyfin.jeff.lan\`, \`transmission.jeff.lan\`) with dnsmasq resolution.
+- **Reverse Proxy, DNS & HTTPS** (\`reverse-proxy.nix\`, \`dns.nix\`): Local Nginx reverse proxy enforcing HTTPS (\`forceSSL\`) with automatic HTTP-to-HTTPS redirection across all \`*.jeff.lan\` services (\`jeff.lan\`, \`nextcloud.jeff.lan\`, \`jellyfin.jeff.lan\`, \`transmission.jeff.lan\`). Wildcard SSL certificates and local Root CA are managed automatically and stored on the Partage drive (\`/mnt/partage/ssl\`).
 
 ---
 

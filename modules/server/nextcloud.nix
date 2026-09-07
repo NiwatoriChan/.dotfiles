@@ -1,11 +1,15 @@
 # Nextcloud server configuration backed by PostgreSQL and Redis
 { config, pkgs, lib, ... }:
 
+let
+  sslCertDir = "/mnt/partage/ssl";
+in
 {
   services.nextcloud = {
     enable = true;
     package = pkgs.nextcloud33;
     hostName = "nextcloud.jeff.lan";
+    https = true;
 
     # Local PostgreSQL database management
     database.createLocally = true;
@@ -33,9 +37,17 @@
       default_phone_region = "CA";
       log_type = "file";
       maintenance_window_start = 1; # 1 AM UTC
+      overwriteprotocol = "https";
     };
 
     maxUploadSize = "16G";
+  };
+
+  # Configure Nginx virtual host with SSL
+  services.nginx.virtualHosts."nextcloud.jeff.lan" = {
+    forceSSL = true;
+    sslCertificate = "${sslCertDir}/cert.pem";
+    sslCertificateKey = "${sslCertDir}/key.pem";
   };
 
   # Ensure the admin password file exists so initial automated setup never fails
