@@ -52,10 +52,10 @@ The keyboard controls map to high-speed desktop navigation:
 - **Toggle Floating Status**: `Super + G`
 
 ### Window Navigation & Column Resizing
-- **Switch Column Focus**: `Ctrl + Alt + Left` / `Right`
-- **Move Window within Workspace**: `Ctrl + Alt + Shift + Left` / `Right`
-- **Shift Workspace (Vertical Navigation)**: `Ctrl + Alt + Up` / `Down`
-- **Move Window to Workspace**: `Ctrl + Alt + Shift + Up` / `Down`
+- **Switch Column Focus**: `Ctrl + Super + Left` / `Right`
+- **Move Window within Workspace**: `Ctrl + Super + Shift + Left` / `Right`
+- **Shift Workspace (Vertical Navigation)**: `Ctrl + Super + Up` / `Down`
+- **Move Window to Workspace**: `Ctrl + Super + Shift + Up` / `Down`
 - **Resize Window Width**: `Super + Shift + Left` / `Right`
 - **Cycle Column Widths (50% / 80% / 100%)**: `Super + M`
 

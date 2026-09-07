@@ -307,10 +307,10 @@ hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ action = "toggle" }))
 hl.bind(mainMod .. " + G", hl.dsp.window.float({ action = "toggle" }))
 
 -- Column/Window Focus & Window Moving (Horizontal)
-hl.bind("CTRL + ALT + left", hl.dsp.layout("move -col"))
-hl.bind("CTRL + ALT + right", hl.dsp.layout("move +col"))
-hl.bind("CTRL + ALT + SHIFT + left", hl.dsp.layout("swapcol l"))
-hl.bind("CTRL + ALT + SHIFT + right", hl.dsp.layout("swapcol r"))
+hl.bind("CTRL + SUPER + left", hl.dsp.layout("move -col"))
+hl.bind("CTRL + SUPER + right", hl.dsp.layout("move +col"))
+hl.bind("CTRL + SUPER + SHIFT + left", hl.dsp.layout("swapcol l"))
+hl.bind("CTRL + SUPER + SHIFT + right", hl.dsp.layout("swapcol r"))
 
 -- Sizing Preset Switch (Niri-style cycle between 50%, 80%, 100%)
 hl.bind(mainMod .. " + M", hl.dsp.layout("colresize +conf"))
@@ -320,10 +320,10 @@ hl.bind(mainMod .. " + SHIFT + left", hl.dsp.layout("colresize -0.05"))
 hl.bind(mainMod .. " + SHIFT + right", hl.dsp.layout("colresize +0.05"))
 
 -- Workspace Navigation (Vertical Emulation)
-hl.bind("CTRL + ALT + up", hl.dsp.focus({ workspace = "-1" }))
-hl.bind("CTRL + ALT + down", hl.dsp.focus({ workspace = "+1" }))
-hl.bind("CTRL + ALT + SHIFT + up", hl.dsp.window.move({ workspace = "-1" }))
-hl.bind("CTRL + ALT + SHIFT + down", hl.dsp.window.move({ workspace = "+1" }))
+hl.bind("CTRL + SUPER + up", hl.dsp.focus({ workspace = "-1" }))
+hl.bind("CTRL + SUPER + down", hl.dsp.focus({ workspace = "+1" }))
+hl.bind("CTRL + SUPER + SHIFT + up", hl.dsp.window.move({ workspace = "-1" }))
+hl.bind("CTRL + SUPER + SHIFT + down", hl.dsp.window.move({ workspace = "+1" }))
 
 -- Switching / Moving using numbers 1 to 10
 for i = 1, 10 do
