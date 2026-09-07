@@ -16,6 +16,7 @@ PanelWindow {
     property bool shouldShow: false
     property string query: ""
     property int selectedIndex: 0
+    property bool currentWorkspaceOnly: false
 
     readonly property var config: QsConfig.Config
     readonly property var pywal: QsServices.Pywal
@@ -67,29 +68,270 @@ PanelWindow {
         }
     }
 
-    // Icon resolution helper
+    // User home path for local icon discovery
+    readonly property string userHome: Quickshell.env("HOME") || "/home/niwatorichan"
+
+    // Window validity filter — strips Wine / Proton dummy handles, unmapped surfaces & zero-sized helpers
+    function isValidWindow(tl) {
+        if (!tl) return false
+
+        // 1. Child / Popup / Subsurface check
+        if (tl.wayland?.parent) return false
+
+        // 2. Hyprland metadata checks via lastIpcObject
+        if (tl.lastIpcObject) {
+            const ipc = tl.lastIpcObject
+            // Skip unmapped windows
+            if (ipc.mapped === false) return false
+            // Skip hidden windows
+            if (ipc.hidden === true) return false
+            // Skip dummy / zero-sized windows (Wine & XWayland helpers are typically 0x0 or 1x1)
+            if (ipc.size && (ipc.size[0] <= 1 || ipc.size[1] <= 1)) return false
+        }
+
+        // 3. Extract titles and classes
+        const title = (tl.title || tl.wayland?.title || tl.lastIpcObject?.title || "").trim()
+        const initialTitle = (tl.lastIpcObject?.initialTitle || "").trim()
+        const appClass = (tl.wayland?.appId || tl.lastIpcObject?.class || "").trim()
+        const initialClass = (tl.lastIpcObject?.initialClass || "").trim()
+
+        // 4. Must have at least a meaningful title or class
+        if (!title && !appClass) return false
+        if (!title && (/^(xwayland|xwaylandvideobridge)$/i.test(appClass) || appClass.length === 0)) return false
+
+        // 5. Filter Wine / Proton / DirectX / System dummy helper window titles
+        const wineDummyTitlePatterns = [
+            /^Default IME$/i,
+            /^MSCTFIME UI$/i,
+            /^OleMainThreadWndName$/i,
+            /^Wine System Tray$/i,
+            /^Direct3D/i,
+            /^IDirect3D/i,
+            /^D3D/i,
+            /^Wine Gecko Installer$/i,
+            /^Wine Mono Installer$/i,
+            /^Desktop$/i,
+            /^about:blank/i,
+            /^Steam Keyboard$/i
+        ]
+
+        for (let i = 0; i < wineDummyTitlePatterns.length; ++i) {
+            const pat = wineDummyTitlePatterns[i]
+            if (pat.test(title)) return false
+            if (initialTitle && pat.test(initialTitle)) return false
+        }
+
+        // 6. Filter Wine helper daemons & background service classes
+        const wineDummyClassPatterns = [
+            /^wineboot\.exe$/i,
+            /^services\.exe$/i,
+            /^winedevice\.exe$/i,
+            /^plugplay\.exe$/i,
+            /^tabtip\.exe$/i,
+            /^conhost\.exe$/i,
+            /^xwaylandvideobridge$/i
+        ]
+
+        for (let j = 0; j < wineDummyClassPatterns.length; ++j) {
+            const pat = wineDummyClassPatterns[j]
+            if (pat.test(appClass)) return false
+            if (initialClass && pat.test(initialClass)) return false
+        }
+
+        // Wine explorer.exe is only a tray/desktop dummy in Wine prefixes
+        if (/^explorer\.exe$/i.test(appClass)) {
+            if (!title || /^(wine system tray|desktop|explorer\.exe)$/i.test(title)) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    // Icon resolution helper with deep Steam, Wine, DesktopEntries, and fallback integration
     readonly property var iconCache: ({})
     function resolveIcon(appId, title) {
         if (!appId && !title) return ""
         const key = `${appId || ""}|${title || ""}`
         if (root.iconCache[key] !== undefined) return root.iconCache[key]
 
-        let path = ""
-        if (appId) {
-            path = Quickshell.iconPath(appId, true)
-            if (!path) path = Quickshell.iconPath(appId.toLowerCase(), true)
-            if (!path && appId.includes(".")) {
-                const parts = appId.split(".")
-                const lastPart = parts[parts.length - 1]
-                path = Quickshell.iconPath(lastPart, true) || Quickshell.iconPath(lastPart.toLowerCase(), true)
-            }
-        }
-        if (!path && title) {
-            path = Quickshell.iconPath(title.toLowerCase(), true)
+        let resolved = ""
+        const candidates = []
+
+        // 1. Direct custom/local overrides map
+        const directMap = {
+            "antigravity": `${root.userHome}/.local/share/icons/antigravity.png`,
+            "antigravity-ide": `${root.userHome}/.local/share/icons/antigravity.png`,
+            "syncplay": `${root.userHome}/.local/share/icons/syncplay.png`
         }
 
-        root.iconCache[key] = path || ""
+        const cleanApp = (appId || "").trim()
+        const lowerApp = cleanApp.toLowerCase()
+
+        if (directMap[lowerApp]) {
+            resolved = directMap[lowerApp]
+        }
+
+        // 2. Steam App ID mapping: steam_app_<id> -> steam_icon_<id>
+        if (!resolved && cleanApp.startsWith("steam_app_")) {
+            const steamId = cleanApp.replace("steam_app_", "")
+            candidates.push(`steam_icon_${steamId}`)
+            candidates.push(`${root.userHome}/.local/share/icons/hicolor/64x64/apps/steam_icon_${steamId}.png`)
+            candidates.push(`${root.userHome}/.local/share/icons/hicolor/128x128/apps/steam_icon_${steamId}.png`)
+            candidates.push(`${root.userHome}/.local/share/icons/candy-icons/apps/scalable/steam_icon_${steamId}.svg`)
+        }
+
+        // 3. Clean Windows .exe suffixes (e.g. "Game.exe" -> "Game")
+        const noExe = cleanApp.replace(/\.exe$/i, "")
+        if (noExe && noExe !== cleanApp) {
+            candidates.push(noExe)
+            candidates.push(noExe.toLowerCase())
+        }
+
+        // 4. Reverse-DNS IDs (e.g. com.github.flxzt.rnote -> rnote)
+        if (cleanApp.includes(".")) {
+            const parts = cleanApp.split(".")
+            const last = parts[parts.length - 1]
+            if (last && last.length > 1) {
+                candidates.push(last)
+                candidates.push(last.toLowerCase())
+            }
+        }
+
+        // 5. Common app suffixes (e.g. antigravity-ide -> antigravity)
+        if (cleanApp.includes("-")) {
+            candidates.push(cleanApp.replace(/-ide$/i, ""))
+            candidates.push(cleanApp.replace(/-desktop$/i, ""))
+            candidates.push(cleanApp.replace(/-browser$/i, ""))
+            candidates.push(cleanApp.replace(/-client$/i, ""))
+            candidates.push(cleanApp.split("-")[0])
+        }
+
+        // 6. Base candidates
+        if (cleanApp) {
+            candidates.push(cleanApp)
+            candidates.push(lowerApp)
+        }
+
+        // 7. Cross-reference with DesktopEntries
+        if (DesktopEntries?.applications?.values) {
+            const apps = DesktopEntries.applications.values
+            const targetClean = noExe.toLowerCase()
+            const targetTitle = (title || "").toLowerCase()
+
+            for (let i = 0; i < apps.length; ++i) {
+                const entry = apps[i]
+                if (!entry) continue
+
+                const entryId = (entry.id || "").toLowerCase()
+                const entryName = (entry.name || "").toLowerCase()
+                const entryWm = (entry.startupWmClass || "").toLowerCase()
+
+                let match = false
+                if (cleanApp && (entryId === `${lowerApp}.desktop` || entryId === `${targetClean}.desktop`)) match = true
+                else if (cleanApp && entryWm && (entryWm === lowerApp || entryWm === targetClean)) match = true
+                else if (targetClean && entryName === targetClean) match = true
+                else if (targetTitle && (entryName === targetTitle || (targetTitle.length > 3 && targetTitle.includes(entryName)))) match = true
+
+                if (match && entry.icon) {
+                    if (entry.icon.startsWith("/") || entry.icon.startsWith("file://")) {
+                        candidates.unshift(entry.icon)
+                    } else {
+                        candidates.push(entry.icon)
+                        candidates.push(entry.icon.toLowerCase())
+                    }
+                    break
+                }
+            }
+        }
+
+        // 8. Title-based hints (e.g. "Track Parcel — Mozilla Firefox", "Videos - Thunar")
+        if (title) {
+            const cleanTitle = title.toLowerCase()
+            if (cleanTitle.includes("firefox")) candidates.push("firefox")
+            else if (cleanTitle.includes("antigravity")) candidates.push("antigravity")
+            else if (cleanTitle.includes("thunar")) candidates.push("thunar")
+            else if (cleanTitle.includes("steam")) candidates.push("steam")
+            else if (cleanTitle.includes("discord")) candidates.push("discord")
+            else if (cleanTitle.includes("rnote")) candidates.push("rnote")
+            else if (cleanTitle.includes("kitty")) candidates.push("kitty")
+            else if (cleanTitle.includes("obsidian")) candidates.push("obsidian")
+        }
+
+        // 9. Gaming / Wine fallbacks
+        if (cleanApp.startsWith("steam_app_") || cleanApp.endsWith(".exe") || /^[Gg]amescope$/i.test(cleanApp)) {
+            candidates.push("steam")
+            candidates.push("applications-games")
+            candidates.push("input-gaming")
+        }
+
+        // Try resolving each candidate
+        for (let j = 0; j < candidates.length; ++j) {
+            const cand = candidates[j]
+            if (!cand) continue
+
+            // Direct path
+            if (cand.startsWith("/") || cand.startsWith("file://")) {
+                resolved = cand
+                break
+            }
+
+            // Quickshell iconPath lookup
+            const p = Quickshell.iconPath(cand, true)
+            if (p) {
+                resolved = p
+                break
+            }
+
+            if (directMap[cand]) {
+                resolved = directMap[cand]
+                break
+            }
+        }
+
+        root.iconCache[key] = resolved || ""
         return root.iconCache[key]
+    }
+
+    // Context-aware fallback icon information when no image icon is available
+    function getFallbackData(appId, title) {
+        const cleanApp = (appId || "").toLowerCase()
+        const cleanTitle = (title || "").toLowerCase()
+
+        // 1. Gaming
+        if (cleanApp.startsWith("steam_app_") || cleanApp.endsWith(".exe") || cleanApp.includes("lutris") || cleanApp.includes("heroic") || cleanApp.includes("game")) {
+            return { icon: "󰊴", isMdi: true } // Gamepad
+        }
+
+        // 2. Terminal
+        if (cleanApp.includes("kitty") || cleanApp.includes("terminal") || cleanApp.includes("alacritty") || cleanApp.includes("foot") || cleanTitle === "zsh" || cleanTitle === "bash") {
+            return { icon: "󰞷", isMdi: true } // Console
+        }
+
+        // 3. Web Browser
+        if (cleanApp.includes("firefox") || cleanApp.includes("chrome") || cleanApp.includes("brave") || cleanTitle.includes("firefox")) {
+            return { icon: "󰈹", isMdi: true } // Browser
+        }
+
+        // 4. Code / Text Editor
+        if (cleanApp.includes("antigravity") || cleanApp.includes("code") || cleanApp.includes("zed") || cleanApp.includes("editor")) {
+            return { icon: "󰨞", isMdi: true } // Code
+        }
+
+        // 5. File Manager
+        if (cleanApp.includes("thunar") || cleanApp.includes("dolphin") || cleanApp.includes("nautilus") || cleanApp.includes("files")) {
+            return { icon: "󰉋", isMdi: true } // Folder
+        }
+
+        // 6. Media / Music / Video
+        if (cleanApp.includes("mpv") || cleanApp.includes("vlc") || cleanApp.includes("spotify")) {
+            return { icon: "󰕼", isMdi: true } // Media
+        }
+
+        // Default clean alphanumeric letter (strip leading punctuation like '.', '/', etc.)
+        const stripped = (title || appId || "App").replace(/^[^a-zA-Z0-9]+/, "")
+        const letter = stripped.length > 0 ? stripped.charAt(0).toUpperCase() : "󰣆"
+        return { icon: letter, isMdi: false }
     }
 
     // Dynamic windows list
@@ -100,7 +342,7 @@ PanelWindow {
 
         for (let i = 0; i < raw.length; ++i) {
             const tl = raw[i]
-            if (!tl) continue
+            if (!isValidWindow(tl)) continue
 
             let appId = tl.wayland?.appId || ""
             if (!appId && tl.lastIpcObject) {
@@ -108,12 +350,40 @@ PanelWindow {
             }
 
             const title = tl.title || appId || "Untitled Window"
-            const ws = tl.workspace
-            const wsId = ws?.id ?? 1
-            const wsName = ws?.name ?? `${wsId}`
-            const monitorName = ws?.monitor?.name ?? ws?.lastIpcObject?.monitor ?? tl.lastIpcObject?.monitor ?? ""
+
+            let wsId = 1
+            if (tl.lastIpcObject?.workspace?.id !== undefined) {
+                wsId = tl.lastIpcObject.workspace.id
+            } else if (tl.workspace && typeof tl.workspace.id === "number" && tl.workspace.id > 0) {
+                wsId = tl.workspace.id
+            } else if (tl.workspace?.name) {
+                wsId = parseInt(tl.workspace.name) || 1
+            } else if (tl.lastIpcObject?.workspace?.name) {
+                wsId = parseInt(tl.lastIpcObject.workspace.name) || 1
+            }
+
+            let wsName = `${wsId}`
+            if (tl.lastIpcObject?.workspace?.name) {
+                wsName = tl.lastIpcObject.workspace.name
+            } else if (tl.workspace?.name) {
+                wsName = tl.workspace.name
+            }
+
+            let monitorName = ""
+            if (tl.workspace?.monitor?.name) {
+                monitorName = tl.workspace.monitor.name
+            } else if (tl.lastIpcObject?.monitor !== undefined) {
+                const monId = tl.lastIpcObject.monitor
+                monitorName = monId === 0 ? "DP-1" : (monId === 1 ? "HDMI-A-1" : `${monId}`)
+            }
+
             const isActive = tl.handle === activeHandle
             const iconPath = root.resolveIcon(appId, title)
+            const fallback = root.getFallbackData(appId, title)
+
+            let rawAddr = (tl.address || tl.lastIpcObject?.address || "").trim()
+            while (rawAddr.startsWith("0x0x")) rawAddr = rawAddr.substring(2)
+            if (!rawAddr.startsWith("0x") && rawAddr.length > 0) rawAddr = "0x" + rawAddr
 
             list.push({
                 toplevel: tl,
@@ -124,7 +394,9 @@ PanelWindow {
                 monitorName: monitorName,
                 isActive: isActive,
                 iconPath: iconPath,
-                address: tl.address || (tl.lastIpcObject?.address ? `0x${tl.lastIpcObject.address}` : ""),
+                fallbackIcon: fallback.icon,
+                fallbackIsMdi: fallback.isMdi,
+                address: rawAddr,
                 lowerTitle: title.toLowerCase(),
                 lowerAppId: appId.toLowerCase()
             })
@@ -142,15 +414,23 @@ PanelWindow {
 
     // Filtered windows
     readonly property var visibleWindows: {
-        const q = query.trim().toLowerCase()
-        if (!q.length) return allWindows
+        let base = allWindows
+        if (currentWorkspaceOnly) {
+            const curWs = QsServices.Hypr.activeWsId
+            base = base.filter(w => w.wsId === curWs)
+        }
 
-        return allWindows.filter(w => {
+        const q = query.trim().toLowerCase()
+        if (!q.length) return base
+
+        return base.filter(w => {
             return w.lowerTitle.includes(q) || w.lowerAppId.includes(q) || `${w.wsId}` === q
         })
     }
 
     function openSwitcher() {
+        Hyprland.refreshToplevels()
+        Hyprland.refreshWorkspaces()
         root.query = ""
         root.shouldShow = true
         // Default to the 2nd window (previous window) if available, standard Alt-Tab behavior
@@ -172,32 +452,47 @@ PanelWindow {
         if (!item) return
         closeSwitcher()
 
-        const tl = item.toplevel
-        if (!tl) return
+        let addr = (item.address || "").trim()
+        while (addr.startsWith("0x0x")) addr = addr.substring(2)
+        if (!addr.startsWith("0x") && addr.length > 0) addr = "0x" + addr
 
-        if (tl.workspace) {
-            if (typeof tl.workspace.activate === "function") {
-                tl.workspace.activate()
-            } else {
-                QsServices.Hypr.dispatch("workspace " + tl.workspace.id)
+        // 1. Switch workspace (switches monitor and active workspace in Hyprland)
+        if (item.wsId && item.wsId > 0) {
+            QsServices.Hypr.dispatch("workspace " + item.wsId)
+        } else if (item.toplevel?.workspace) {
+            if (typeof item.toplevel.workspace.activate === "function") {
+                item.toplevel.workspace.activate()
+            } else if (item.toplevel.workspace.id) {
+                QsServices.Hypr.dispatch("workspace " + item.toplevel.workspace.id)
             }
         }
 
-        if (typeof tl.focus === "function") {
-            tl.focus()
-        } else if (typeof tl.activate === "function") {
-            tl.activate()
-        } else if (item.address) {
-            QsServices.Hypr.dispatch("focuswindow address:" + item.address)
+        // 2. Focus window by clean address (essential for XWayland like Steam & games)
+        if (addr) {
+            QsServices.Hypr.dispatch("focuswindow address:" + addr)
+        }
+
+        // 3. Complementary focus call
+        const tl = item.toplevel
+        if (tl) {
+            if (typeof tl.focus === "function") {
+                try { tl.focus() } catch (e) {}
+            } else if (typeof tl.activate === "function") {
+                try { tl.activate() } catch (e) {}
+            }
         }
     }
 
     function closeWindow(item) {
         if (!item) return
+        let addr = (item.address || "").trim()
+        while (addr.startsWith("0x0x")) addr = addr.substring(2)
+        if (!addr.startsWith("0x") && addr.length > 0) addr = "0x" + addr
+
         if (item.toplevel && typeof item.toplevel.close === "function") {
-            item.toplevel.close()
-        } else if (item.address) {
-            Quickshell.execDetached(["hyprctl", "dispatch", "closewindow", "address:" + item.address])
+            try { item.toplevel.close() } catch (e) {}
+        } else if (addr) {
+            Quickshell.execDetached(["hyprctl", "dispatch", "closewindow", "address:" + addr])
         }
     }
 
@@ -425,6 +720,46 @@ PanelWindow {
                             color: root.cSubText
                         }
                     }
+
+                    // Workspace Filter Pill
+                    Rectangle {
+                        Layout.preferredHeight: 48
+                        implicitWidth: wsFilterText.implicitWidth + 28
+                        radius: 14
+                        color: root.currentWorkspaceOnly ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.18) : root.cSurfaceContainer
+                        border.width: 1
+                        border.color: root.currentWorkspaceOnly ? root.cPrimary : root.cBorder
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                root.currentWorkspaceOnly = !root.currentWorkspaceOnly
+                                root.selectedIndex = 0
+                            }
+                        }
+
+                        RowLayout {
+                            anchors.centerIn: parent
+                            spacing: 6
+
+                            Text {
+                                text: root.currentWorkspaceOnly ? "󰍹" : "󰍺"
+                                font.family: "Material Design Icons"
+                                font.pixelSize: 14
+                                color: root.currentWorkspaceOnly ? root.cPrimary : root.cSubText
+                            }
+
+                            Text {
+                                id: wsFilterText
+                                text: root.currentWorkspaceOnly ? `WS ${QsServices.Hypr.activeWsId}` : "All Desktops"
+                                font.family: "Inter Variable"
+                                font.pixelSize: 12
+                                font.weight: Font.DemiBold
+                                color: root.currentWorkspaceOnly ? root.cPrimary : root.cSubText
+                            }
+                        }
+                    }
                 }
 
                 // Window Cards List
@@ -497,9 +832,9 @@ PanelWindow {
 
                                 Text {
                                     anchors.centerIn: parent
-                                    text: cardRoot.modelData.title?.charAt(0)?.toUpperCase() ?? "󰣆"
-                                    font.family: "Inter Variable"
-                                    font.pixelSize: 16
+                                    text: cardRoot.modelData.fallbackIcon ?? "󰣆"
+                                    font.family: cardRoot.modelData.fallbackIsMdi ? "Material Design Icons" : "Inter Variable"
+                                    font.pixelSize: cardRoot.modelData.fallbackIsMdi ? 18 : 16
                                     font.weight: Font.Bold
                                     color: cardRoot.isSelected ? root.cPrimary : root.cSubText
                                     visible: !itemIcon.visible
@@ -551,7 +886,7 @@ PanelWindow {
 
                                     Text {
                                         id: wsBadgeText
-                                        text: cardRoot.modelData.monitorName ? `${cardRoot.modelData.monitorName}:${cardRoot.modelData.wsName}` : `WS ${cardRoot.modelData.wsName}`
+                                        text: cardRoot.modelData.monitorName ? `${cardRoot.modelData.monitorName} : WS ${cardRoot.modelData.wsName}` : `WS ${cardRoot.modelData.wsName}`
                                         font.family: "Inter Variable"
                                         font.pixelSize: 11
                                         font.weight: Font.DemiBold

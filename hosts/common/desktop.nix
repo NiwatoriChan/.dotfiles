@@ -23,13 +23,12 @@
 
   # Dconf — required for Home Manager GTK theme management
   programs.dconf.enable = true;
-
   # AppImage support
   programs.appimage.enable = true;
   programs.appimage.binfmt = true;
 
   # KDE Connect configurations
-  home-manager.users.niwatorichan.services.kdeconnect.enable = true;
+  home-manager.users.niwatorichan.services.kdeconnect.enable = true
 
   networking.firewall = rec {
     allowedTCPPortRanges = [ { from = 1714; to = 1764; } ];

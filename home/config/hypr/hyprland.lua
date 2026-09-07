@@ -388,7 +388,17 @@ hl.window_rule({
 hl.window_rule({
     name = "suppress-wine-dummy-windows",
     match = {
-        title = "^(Default IME|MSCTFIME UI|OleMainThreadWndName|Direct3D.*|IDirect3D.*)$",
+        title = "^(Default IME|MSCTFIME UI|OleMainThreadWndName|Wine System Tray|Direct3D.*|IDirect3D.*|Wine Gecko Installer|Wine Mono Installer)$",
+    },
+    no_focus = true,
+    no_initial_focus = true,
+})
+
+-- Suppress Wine background daemons and service processes
+hl.window_rule({
+    name = "suppress-wine-daemons",
+    match = {
+        class = "^(wineboot\\.exe|services\\.exe|winedevice\\.exe|plugplay\\.exe|tabtip\\.exe)$",
     },
     no_focus = true,
     no_initial_focus = true,

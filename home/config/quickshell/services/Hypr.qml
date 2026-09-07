@@ -30,6 +30,7 @@ Singleton {
 
         if (trimmed.startsWith("focuswindow address:")) {
             let addr = trimmed.substring("focuswindow address:".length).trim();
+            while (addr.startsWith("0x0x")) addr = addr.substring(2);
             if (!addr.startsWith("0x")) addr = "0x" + addr;
             Hyprland.dispatch(`hl.dsp.focus({ window = "address:${addr}" })`);
             return;
