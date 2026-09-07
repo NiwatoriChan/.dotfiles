@@ -81,12 +81,16 @@ apply_mode() {
         kscreen-doctor "output.${OUTPUT}.mode.${mode_str}" >/dev/null 2>&1 || true
     fi
 
-    # 4. Notify user
-    if command -v hyprctl >/dev/null 2>&1; then
-        hyprctl notify 1 3000 0 "Display: Switched to $label" >/dev/null 2>&1 || true
+    # 4. Ensure XWayland / Wine games recognize DP-1 as primary display
+    if command -v xrandr >/dev/null 2>&1; then
+        xrandr --output "$OUTPUT" --primary >/dev/null 2>&1 || true
     fi
+
+    # 5. Notify user (clean desktop notification without broken image preview)
     if command -v notify-send >/dev/null 2>&1; then
-        notify-send -a "Display Switcher" -i video-display "Display Resolution" "Main display ($OUTPUT) set to $label" 2>/dev/null || true
+        notify-send -a "Display Settings" "Display Resolution" "Main display ($OUTPUT) set to $label" 2>/dev/null || true
+    elif command -v hyprctl >/dev/null 2>&1; then
+        hyprctl notify -1 3000 0 "Display: Switched to $label" >/dev/null 2>&1 || true
     fi
 
     # 5. Restore wallpaper geometry if wallpaper-picker is available

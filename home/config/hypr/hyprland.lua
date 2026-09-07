@@ -139,6 +139,9 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("wlsunset -t 4000 -T 4000")
     hl.exec_cmd("hypridle")
     hl.exec_cmd("hyprctl setcursor breeze_cursors 24")
+    if hostname == "PwPoulet" or hostname == "" then
+        hl.exec_cmd("xrandr --output DP-1 --primary")
+    end
 end)
 
 -------------------------------
@@ -397,6 +400,44 @@ hl.window_rule({
     match = { class = "^(steam_app_.*)$" },
     immediate = true,
 })
+
+-- On PwPoulet, ensure all games and emulators open on DP-1 (main 144Hz VRR display)
+if hostname == "PwPoulet" or hostname == "" then
+    local game_classes = {
+        "^(steam_app_.*)$",               -- Steam games (Native and Proton)
+        "^([Gg]amescope)$",               -- Gamescope sessions
+        "^([Ll]utris)$",                  -- Lutris games
+        "^([Hh]eroic)$",                  -- Heroic Games Launcher
+        ".*\\.exe$",                      -- Wine/Proton Windows executables
+        ".*\\.EXE$",                      -- Wine/Proton Windows executables
+        "^([Rr]pcs3)$",                   -- RPCS3 PS3 Emulator
+        "^([Rr]yujinx)$",                 -- Ryujinx Switch Emulator
+        "^([Pp]csx2.*)$",                 -- PCSX2 PS2 Emulator
+        "^([Rr]etroarch)$",               -- RetroArch
+        "^([Dd]olphin-emu)$",             -- Dolphin GameCube/Wii Emulator
+        "^([Dd]uckstation.*)$",           -- DuckStation PS1 Emulator
+        "^([Vv]ita3[Kk])$",               -- Vita3K PS Vita Emulator
+        "^([Xx]enia.*)$",                 -- Xenia Xbox 360 Emulator
+        "^([Yy]uzu|[Ss]uyu|[Ee]den)$",    -- Yuzu/Suyu/Eden Switch Emulators
+        "^([Ee][Ss]-[Dd][Ee])$",          -- EmulationStation Desktop Edition
+        "^([Mm]inecraft.*)$",             -- Minecraft
+    }
+
+    for idx, pat in ipairs(game_classes) do
+        hl.window_rule({
+            name = "games-on-dp1-" .. idx,
+            match = { class = pat },
+            monitor = "DP-1",
+        })
+    end
+
+    -- Steam Big Picture mode
+    hl.window_rule({
+        name = "steam-bigpicture-on-dp1",
+        match = { class = "^(steam)$", title = "^(Steam Big Picture Mode)$" },
+        monitor = "DP-1",
+    })
+end
 
 -- Default: disable blur on all regular windows for maximum performance
 hl.window_rule({
