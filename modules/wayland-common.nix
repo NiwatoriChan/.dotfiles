@@ -158,6 +158,7 @@
     home.packages = with pkgs; [
       libsForQt5.qt5ct
       kdePackages.qt6ct
+      mako
     ];
 
     # Blurry transparent centered Wayland application launcher with icons (Fuzzel)
@@ -194,20 +195,20 @@
     };
 
     # Mako Notification Daemon
-    services.mako = {
-      enable = true;
-      extraConfig = ''
-        font=Inter Variable 10
-        background-color=#121212cc
-        text-color=#e0e0e0ff
-        border-color=#ffffff20
-        border-size=2
-        border-radius=12
-        default-timeout=5000
-        margin=10
-        padding=15
-      '';
-    };
+    # services.mako is disabled to prevent D-Bus auto-activation conflicts with Quickshell.
+    # mako is installed via home.packages and configured here for standalone use (e.g., MangoWM).
+    services.mako.enable = false;
+    xdg.configFile."mako/config".text = ''
+      font=Inter Variable 10
+      background-color=#121212cc
+      text-color=#e0e0e0ff
+      border-color=#ffffff20
+      border-size=2
+      border-radius=12
+      default-timeout=5000
+      margin=10
+      padding=15
+    '';
 
     # KDE PolicyKit Authentication Agent for Wayland WMs (MangoWM, Hyprland)
     systemd.user.services.polkit-kde-authentication-agent-1 = {
@@ -224,7 +225,7 @@
         TimeoutStopSec = 10;
       };
       Install = {
-        WantedBy = [ "graphical-session.target" ];
+        WantedBy = [ "graphical-session.target" "default.target" ];
       };
     };
 

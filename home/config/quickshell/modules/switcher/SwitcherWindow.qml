@@ -53,7 +53,7 @@ PanelWindow {
 
         function toggle(): void {
             if (root.shouldShow) {
-                root.closeSwitcher()
+                root.selectNext()
             } else {
                 root.openSwitcher()
             }
@@ -65,6 +65,31 @@ PanelWindow {
 
         function close(): void {
             root.closeSwitcher()
+        }
+
+        function next(): void {
+            if (!root.shouldShow) {
+                root.openSwitcher()
+            } else {
+                root.selectNext()
+            }
+        }
+
+        function prev(): void {
+            if (!root.shouldShow) {
+                root.openSwitcher()
+                if (root.visibleWindows.length > 1) {
+                    root.selectedIndex = root.visibleWindows.length - 1
+                }
+            } else {
+                root.selectPrev()
+            }
+        }
+
+        function release(): void {
+            if (root.shouldShow) {
+                root.confirmAndSwitch()
+            }
         }
     }
 
@@ -213,37 +238,18 @@ PanelWindow {
             candidates.push(lowerApp)
         }
 
-        // 7. Cross-reference with DesktopEntries
-        if (DesktopEntries?.applications?.values) {
-            const apps = DesktopEntries.applications.values
-            const targetClean = noExe.toLowerCase()
-            const targetTitle = (title || "").toLowerCase()
-
-            for (let i = 0; i < apps.length; ++i) {
-                const entry = apps[i]
-                if (!entry) continue
-
-                const entryId = (entry.id || "").toLowerCase()
-                const entryName = (entry.name || "").toLowerCase()
-                const entryWm = (entry.startupWmClass || "").toLowerCase()
-
-                let match = false
-                if (cleanApp && (entryId === `${lowerApp}.desktop` || entryId === `${targetClean}.desktop`)) match = true
-                else if (cleanApp && entryWm && (entryWm === lowerApp || entryWm === targetClean)) match = true
-                else if (targetClean && entryName === targetClean) match = true
-                else if (targetTitle && (entryName === targetTitle || (targetTitle.length > 3 && targetTitle.includes(entryName)))) match = true
-
-                if (match && entry.icon) {
-                    if (entry.icon.startsWith("/") || entry.icon.startsWith("file://")) {
-                        candidates.unshift(entry.icon)
-                    } else {
-                        candidates.push(entry.icon)
-                        candidates.push(entry.icon.toLowerCase())
-                    }
-                    break
+        // 7. Cross-reference with DesktopEntries via C++ heuristic lookup
+        try {
+            const de = DesktopEntries.heuristicLookup(noExe || cleanApp) || DesktopEntries.byId(cleanApp)
+            if (de && de.icon) {
+                if (de.icon.startsWith("/") || de.icon.startsWith("file://")) {
+                    candidates.unshift(de.icon)
+                } else {
+                    candidates.push(de.icon)
+                    candidates.push(de.icon.toLowerCase())
                 }
             }
-        }
+        } catch (e) {}
 
         // 8. Title-based hints (e.g. "Track Parcel — Mozilla Firefox", "Videos - Thunar")
         if (title) {
@@ -334,8 +340,22 @@ PanelWindow {
         return { icon: letter, isMdi: false }
     }
 
-    // Dynamic windows list
+    // MRU window ranking calculation
+    function computeWindowRank(addr, focusHistoryID, isActive) {
+        if (isActive) return 0
+        const mruIdx = QsServices.Hypr.getMruIndex(addr)
+        if (mruIdx >= 0) {
+            return mruIdx
+        }
+        if (typeof focusHistoryID === "number" && focusHistoryID >= 0) {
+            return focusHistoryID + 50
+        }
+        return 9999
+    }
+
+    // Dynamic windows list in true MRU order
     readonly property var allWindows: {
+        if (!root.shouldShow) return []
         const raw = Hyprland.toplevels?.values ?? []
         const list = []
         const activeHandle = Hyprland.activeToplevel?.handle
@@ -381,9 +401,17 @@ PanelWindow {
             const iconPath = root.resolveIcon(appId, title)
             const fallback = root.getFallbackData(appId, title)
 
+            let focusHistoryID = 9999
+            if (tl.lastIpcObject && typeof tl.lastIpcObject.focusHistoryID === "number") {
+                focusHistoryID = tl.lastIpcObject.focusHistoryID
+            }
+
             let rawAddr = (tl.address || tl.lastIpcObject?.address || "").trim()
             while (rawAddr.startsWith("0x0x")) rawAddr = rawAddr.substring(2)
             if (!rawAddr.startsWith("0x") && rawAddr.length > 0) rawAddr = "0x" + rawAddr
+            rawAddr = rawAddr.toLowerCase()
+
+            const rank = root.computeWindowRank(rawAddr, focusHistoryID, isActive)
 
             list.push({
                 toplevel: tl,
@@ -398,14 +426,17 @@ PanelWindow {
                 fallbackIsMdi: fallback.isMdi,
                 address: rawAddr,
                 lowerTitle: title.toLowerCase(),
-                lowerAppId: appId.toLowerCase()
+                lowerAppId: appId.toLowerCase(),
+                rank: rank,
+                focusHistoryID: focusHistoryID
             })
         }
 
-        // Put active window at index 0 or sort naturally
+        // Sort by MRU rank ascending, tie-breaking by wsId
         list.sort((a, b) => {
-            if (a.isActive) return -1
-            if (b.isActive) return 1
+            if (a.rank !== b.rank) {
+                return a.rank - b.rank
+            }
             return a.wsId - b.wsId
         })
 
@@ -433,8 +464,8 @@ PanelWindow {
         Hyprland.refreshWorkspaces()
         root.query = ""
         root.shouldShow = true
-        // Default to the 2nd window (previous window) if available, standard Alt-Tab behavior
-        root.selectedIndex = (allWindows.length > 1) ? 1 : 0
+        // Default to the 2nd window (latest seen window before the current one)
+        root.selectedIndex = (root.visibleWindows.length > 1) ? 1 : 0
         Qt.callLater(() => {
             searchField.forceActiveFocus()
             if (windowListView && root.selectedIndex >= 0) {
@@ -446,6 +477,16 @@ PanelWindow {
     function closeSwitcher() {
         root.shouldShow = false
         root.query = ""
+        Quickshell.execDetached(["hyprctl", "dispatch", "submap", "reset"])
+    }
+
+    function confirmAndSwitch() {
+        if (!root.shouldShow) return
+        if (visibleWindows.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < visibleWindows.length) {
+            root.activateWindow(visibleWindows[root.selectedIndex])
+        } else {
+            root.closeSwitcher()
+        }
     }
 
     function activateWindow(item) {
@@ -566,16 +607,31 @@ PanelWindow {
             event.accepted = true
             root.selectPrev()
         }
+        Keys.onRightPressed: (event) => {
+            event.accepted = true
+            root.selectNext()
+        }
+        Keys.onLeftPressed: (event) => {
+            event.accepted = true
+            root.selectPrev()
+        }
         Keys.onReturnPressed: (event) => {
             event.accepted = true
-            if (visibleWindows.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < visibleWindows.length) {
-                root.activateWindow(visibleWindows[root.selectedIndex])
-            }
+            root.confirmAndSwitch()
         }
         Keys.onDeletePressed: (event) => {
             event.accepted = true
             if (visibleWindows.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < visibleWindows.length) {
                 root.closeWindow(visibleWindows[root.selectedIndex])
+            }
+        }
+        Keys.onReleased: (event) => {
+            if (!root.shouldShow) return
+            const k = event.key
+            if (k === Qt.Key_Alt || k === Qt.Key_Meta ||
+                k === Qt.Key_Super_L || k === Qt.Key_Super_R) {
+                event.accepted = true
+                root.confirmAndSwitch()
             }
         }
 
@@ -666,8 +722,15 @@ PanelWindow {
                                 }
                                 Keys.onReturnPressed: (event) => {
                                     event.accepted = true
-                                    if (visibleWindows.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < visibleWindows.length) {
-                                        root.activateWindow(visibleWindows[root.selectedIndex])
+                                    root.confirmAndSwitch()
+                                }
+                                Keys.onReleased: (event) => {
+                                    if (!root.shouldShow) return
+                                    const k = event.key
+                                    if (k === Qt.Key_Alt || k === Qt.Key_Meta ||
+                                        k === Qt.Key_Super_L || k === Qt.Key_Super_R) {
+                                        event.accepted = true
+                                        root.confirmAndSwitch()
                                     }
                                 }
                             }

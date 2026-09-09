@@ -34,6 +34,28 @@
     };
   };
 
+  services.input-remapper = {
+    enable = true;
+    # Optional: enable udev rules for specific devices like controllers
+    enableUdevRules = true;
+  };
+
+  # Udev rules for gaming controllers (PlayStation DS4/DualSense, Xbox, Nintendo, etc.)
+  services.udev.packages = [ pkgs.game-devices-udev-rules ];
+
+  # Allow input-remapper GUI to run helper via pkexec without password prompt
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if ((action.id === "inputremapper" ||
+           (action.id === "org.freedesktop.policykit.exec" &&
+            action.lookup("program") &&
+            action.lookup("program").indexOf("input-remapper-control") !== -1)) &&
+          subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+      }
+    });
+  '';
+
   # Allow user niwatorichan to set CPU scaling governor without password prompt (for Quickshell)
   security.sudo.extraRules = [
     {

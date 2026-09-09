@@ -55,11 +55,16 @@ Singleton {
 
     NotificationServer {
         id: server
+        keepOnReload: false
         bodySupported: true
         bodyMarkupSupported: true
+        bodyHyperlinksSupported: true
         actionsSupported: true
         imageSupported: true
+        persistenceSupported: true
         onNotification: notif => {
+            if (notif.lastGeneration) return
+            notif.tracked = true
             root.addNotification(notif)
         }
     }
@@ -71,6 +76,9 @@ Singleton {
         reloadableId: "notifications-state"
     }
     
+    // Rapid duplicate suppression tracking
+    property var _lastNotifInfo: ({ appName: "", summary: "", body: "", time: 0 })
+
     // Cleanup timer to prevent memory leaks
     Timer {
         interval: 3600000  // Clean up every hour
@@ -97,7 +105,47 @@ Singleton {
             return;
         }
 
-        QsServices.Logger.debug("Notifs", `Adding notification: ${notif.summary}`)
+        const notifIdStr = `${notif.id}`
+        const now = Date.now()
+
+        // Rapid duplicate suppression: identical app, summary, and body within 1500ms
+        if (_lastNotifInfo.appName === (notif.appName || "") &&
+            _lastNotifInfo.summary === (notif.summary || "") &&
+            _lastNotifInfo.body === (notif.body || "") &&
+            (now - _lastNotifInfo.time) < 1500) {
+            QsServices.Logger.debug("Notifs", `Suppressing rapid duplicate: ${notif.summary}`)
+            return
+        }
+        _lastNotifInfo = {
+            appName: notif.appName || "",
+            summary: notif.summary || "",
+            body: notif.body || "",
+            time: now
+        }
+
+        // Check if this notification replaces an existing tracked notification
+        const existingIdx = root.notifications.findIndex(n => n && n.notifId === notifIdStr)
+        if (existingIdx !== -1) {
+            const existing = root.notifications[existingIdx]
+            existing.notification = notif
+            existing.summary = notif.summary
+            existing.body = notif.body
+            existing.appName = notif.appName
+            existing.appIcon = notif.appIcon
+            existing.image = notif.image
+            existing.urgency = notif.urgency
+            existing.actions = root._actionsToArray(notif.actions)
+            existing.timestamp = new Date()
+            existing.closed = false
+            existing.hasAnimated = true
+            // Move updated notification to top
+            const updatedList = root.notifications.filter((_, idx) => idx !== existingIdx)
+            root.notifications = [existing, ...updatedList]
+            QsServices.Logger.debug("Notifs", `Updated existing notification: ${notif.summary}`)
+            return
+        }
+
+        QsServices.Logger.info("Notifs", `Received notification [${notif.id}]: ${notif.appName || ""} - ${notif.summary}`)
         
         const notifWrapper = notifComponent.createObject(root, {
             notification: notif
@@ -244,9 +292,16 @@ Singleton {
             closed = true;
             
             // Only dismiss from the notification daemon, don't remove from list
-            if (notification) {
-                notification.dismiss();
+            try {
+                if (notification && typeof notification.dismiss === "function") {
+                    notification.dismiss();
+                }
+            } catch (e) {
+                // Ignore dismissal errors for stale/already-closed notifications
             }
+
+            // Force reactivity for activePopups, activeNotifications, etc.
+            root.notifications = [...root.notifications]
 
             QsServices.Logger.debug("Notifs", `Notification closed (kept in history): ${summary}`)
         }
@@ -284,8 +339,11 @@ Singleton {
     function deleteNotification(notif) {
         if (root.notifications.includes(notif)) {
             root.notifications = root.notifications.filter(n => n !== notif);
-            if (notif.notification) {
-                notif.notification.dismiss();
+            try {
+                if (notif.notification && typeof notif.notification.dismiss === "function") {
+                    notif.notification.dismiss();
+                }
+            } catch (e) {
             }
             notif.destroy();
             QsServices.Logger.debug("Notifs", "Notification permanently deleted")

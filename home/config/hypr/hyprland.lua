@@ -129,8 +129,7 @@ local menu        = "quickshell ipc call launcher toggle"
 
 hl.on("hyprland.start", function () 
     hl.exec_cmd("xhost +si:localuser:root")
-    -- hl.exec_cmd("waybar")
-    hl.exec_cmd("quickshell")  -- Waybar-style bar; swap with waybar above to try
+    hl.exec_cmd("quickshell -n")  -- Waybar-style bar; -n prevents duplicate instances
     -- hl.exec_cmd("mako")     -- Handled natively by Quickshell NotificationServer
     hl.exec_cmd("awww-daemon")
     hl.exec_cmd("/home/niwatorichan/.dotfiles/home/config/scripts/wallpaper-picker.sh --restore")
@@ -298,8 +297,37 @@ hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("quickshell ipc call wallpaper toggle"))
 hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("quickshell ipc call controlcenter toggle"))
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("quickshell ipc call dashboard toggle"))
-hl.bind(mainMod .. " + Tab", hl.dsp.exec_cmd("quickshell ipc call switcher toggle"))
-hl.bind("ALT + Tab", hl.dsp.exec_cmd("quickshell ipc call switcher toggle"))
+-- Application Switcher (Alt+Tab / Super+Tab)
+hl.bind("ALT + Tab", hl.dsp.exec_cmd("quickshell ipc call switcher next; hyprctl dispatch submap switcher"))
+hl.bind("ALT + SHIFT + Tab", hl.dsp.exec_cmd("quickshell ipc call switcher prev; hyprctl dispatch submap switcher"))
+hl.bind(mainMod .. " + Tab", hl.dsp.exec_cmd("quickshell ipc call switcher next; hyprctl dispatch submap switcher"))
+hl.bind(mainMod .. " + SHIFT + Tab", hl.dsp.exec_cmd("quickshell ipc call switcher prev; hyprctl dispatch submap switcher"))
+
+hl.define_submap("switcher", function()
+    -- Tab cycling while in switcher
+    hl.bind("Tab", hl.dsp.exec_cmd("quickshell ipc call switcher next"))
+    hl.bind("SHIFT + Tab", hl.dsp.exec_cmd("quickshell ipc call switcher prev"))
+    hl.bind("ALT + Tab", hl.dsp.exec_cmd("quickshell ipc call switcher next"))
+    hl.bind("ALT + SHIFT + Tab", hl.dsp.exec_cmd("quickshell ipc call switcher prev"))
+    hl.bind(mainMod .. " + Tab", hl.dsp.exec_cmd("quickshell ipc call switcher next"))
+    hl.bind(mainMod .. " + SHIFT + Tab", hl.dsp.exec_cmd("quickshell ipc call switcher prev"))
+
+    -- Arrow keys navigation
+    hl.bind("right", hl.dsp.exec_cmd("quickshell ipc call switcher next"))
+    hl.bind("down", hl.dsp.exec_cmd("quickshell ipc call switcher next"))
+    hl.bind("left", hl.dsp.exec_cmd("quickshell ipc call switcher prev"))
+    hl.bind("up", hl.dsp.exec_cmd("quickshell ipc call switcher prev"))
+
+    -- Confirmation and dismissal
+    hl.bind("Return", hl.dsp.exec_cmd("quickshell ipc call switcher release; hyprctl dispatch submap reset"))
+    hl.bind("Escape", hl.dsp.exec_cmd("quickshell ipc call switcher close; hyprctl dispatch submap reset"))
+
+    -- Release modifiers to switch (when leaving Alt or Super)
+    hl.bind("Alt_L", hl.dsp.exec_cmd("quickshell ipc call switcher release; hyprctl dispatch submap reset"), { release = true })
+    hl.bind("Alt_R", hl.dsp.exec_cmd("quickshell ipc call switcher release; hyprctl dispatch submap reset"), { release = true })
+    hl.bind("Super_L", hl.dsp.exec_cmd("quickshell ipc call switcher release; hyprctl dispatch submap reset"), { release = true })
+    hl.bind("Super_R", hl.dsp.exec_cmd("quickshell ipc call switcher release; hyprctl dispatch submap reset"), { release = true })
+end)
 
 -- Window Actions
 hl.bind(mainMod .. " + X", hl.dsp.window.close())

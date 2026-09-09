@@ -68,27 +68,84 @@ Singleton {
         }
     }
 
+    // Debounced refresh timers to avoid IPC flooding
+    Timer {
+        id: debounceWorkspaces
+        interval: 150
+        repeat: false
+        onTriggered: Hyprland.refreshWorkspaces()
+    }
+
+    Timer {
+        id: debounceMonitors
+        interval: 150
+        repeat: false
+        onTriggered: Hyprland.refreshMonitors()
+    }
+
+    // MRU window address tracking
+    property var mruAddresses: []
+
+    function normalizeAddress(addr: string): string {
+        if (!addr) return "";
+        let clean = addr.trim().toLowerCase();
+        while (clean.startsWith("0x0x")) clean = clean.substring(2);
+        if (!clean.startsWith("0x") && clean.length > 0) clean = "0x" + clean;
+        return clean;
+    }
+
+    function recordActiveWindow(): void {
+        const cur = Hyprland.activeToplevel;
+        if (!cur) return;
+        let addr = (cur.address || cur.lastIpcObject?.address || "").trim();
+        if (!addr && cur.handle !== undefined) {
+            addr = `${cur.handle}`;
+        }
+        addr = normalizeAddress(addr);
+        if (!addr) return;
+
+        const next = [addr];
+        for (let i = 0; i < mruAddresses.length; ++i) {
+            if (mruAddresses[i] !== addr) {
+                next.push(mruAddresses[i]);
+            }
+        }
+        if (next.length > 50) next.length = 50;
+        mruAddresses = next;
+    }
+
+    function getMruIndex(addr: string): int {
+        const clean = normalizeAddress(addr);
+        if (!clean) return -1;
+        return mruAddresses.indexOf(clean);
+    }
+
     Connections {
         target: Hyprland
 
+        function onActiveToplevelChanged(): void {
+            recordActiveWindow();
+        }
+
         function onRawEvent(event: var): void {
             const n = event.name;
-            if (n.endsWith("v2"))
+            if (!n || n.endsWith("v2"))
                 return;
 
-            // More aggressive refresh for workspace changes
             if (["workspace", "moveworkspace", "activespecial", "focusedmon", "activewindow"].includes(n)) {
-                Hyprland.refreshWorkspaces();
-                Hyprland.refreshMonitors();
+                debounceWorkspaces.restart();
+                debounceMonitors.restart();
+                if (n === "activewindow") {
+                    recordActiveWindow();
+                }
             } else if (["openwindow", "closewindow", "movewindow"].includes(n)) {
-                Hyprland.refreshToplevels();
-                Hyprland.refreshWorkspaces();
-            } else if (n.includes("workspace")) {
-                Hyprland.refreshWorkspaces();
-            } else if (n.includes("window")) {
-                Hyprland.refreshToplevels();
-                Hyprland.refreshWorkspaces();
+                debounceWorkspaces.restart();
             }
         }
     }
+
+    Component.onCompleted: {
+        recordActiveWindow();
+    }
 }
+

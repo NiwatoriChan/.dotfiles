@@ -156,37 +156,18 @@ Item {
             candidates.push(lowerApp);
         }
 
-        // DesktopEntries
-        if (DesktopEntries?.applications?.values) {
-            const apps = DesktopEntries.applications.values;
-            const targetClean = noExe.toLowerCase();
-            const targetTitle = title.toLowerCase();
-
-            for (let i = 0; i < apps.length; ++i) {
-                const entry = apps[i];
-                if (!entry) continue;
-
-                const entryId = (entry.id || "").toLowerCase();
-                const entryName = (entry.name || "").toLowerCase();
-                const entryWm = (entry.startupWmClass || "").toLowerCase();
-
-                let match = false;
-                if (cleanApp && (entryId === `${lowerApp}.desktop` || entryId === `${targetClean}.desktop`)) match = true;
-                else if (cleanApp && entryWm && (entryWm === lowerApp || entryWm === targetClean)) match = true;
-                else if (targetClean && entryName === targetClean) match = true;
-                else if (targetTitle && (entryName === targetTitle || (targetTitle.length > 3 && targetTitle.includes(entryName)))) match = true;
-
-                if (match && entry.icon) {
-                    if (entry.icon.startsWith("/") || entry.icon.startsWith("file://")) {
-                        candidates.unshift(entry.icon);
-                    } else {
-                        candidates.push(entry.icon);
-                        candidates.push(entry.icon.toLowerCase());
-                    }
-                    break;
+        // DesktopEntries lookup via C++ heuristic lookup
+        try {
+            const de = DesktopEntries.heuristicLookup(noExe || cleanApp) || DesktopEntries.byId(cleanApp);
+            if (de && de.icon) {
+                if (de.icon.startsWith("/") || de.icon.startsWith("file://")) {
+                    candidates.unshift(de.icon);
+                } else {
+                    candidates.push(de.icon);
+                    candidates.push(de.icon.toLowerCase());
                 }
             }
-        }
+        } catch (e) {}
 
         // Title hints
         if (title) {

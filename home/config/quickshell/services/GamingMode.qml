@@ -77,7 +77,7 @@ Singleton {
         QsServices.Logger.info("GamingMode", `Setting CPU governor to: ${governor}`)
         cpuGovernorProc.exec([
             "sh", "-c",
-            "printf '%s' \"$1\" | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor",
+            "printf '%s' \"$1\" | sudo -n tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor 2>/dev/null || true",
             "sh", governor
         ])
     }

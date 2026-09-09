@@ -35,6 +35,12 @@
         AutoEnable = true;
       };
     };
+    input = {
+      General = {
+        ClassicBondedOnly = false;
+        UserspaceHID = true;
+      };
+    };
   };
 
   # Printing

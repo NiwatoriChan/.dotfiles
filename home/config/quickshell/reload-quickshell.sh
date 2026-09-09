@@ -3,11 +3,13 @@
 
 echo "Stopping QuickShell..."
 quickshell kill 2>/dev/null || true
-sleep 0.3
+pkill -9 -x .quickshell-wra 2>/dev/null || true
+pkill -9 -x quickshell 2>/dev/null || true
+sleep 0.5
 
-# Start new instance
+# Start new instance with duplicate protection
 echo "Starting QuickShell..."
-quickshell -d
+quickshell -n -d
 
 echo "Done."
 

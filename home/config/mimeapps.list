@@ -1,6 +1,6 @@
 [Added Associations]
 inode/directory=thunar.desktop;
-application/zip=xarchiver.desktop;
+application/zip=org.gnome.FileRoller.desktop;xarchiver.desktop;
 application/x-tar=xarchiver.desktop;
 application/x-compressed-tar=xarchiver.desktop;
 application/x-bzip-compressed-tar=xarchiver.desktop;

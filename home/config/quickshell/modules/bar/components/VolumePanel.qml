@@ -180,7 +180,7 @@ FocusScope {
 
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: Math.min(deviceList.contentHeight + 8, 120)
+                Layout.preferredHeight: audio.sinks.length === 0 ? 44 : Math.min(deviceList.contentHeight + 8, 120)
                 radius: 16
                 color: Qt.rgba(cSurfaceContainerHigh.r, cSurfaceContainerHigh.g, cSurfaceContainerHigh.b, 0.4)
                 clip: true
@@ -265,7 +265,7 @@ FocusScope {
 
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: Math.min(appList.contentHeight + 8, 220)
+                Layout.preferredHeight: audio.streams.length === 0 ? 44 : Math.min(appList.contentHeight + 8, 220)
                 radius: 16
                 color: Qt.rgba(cSurfaceContainerHigh.r, cSurfaceContainerHigh.g, cSurfaceContainerHigh.b, 0.4)
                 clip: true
@@ -453,5 +453,9 @@ FocusScope {
                 }
             }
         }
+    }
+
+    Component.onCompleted: {
+        audio.refreshStatus()
     }
 }
