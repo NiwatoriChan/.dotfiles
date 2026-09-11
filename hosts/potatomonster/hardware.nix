@@ -20,7 +20,10 @@
 
   hardware.nvidia = {
     modesetting.enable = true;
-    powerManagement.enable = true;
+    # Disable experimental systemd power management (nvidia-suspend.service).
+    # On GTX 960M / Optimus, nvidia-sleep.sh writing to procfs causes a kernel NULL
+    # pointer dereference in nvidia_uvm (nv_kthread_q_flush) during suspend.
+    powerManagement.enable = false;
     powerManagement.finegrained = false;
 
     open = false;
@@ -69,6 +72,7 @@ services.auto-cpufreq.settings = {
 };
 
 boot.kernelParams = [ "mitigations=off" ];
+boot.blacklistedKernelModules = [ "nvidia_uvm" ];
 
 services.tlp = {
       enable = true;
