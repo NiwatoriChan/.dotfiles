@@ -616,9 +616,10 @@ hl.layer_rule({
 })
 
 hl.layer_rule({
-    name  = "blur-mako",
-    match = { namespace = "mako" },
-    blur  = true,
+    name         = "blur-notifications",
+    match        = { namespace = "^(notifications|mako)$" },
+    blur         = true,
+    ignore_alpha = 0.2,
 })
 
 hl.layer_rule({

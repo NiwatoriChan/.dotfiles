@@ -48,7 +48,7 @@ PanelWindow {
 
     // ── Window Setup ──
     screen: Quickshell.screens[0]
-    WlrLayershell.namespace: "quickshell"
+    WlrLayershell.namespace: "notifications"
     WlrLayershell.layer: WlrLayer.Overlay
     anchors { top: true; right: true }
     margins { top: config.notifications.margin; right: config.notifications.margin }
@@ -311,16 +311,6 @@ PanelWindow {
 
                         Behavior on border.color {
                             ColorAnimation { duration: 150; easing.type: Easing.OutCubic }
-                        }
-
-                        // Elevation shadow — lifts on hover
-                        layer.enabled: true
-                        layer.effect: MultiEffect {
-                            shadowEnabled: true
-                            shadowColor: Qt.rgba(0, 0, 0,
-                                notifCard.isHovered ? 0.38 : 0.24)
-                            shadowBlur: notifCard.isHovered ? 0.85 : 0.55
-                            shadowVerticalOffset: notifCard.isHovered ? 8 : 4
                         }
 
                         // ── Top accent stripe (urgency indicator) ──

@@ -56,6 +56,11 @@ ShellRoot {
     Loader {
         id: notificationPopupsLoader
         source: "modules/bar/components/NotificationPopups.qml"
+        onStatusChanged: {
+            if (status === Loader.Error) {
+                QsServices.Logger.error("Shell", "notificationPopupsLoader error: " + sourceComponent.errorString())
+            }
+        }
     }
 
     Component.onCompleted: {
