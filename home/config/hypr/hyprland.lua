@@ -128,6 +128,10 @@ local menu        = "quickshell ipc call launcher toggle"
 -------------------
 
 hl.on("hyprland.start", function () 
+    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
+    hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
+    hl.exec_cmd("systemctl --user restart xdg-desktop-portal-hyprland")
+    hl.exec_cmd("systemctl --user restart xdg-desktop-portal")
     hl.exec_cmd("xhost +si:localuser:root")
     hl.exec_cmd("quickshell -n")  -- Waybar-style bar; -n prevents duplicate instances
     -- hl.exec_cmd("mako")     -- Handled natively by Quickshell NotificationServer
