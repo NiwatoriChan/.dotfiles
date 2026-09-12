@@ -497,6 +497,11 @@ PanelWindow {
     }
 
     function openLauncher() {
+        const mon = QsServices.Hypr.focusedMonitor
+        if (mon && mon.name) {
+            const found = Quickshell.screens.find(s => s.name === mon.name)
+            if (found) root.screen = found
+        }
         shouldShow = true
         searchField.text = ""
         query = ""
@@ -579,7 +584,14 @@ PanelWindow {
         }
     }
 
-    screen: Quickshell.screens[0]
+    screen: {
+        const mon = QsServices.Hypr.focusedMonitor
+        if (mon && mon.name) {
+            const found = Quickshell.screens.find(s => s.name === mon.name)
+            if (found) return found
+        }
+        return Quickshell.screens[0] ?? null
+    }
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: shouldShow ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
