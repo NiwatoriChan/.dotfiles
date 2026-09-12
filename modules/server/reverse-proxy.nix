@@ -41,6 +41,7 @@ in
       };
 
       "jeff.lan" = {
+        serverAliases = [ "192.168.0.10" ];
         forceSSL = true;
         sslCertificate = sslCert;
         sslCertificateKey = sslKey;

@@ -30,5 +30,7 @@
 
   boot.kernelParams = [
     "amd_iommu=off"
+    "processor.max_cstate=1"
+    "idle=nomwait"
   ];
 }

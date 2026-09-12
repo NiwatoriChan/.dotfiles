@@ -11,7 +11,6 @@
     ./dns.nix
     ./transmission.nix
     ./jellyfin.nix
-    ./nextcloud.nix
   ];
 
   # --- System-Level (NixOS) Configuration ---

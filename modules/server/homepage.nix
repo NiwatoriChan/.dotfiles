@@ -60,7 +60,7 @@
           {
             Jellyfin = {
               icon = "jellyfin.png";
-              href = "https://jellyfin.jeff.lan";
+              href = "http://192.168.0.10:8096";
               description = "Media Streaming Server";
               widget = {
                 type = "jellyfin";
@@ -71,7 +71,7 @@
           {
             Transmission = {
               icon = "transmission.png";
-              href = "https://transmission.jeff.lan";
+              href = "http://192.168.0.10:9091";
               description = "Torrent Downloader";
               widget = {
                 type = "transmission";
@@ -83,13 +83,6 @@
       }
       {
         "Network Services" = [
-          {
-            Nextcloud = {
-              icon = "nextcloud.png";
-              href = "https://nextcloud.jeff.lan";
-              description = "Cloud Storage & Collaboration";
-            };
-          }
           {
             Samba = {
               icon = "samba.png";
@@ -107,4 +100,7 @@
       }
     ];
   };
+
+  # Open port 8082 in the firewall so the dashboard is accessible directly on the LAN
+  networking.firewall.allowedTCPPorts = [ 8082 ];
 }
