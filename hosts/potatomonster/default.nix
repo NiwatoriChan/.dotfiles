@@ -4,6 +4,11 @@
 
 {
   imports = [
+    (if builtins.pathExists ./hardware-configuration.nix
+     then ./hardware-configuration.nix
+     else if builtins.pathExists /etc/nixos/hardware-configuration.nix
+     then /etc/nixos/hardware-configuration.nix
+     else {})
     ../common
     ./hardware.nix
     ../../modules/hyprland.nix

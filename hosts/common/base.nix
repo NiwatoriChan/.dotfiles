@@ -3,7 +3,6 @@
 
 {
   imports = [
-    /etc/nixos/hardware-configuration.nix
     ../../modules/secrets.nix
   ];
 
