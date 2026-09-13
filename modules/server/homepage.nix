@@ -79,6 +79,17 @@
               };
             };
           }
+          {
+            RomM = {
+              icon = "romm.png";
+              href = "https://romm.jeff.lan";
+              description = "Retro ROM Manager & Player";
+              widget = {
+                type = "romm";
+                url = "http://127.0.0.1:8083";
+              };
+            };
+          }
         ];
       }
       {

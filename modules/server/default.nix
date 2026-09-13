@@ -11,6 +11,7 @@
     ./dns.nix
     ./transmission.nix
     ./jellyfin.nix
+    ./romm.nix
   ];
 
   # --- System-Level (NixOS) Configuration ---

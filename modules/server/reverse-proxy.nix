@@ -66,6 +66,18 @@ in
           proxyPass = "http://127.0.0.1:9091";
         };
       };
+      "romm.jeff.lan" = {
+        forceSSL = true;
+        sslCertificate = sslCert;
+        sslCertificateKey = sslKey;
+        extraConfig = ''
+          client_max_body_size 1000M;
+        '';
+        locations."/" = {
+          proxyPass = "http://127.0.0.1:8083";
+          proxyWebsockets = true;
+        };
+      };
     };
   };
 
