@@ -44,6 +44,9 @@
   # Xfconf configuration daemon (required for saving Thunar preferences)
   programs.xfconf.enable = true;
 
+  # Dconf configuration daemon
+  programs.dconf.enable = true;
+
   # Default applications — Directories → Thunar, Archives → Xarchiver
   xdg.mime.defaultApplications = {
     "inode/directory" = "thunar.desktop";

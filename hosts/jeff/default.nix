@@ -38,4 +38,10 @@
     "processor.max_cstate=1"
     "idle=nomwait"
   ];
+
+  # Terminal and Browser
+  programs.firefox.enable = true;
+  environment.systemPackages = with pkgs; [
+    kitty
+  ];
 }

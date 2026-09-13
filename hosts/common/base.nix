@@ -60,6 +60,9 @@
   # Zsh — enabled system-wide so it's a valid login shell
   programs.zsh.enable = true;
 
+  # Dconf — required for Home Manager GTK / desktop configuration
+  programs.dconf.enable = true;
+
   # Polkit — required for privilege escalation
   security.polkit.enable = true;
 
