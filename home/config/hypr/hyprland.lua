@@ -432,11 +432,11 @@ hl.window_rule({
     no_initial_focus = true,
 })
 
--- Suppress Wine background daemons and service processes
+-- Suppress Wine/Proton background daemons and service processes
 hl.window_rule({
     name = "suppress-wine-daemons",
     match = {
-        class = "^(wineboot\\.exe|services\\.exe|winedevice\\.exe|plugplay\\.exe|tabtip\\.exe)$",
+        class = "^(wineboot\\.exe|services\\.exe|winedevice\\.exe|plugplay\\.exe|tabtip\\.exe|conhost\\.exe|svchost\\.exe|rpcss\\.exe|rundll32\\.exe|gldriverquery|vulkandriverquery|fossilize-replay|pressure-vessel|UnityCrashHandler.*|CrashReportClient.*)$",
     },
     no_focus = true,
     no_initial_focus = true,

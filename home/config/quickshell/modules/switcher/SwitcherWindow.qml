@@ -98,33 +98,33 @@ PanelWindow {
 
     // Window validity filter — strips Wine / Proton dummy handles, unmapped surfaces & zero-sized helpers
     function isValidWindow(tl) {
-        if (!tl) return false
+        if (!tl) return false;
 
-        // 1. Child / Popup / Subsurface check
-        if (tl.wayland?.parent) return false
+        // 1. If it has a wayland parent, it's a child / popup / dialog surface, not a main toplevel
+        if (tl.wayland?.parent) return false;
 
-        // 2. Hyprland metadata checks via lastIpcObject
+        // 2. Inspect lastIpcObject if available (Hyprland window metadata)
         if (tl.lastIpcObject) {
-            const ipc = tl.lastIpcObject
-            // Skip unmapped windows
-            if (ipc.mapped === false) return false
-            // Skip hidden windows
-            if (ipc.hidden === true) return false
-            // Skip dummy / zero-sized windows (Wine & XWayland helpers are typically 0x0 or 1x1)
-            if (ipc.size && (ipc.size[0] <= 1 || ipc.size[1] <= 1)) return false
+            const ipc = tl.lastIpcObject;
+            // Filter unmapped or hidden windows
+            if (ipc.mapped === false) return false;
+            if (ipc.hidden === true) return false;
+
+            // Filter dummy / zero-sized windows (e.g. 0x0 or 1x1 helper windows)
+            if (ipc.size && (ipc.size[0] <= 1 || ipc.size[1] <= 1)) return false;
         }
 
         // 3. Extract titles and classes
-        const title = (tl.title || tl.wayland?.title || tl.lastIpcObject?.title || "").trim()
-        const initialTitle = (tl.lastIpcObject?.initialTitle || "").trim()
-        const appClass = (tl.wayland?.appId || tl.lastIpcObject?.class || "").trim()
-        const initialClass = (tl.lastIpcObject?.initialClass || "").trim()
+        const title = (tl.title || tl.wayland?.title || tl.lastIpcObject?.title || "").trim();
+        const initialTitle = (tl.lastIpcObject?.initialTitle || "").trim();
+        const appClass = (tl.wayland?.appId || tl.lastIpcObject?.class || "").trim();
+        const initialClass = (tl.lastIpcObject?.initialClass || "").trim();
 
         // 4. Must have at least a meaningful title or class
-        if (!title && !appClass) return false
-        if (!title && (/^(xwayland|xwaylandvideobridge)$/i.test(appClass) || appClass.length === 0)) return false
+        if (!title && !appClass) return false;
+        if (!title && (/^(xwayland|xwaylandvideobridge)$/i.test(appClass) || appClass.length === 0)) return false;
 
-        // 5. Filter Wine / Proton / DirectX / System dummy helper window titles
+        // 5. Ignore Wine / Proton / DirectX / XWayland dummy & helper windows
         const wineDummyTitlePatterns = [
             /^Default IME$/i,
             /^MSCTFIME UI$/i,
@@ -138,12 +138,12 @@ PanelWindow {
             /^Desktop$/i,
             /^about:blank/i,
             /^Steam Keyboard$/i
-        ]
+        ];
 
         for (let i = 0; i < wineDummyTitlePatterns.length; ++i) {
-            const pat = wineDummyTitlePatterns[i]
-            if (pat.test(title)) return false
-            if (initialTitle && pat.test(initialTitle)) return false
+            const pat = wineDummyTitlePatterns[i];
+            if (pat.test(title)) return false;
+            if (initialTitle && pat.test(initialTitle)) return false;
         }
 
         // 6. Filter Wine helper daemons & background service classes
@@ -155,22 +155,21 @@ PanelWindow {
             /^tabtip\.exe$/i,
             /^conhost\.exe$/i,
             /^xwaylandvideobridge$/i
-        ]
+        ];
 
         for (let j = 0; j < wineDummyClassPatterns.length; ++j) {
-            const pat = wineDummyClassPatterns[j]
-            if (pat.test(appClass)) return false
-            if (initialClass && pat.test(initialClass)) return false
+            const pat = wineDummyClassPatterns[j];
+            if (pat.test(appClass)) return false;
+            if (initialClass && pat.test(initialClass)) return false;
         }
 
-        // Wine explorer.exe is only a tray/desktop dummy in Wine prefixes
         if (/^explorer\.exe$/i.test(appClass)) {
             if (!title || /^(wine system tray|desktop|explorer\.exe)$/i.test(title)) {
-                return false
+                return false;
             }
         }
 
-        return true
+        return true;
     }
 
     // Icon resolution helper with deep Steam, Wine, DesktopEntries, and fallback integration
@@ -355,7 +354,6 @@ PanelWindow {
 
     // Dynamic windows list in true MRU order
     readonly property var allWindows: {
-        if (!root.shouldShow) return []
         const raw = Hyprland.toplevels?.values ?? []
         const list = []
         const activeHandle = Hyprland.activeToplevel?.handle

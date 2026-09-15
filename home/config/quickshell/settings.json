@@ -1,6 +1,6 @@
 {
   "dndEnabled": false,
-  "caffeineEnabled": true,
+  "caffeineEnabled": false,
   "focusModeEnabled": false,
   "focusModeMinutesLeft": 25
 }
