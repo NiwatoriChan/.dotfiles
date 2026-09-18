@@ -17,7 +17,6 @@
     mission-center
 
     # Apps (shared across desktop machines)
-    discord
     mpv
     gnome-disk-utility
     moonlight-qt
@@ -26,7 +25,7 @@
     # Theming
     papirus-icon-theme
     sddm-astronaut
-  ];
+  ] ++ lib.optional (config.networking.hostName != "PotatoMonster") pkgs.discord;
 
   
 

@@ -1,21 +1,8 @@
 # Desktop shortcut overrides — rename or customise .desktop entries
-{ ... }:
+{ lib, osConfig ? null, ... }:
 
 {
   xdg.desktopEntries = {
-    # Rename the native Discord client in app launchers
-    discord = {
-      name = "Native Discord";
-      exec = "Discord";
-      icon = "discord";
-      terminal = false;
-      type = "Application";
-      categories = [ "Network" "InstantMessaging" ];
-      mimeType = [ "x-scheme-handler/discord" ];
-      startupNotify = false;
-      settings.StartupWMClass = "discord";
-    };
-
     # Force Gnome Disk Utility (Disks) to run as administrator/root and prompt for password
     "org.gnome.DiskUtility" = {
       name = "Disks";
@@ -38,6 +25,19 @@
       terminal = false;
       type = "Application";
       categories = [ "System" "Utility" ];
+    };
+  } // lib.optionalAttrs (osConfig == null || osConfig.networking.hostName != "PotatoMonster") {
+    # Rename the native Discord client in app launchers
+    discord = {
+      name = "Native Discord";
+      exec = "Discord";
+      icon = "discord";
+      terminal = false;
+      type = "Application";
+      categories = [ "Network" "InstantMessaging" ];
+      mimeType = [ "x-scheme-handler/discord" ];
+      startupNotify = false;
+      settings.StartupWMClass = "discord";
     };
   };
 }
