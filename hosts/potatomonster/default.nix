@@ -26,4 +26,16 @@
 
   # Hostname
   networking.hostName = "PotatoMonster";
+
+  # Overlay: remove password view toggle icon from SDDM Astronaut theme (PotatoMonster only)
+  nixpkgs.overlays = [
+    (final: prev: {
+      sddm-astronaut = prev.sddm-astronaut.overrideAttrs (old: {
+        installPhase = (old.installPhase or "") + ''
+          chmod -R u+w $out/share/sddm/themes/sddm-astronaut-theme
+          patch -p1 -d $out/share/sddm/themes/sddm-astronaut-theme < ${./patches/sddm-astronaut-remove-view-icon.patch}
+        '';
+      });
+    })
+  ];
 }
