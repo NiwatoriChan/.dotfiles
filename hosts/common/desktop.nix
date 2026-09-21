@@ -1,5 +1,5 @@
 # Desktop environment configuration — imported by graphical desktop/laptop hosts
-{ ... }:
+{ pkgs, ... }:
 
 {
   imports = [
@@ -24,8 +24,17 @@
   # Dconf — required for Home Manager GTK theme management
   programs.dconf.enable = true;
   # AppImage support
-  programs.appimage.enable = true;
-  programs.appimage.binfmt = true;
+  programs.appimage = {
+    enable = true;
+    binfmt = true;
+    package = pkgs.appimage-run.override {
+      extraPkgs = pkgs: with pkgs; [
+        icu
+        zlib
+        openssl
+      ];
+    };
+  };
 
   # KDE Connect configurations
   home-manager.users.niwatorichan.services.kdeconnect.enable = true;
