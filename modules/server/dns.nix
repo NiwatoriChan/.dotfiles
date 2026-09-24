@@ -8,6 +8,8 @@
       # Route jeff.lan and all subdomains (*.jeff.lan) to this server
       address = "/.jeff.lan/192.168.0.10";
       listen-address = "127.0.0.1,192.168.0.10,10.8.0.1";
+      bind-interfaces = true;
+      except-interface = "podman*";
 
       # Forward normal internet traffic to Cloudflare / Google
       server = [ "1.1.1.1" "8.8.8.8" ];

@@ -22,12 +22,25 @@ in
     "A+ ${romsDir} - - - - user:niwatorichan:rwx,group:users:rwx,default:user:niwatorichan:rwx,default:group:users:rwx"
   ];
 
-  # 2. Generate secret keys and environment files if missing
+  # 2. Podman network for isolated inter-container communication
+  systemd.services.podman-network-romm = {
+    description = "Create Podman network for RomM";
+    wantedBy = [ "multi-user.target" ];
+    before = [ "podman-romm-db.service" "podman-romm.service" ];
+    path = [ pkgs.podman ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.podman}/bin/podman network create --ignore romm-net";
+    };
+  };
+
+  # 3. Generate secret keys and environment files if missing
   systemd.services.romm-env-init = {
     description = "Initialize RomM environment and secret keys";
     wantedBy = [ "multi-user.target" ];
     before = [ "podman-romm-db.service" "podman-romm.service" ];
-    path = with pkgs; [ coreutils openssl ];
+    path = with pkgs; [ coreutils openssl podman gnused ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -35,6 +48,8 @@ in
     script = ''
       set -euo pipefail
       mkdir -p ${rommStateDir}
+
+      ${pkgs.podman}/bin/podman network create --ignore romm-net
 
       if [ ! -f "${dbEnvFile}" ]; then
         DB_PASSWORD=$(openssl rand -hex 16)
@@ -52,7 +67,7 @@ EOF
         source "${dbEnvFile}"
         ROMM_SECRET=$(openssl rand -hex 32)
         cat <<EOF > "${envFile}"
-DB_HOST=127.0.0.1
+DB_HOST=romm-db
 DB_PORT=3306
 DB_NAME=romm
 DB_USER=romm-user
@@ -67,11 +82,13 @@ SCAN_WORKERS=4
 WEB_SERVER_CONCURRENCY=4
 EOF
         chmod 0600 "${envFile}"
+      else
+        sed -i 's/^DB_HOST=.*/DB_HOST=romm-db/' "${envFile}"
       fi
     '';
   };
 
-  # 3. Create user-defined podman network 'romm-net' if needed, or run on host network for seamless local binding
+  # 4. Containers configuration
   virtualisation.oci-containers = {
     backend = "podman";
     containers = {
@@ -83,7 +100,8 @@ EOF
           "${rommStateDir}/db:/var/lib/mysql"
         ];
         extraOptions = [
-          "--net=host"
+          "--network=romm-net"
+          "--network-alias=romm-db"
         ];
       };
 
@@ -93,7 +111,7 @@ EOF
         dependsOn = [ "romm-db" ];
         environmentFiles = [ envFile ];
         ports = [
-          "127.0.0.1:${toString rommPort}:8080"
+          "${toString rommPort}:8080"
         ];
         volumes = [
           "${rommStateDir}/resources:/romm/resources"
@@ -103,28 +121,35 @@ EOF
           "${romsDir}:/romm/library"
         ];
         extraOptions = [
-          "--add-host=host.containers.internal:host-gateway"
+          "--network=romm-net"
+          "--network-alias=romm"
         ];
       };
     };
   };
 
-  # 4. Storage & initialization systemd unit dependencies
+  # 5. Storage & initialization systemd unit dependencies
   systemd.services.podman-romm-db = {
-    after = [ "mnt-exp6.mount" "romm-env-init.service" ];
-    wants = [ "mnt-exp6.mount" "romm-env-init.service" ];
-    requires = [ "mnt-exp6.mount" "romm-env-init.service" ];
+    after = [ "mnt-exp6.mount" "romm-env-init.service" "podman-network-romm.service" ];
+    wants = [ "mnt-exp6.mount" "romm-env-init.service" "podman-network-romm.service" ];
+    requires = [ "mnt-exp6.mount" "romm-env-init.service" "podman-network-romm.service" ];
     unitConfig = {
       RequiresMountsFor = [ "/mnt/exp6" rommStateDir ];
     };
   };
 
   systemd.services.podman-romm = {
-    after = [ "mnt-exp6.mount" "romm-env-init.service" "podman-romm-db.service" ];
-    wants = [ "mnt-exp6.mount" "romm-env-init.service" "podman-romm-db.service" ];
-    requires = [ "mnt-exp6.mount" "romm-env-init.service" "podman-romm-db.service" ];
+    after = [ "mnt-exp6.mount" "romm-env-init.service" "podman-network-romm.service" "podman-romm-db.service" ];
+    wants = [ "mnt-exp6.mount" "romm-env-init.service" "podman-network-romm.service" "podman-romm-db.service" ];
+    requires = [ "mnt-exp6.mount" "romm-env-init.service" "podman-network-romm.service" "podman-romm-db.service" ];
+    serviceConfig = {
+      RestartSec = "5s";
+    };
     unitConfig = {
       RequiresMountsFor = [ "/mnt/exp6" rommStateDir ];
     };
   };
+
+  # 6. Firewall rule for direct LAN access
+  networking.firewall.allowedTCPPorts = [ rommPort ];
 }
