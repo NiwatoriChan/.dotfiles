@@ -22,7 +22,7 @@ A modular, unified, and declarative NixOS flake configuration managing multiple 
 The system uses unified module blocks under `modules/` to manage target packages and environments:
 
 - **`hyprland.nix` / `mangowm.nix` / `kde.nix`**: Graphical environment declarations.
-- **`gaming.nix`**: Dedicated gaming packages (Steam, Lutris, Heroic Games Launcher).
+- **`gaming.nix`**: Dedicated gaming packages (Steam, Gamescope, Lutris, Heroic Games Launcher).
 - **`jovian-deck.nix` / `jovian-amd.nix`**: Steam Deck / Jovian compatibility layers.
 - **`server/`**: A segregated headless server stack including:
   - **Samba** (`samba.nix`): Restricted file sharing for the `niwatorichan` user.

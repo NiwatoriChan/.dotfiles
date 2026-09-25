@@ -1,4 +1,4 @@
-# Gaming system profile — Steam, Lutris, and Heroic
+# Gaming system profile — Steam, Gamescope, Lutris, and Heroic
 { pkgs, ... }:
 
 {
