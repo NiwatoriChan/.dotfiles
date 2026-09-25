@@ -13,6 +13,11 @@
     remotePlay.openFirewall = true;
   };
 
+  programs.gamescope = {
+    enable = true;
+    capSysNice = true;
+  };
+
   # Feral Interactive GameMode daemon & wrapper
   programs.gamemode = {
     enable = true;
