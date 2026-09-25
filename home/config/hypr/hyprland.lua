@@ -485,6 +485,15 @@ if hostname == "PwPoulet" or hostname == "" then
         match = { class = "^(steam)$", title = "^(Steam Big Picture Mode)$" },
         monitor = "DP-1",
     })
+
+    -- Steam notification toasts and helper popups
+    hl.window_rule({
+        name = "steam-notificationtoasts",
+        match = { title = "^(notificationtoasts.*)$" },
+        no_focus = true,
+        no_initial_focus = true,
+        float = true,
+    })
 end
 
 -- Default: disable blur on all regular windows for maximum performance

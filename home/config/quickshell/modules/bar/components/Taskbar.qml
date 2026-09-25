@@ -16,6 +16,12 @@ Item {
     function isValidTask(tl) {
         if (!tl) return false;
 
+        // 0. Filter out closed/ghost windows using authoritative live client registry
+        const rawAddr = (tl.address || tl.lastIpcObject?.address || "").trim();
+        if (rawAddr && !QsServices.Hypr.isAddressAlive(rawAddr)) {
+            return false;
+        }
+
         // 1. If it has a wayland parent, it's a child / popup / dialog surface, not a main toplevel
         if (tl.wayland?.parent) return false;
 
@@ -53,7 +59,9 @@ Item {
             /^Wine Mono Installer$/i,
             /^Desktop$/i,
             /^about:blank/i,
-            /^Steam Keyboard$/i
+            /^Steam Keyboard$/i,
+            /^notificationtoasts/i,
+            /^Steam Notification/i
         ];
 
         for (let i = 0; i < wineDummyTitlePatterns.length; ++i) {
@@ -156,20 +164,7 @@ Item {
             candidates.push(lowerApp);
         }
 
-        // DesktopEntries lookup via C++ heuristic lookup
-        try {
-            const de = DesktopEntries.heuristicLookup(noExe || cleanApp) || DesktopEntries.byId(cleanApp);
-            if (de && de.icon) {
-                if (de.icon.startsWith("/") || de.icon.startsWith("file://")) {
-                    candidates.unshift(de.icon);
-                } else {
-                    candidates.push(de.icon);
-                    candidates.push(de.icon.toLowerCase());
-                }
-            }
-        } catch (e) {}
-
-        // Title hints
+        // Title hints (check early, especially if class/appId is empty like Steam's bootstrapper)
         if (title) {
             const cleanTitle = title.toLowerCase();
             if (cleanTitle.includes("firefox")) candidates.push("firefox");
@@ -182,8 +177,24 @@ Item {
             else if (cleanTitle.includes("obsidian")) candidates.push("obsidian");
         }
 
+        // DesktopEntries lookup via C++ heuristic lookup (only if query is non-empty)
+        const lookupQuery = (noExe || cleanApp).trim();
+        if (lookupQuery.length > 0) {
+            try {
+                const de = DesktopEntries.heuristicLookup(lookupQuery) || DesktopEntries.byId(lookupQuery);
+                if (de && de.icon) {
+                    if (de.icon.startsWith("/") || de.icon.startsWith("file://")) {
+                        candidates.unshift(de.icon);
+                    } else {
+                        candidates.push(de.icon);
+                        candidates.push(de.icon.toLowerCase());
+                    }
+                }
+            } catch (e) {}
+        }
+
         // Gaming / Wine fallbacks
-        if (cleanApp.startsWith("steam_app_") || cleanApp.endsWith(".exe") || /^[Gg]amescope$/i.test(cleanApp)) {
+        if (cleanApp.startsWith("steam_app_") || cleanApp.endsWith(".exe") || /^[Gg]amescope$/i.test(cleanApp) || lowerApp === "steam" || (title && /steam/i.test(title))) {
             candidates.push("steam");
             candidates.push("applications-games");
             candidates.push("input-gaming");
@@ -225,7 +236,7 @@ Item {
         const cleanApp = appId.toLowerCase();
         const cleanTitle = title.toLowerCase();
 
-        if (cleanApp.startsWith("steam_app_") || cleanApp.endsWith(".exe") || cleanApp.includes("lutris") || cleanApp.includes("heroic") || cleanApp.includes("game")) {
+        if (cleanApp.startsWith("steam_app_") || cleanApp.endsWith(".exe") || cleanApp.includes("steam") || cleanTitle.includes("steam") || cleanApp.includes("lutris") || cleanApp.includes("heroic") || cleanApp.includes("game")) {
             return { icon: "󰊴", isMdi: true };
         }
         if (cleanApp.includes("kitty") || cleanApp.includes("terminal") || cleanApp.includes("alacritty") || cleanApp.includes("foot") || cleanTitle === "zsh" || cleanTitle === "bash") {
@@ -283,6 +294,7 @@ Item {
     }
 
     readonly property var toplevels: {
+        const _v = QsServices.Hypr.liveAddressesVersion
         const list = []
         for (const tl of Hyprland.toplevels.values) {
             if (isValidTask(tl) && taskMatchesScreen(tl))

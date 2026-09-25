@@ -100,6 +100,12 @@ PanelWindow {
     function isValidWindow(tl) {
         if (!tl) return false;
 
+        // 0. Filter out closed/ghost windows using authoritative live client registry
+        const rawAddr = (tl.address || tl.lastIpcObject?.address || "").trim();
+        if (rawAddr && !QsServices.Hypr.isAddressAlive(rawAddr)) {
+            return false;
+        }
+
         // 1. If it has a wayland parent, it's a child / popup / dialog surface, not a main toplevel
         if (tl.wayland?.parent) return false;
 
@@ -137,7 +143,9 @@ PanelWindow {
             /^Wine Mono Installer$/i,
             /^Desktop$/i,
             /^about:blank/i,
-            /^Steam Keyboard$/i
+            /^Steam Keyboard$/i,
+            /^notificationtoasts/i,
+            /^Steam Notification/i
         ];
 
         for (let i = 0; i < wineDummyTitlePatterns.length; ++i) {
@@ -237,20 +245,7 @@ PanelWindow {
             candidates.push(lowerApp)
         }
 
-        // 7. Cross-reference with DesktopEntries via C++ heuristic lookup
-        try {
-            const de = DesktopEntries.heuristicLookup(noExe || cleanApp) || DesktopEntries.byId(cleanApp)
-            if (de && de.icon) {
-                if (de.icon.startsWith("/") || de.icon.startsWith("file://")) {
-                    candidates.unshift(de.icon)
-                } else {
-                    candidates.push(de.icon)
-                    candidates.push(de.icon.toLowerCase())
-                }
-            }
-        } catch (e) {}
-
-        // 8. Title-based hints (e.g. "Track Parcel — Mozilla Firefox", "Videos - Thunar")
+        // 7. Title-based hints (check early, especially if class/appId is empty like Steam's bootstrapper)
         if (title) {
             const cleanTitle = title.toLowerCase()
             if (cleanTitle.includes("firefox")) candidates.push("firefox")
@@ -263,8 +258,24 @@ PanelWindow {
             else if (cleanTitle.includes("obsidian")) candidates.push("obsidian")
         }
 
+        // 8. Cross-reference with DesktopEntries via C++ heuristic lookup (only if query is non-empty)
+        const lookupQuery = (noExe || cleanApp).trim()
+        if (lookupQuery.length > 0) {
+            try {
+                const de = DesktopEntries.heuristicLookup(lookupQuery) || DesktopEntries.byId(lookupQuery)
+                if (de && de.icon) {
+                    if (de.icon.startsWith("/") || de.icon.startsWith("file://")) {
+                        candidates.unshift(de.icon)
+                    } else {
+                        candidates.push(de.icon)
+                        candidates.push(de.icon.toLowerCase())
+                    }
+                }
+            } catch (e) {}
+        }
+
         // 9. Gaming / Wine fallbacks
-        if (cleanApp.startsWith("steam_app_") || cleanApp.endsWith(".exe") || /^[Gg]amescope$/i.test(cleanApp)) {
+        if (cleanApp.startsWith("steam_app_") || cleanApp.endsWith(".exe") || /^[Gg]amescope$/i.test(cleanApp) || lowerApp === "steam" || (title && /steam/i.test(title))) {
             candidates.push("steam")
             candidates.push("applications-games")
             candidates.push("input-gaming")
@@ -304,7 +315,7 @@ PanelWindow {
         const cleanTitle = (title || "").toLowerCase()
 
         // 1. Gaming
-        if (cleanApp.startsWith("steam_app_") || cleanApp.endsWith(".exe") || cleanApp.includes("lutris") || cleanApp.includes("heroic") || cleanApp.includes("game")) {
+        if (cleanApp.startsWith("steam_app_") || cleanApp.endsWith(".exe") || cleanApp.includes("steam") || cleanTitle.includes("steam") || cleanApp.includes("lutris") || cleanApp.includes("heroic") || cleanApp.includes("game")) {
             return { icon: "󰊴", isMdi: true } // Gamepad
         }
 
@@ -354,6 +365,7 @@ PanelWindow {
 
     // Dynamic windows list in true MRU order
     readonly property var allWindows: {
+        const _v = QsServices.Hypr.liveAddressesVersion
         const raw = Hyprland.toplevels?.values ?? []
         const list = []
         const activeHandle = Hyprland.activeToplevel?.handle
@@ -458,6 +470,7 @@ PanelWindow {
     }
 
     function openSwitcher() {
+        QsServices.Hypr.refreshClients()
         Hyprland.refreshToplevels()
         Hyprland.refreshWorkspaces()
         root.query = ""
@@ -530,8 +543,9 @@ PanelWindow {
 
         if (item.toplevel && typeof item.toplevel.close === "function") {
             try { item.toplevel.close() } catch (e) {}
-        } else if (addr) {
-            Quickshell.execDetached(["hyprctl", "dispatch", "closewindow", "address:" + addr])
+        }
+        if (addr) {
+            QsServices.Hypr.dispatch("closewindow address:" + addr)
         }
     }
 
