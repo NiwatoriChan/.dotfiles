@@ -152,7 +152,6 @@
           system = "x86_64-linux";
           modules = [
             sharedKernelAndCache
-            inputs.jovian.nixosModules.default
             ./hosts/pwpoulet
 
             # Home-Manager as NixOS module
