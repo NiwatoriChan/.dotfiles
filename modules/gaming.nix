@@ -15,7 +15,7 @@
 
   programs.gamescope = {
     enable = true;
-    capSysNice = true;
+    capSysNice = false;
   };
 
   # Feral Interactive GameMode daemon & wrapper

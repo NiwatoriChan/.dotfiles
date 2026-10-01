@@ -52,6 +52,7 @@
               "pnpm-9.15.9"
               "pnpm-10.29.2"
               "electron-41.9.1"
+              "electron-41.10.7"
             ];
           };
           pkgs-stable = import nixpkgs {
@@ -61,6 +62,7 @@
               "pnpm-9.15.9"
               "pnpm-10.29.2"
               "electron-41.9.1"
+              "electron-41.10.7"
             ];
           };
         in {
