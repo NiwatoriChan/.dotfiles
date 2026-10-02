@@ -32,7 +32,7 @@ PanelWindow {
     margins { right: 12; top: 12 }
     
     implicitWidth: 420
-    implicitHeight: Math.min(760, screen.height - 40)
+    implicitHeight: Math.min(800, screen.height - 40)
     color: "transparent"
     visible: shouldShow || panelContent.opacity > 0
 
@@ -73,6 +73,10 @@ PanelWindow {
 
         function toggleCaffeine(): void {
             root.idleInhibitor.inhibited = !root.idleInhibitor.inhibited
+        }
+
+        function toggleEthernetSharing(): void {
+            root.network.toggleEthernetSharing()
         }
     }
 
@@ -231,6 +235,18 @@ PanelWindow {
                                 root.notifs.dnd = true
                             }
                         }
+                    }
+
+                    QuickToggle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 72
+                        Layout.columnSpan: 2
+                        icon: "󰈀"
+                        label: "Ethernet Sharing (RJ45)"
+                        subLabel: root.network.ethernetSharingActive ? (root.network.wifiConnected ? "Sharing " + root.network.ssid : "Active") : "Share network via Ethernet"
+                        active: root.network.ethernetSharingActive
+                        activeColor: pywal.success
+                        onClicked: root.network.toggleEthernetSharing()
                     }
                 }
 

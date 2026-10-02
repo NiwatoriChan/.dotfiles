@@ -109,15 +109,19 @@ FocusScope {
                 }
             }
 
-            // Ethernet Status (only shown when plugged in)
+            // Ethernet & Sharing Status
             Rectangle {
-                visible: network.ethernetPlugged
+                visible: network.hasEthernet || network.ethernetSharingActive || network.ethernetPlugged
                 Layout.fillWidth: true
-                Layout.preferredHeight: 48
+                Layout.preferredHeight: 52
                 radius: 14
-                color: network.ethernetConnected ? Qt.rgba(cPrimary.r, cPrimary.g, cPrimary.b, 0.12) : Qt.rgba(cSurfaceContainer.r, cSurfaceContainer.g, cSurfaceContainer.b, 0.4)
+                color: network.ethernetSharingActive ? Qt.rgba(pywal.success.r, pywal.success.g, pywal.success.b, 0.15)
+                     : network.ethernetConnected ? Qt.rgba(cPrimary.r, cPrimary.g, cPrimary.b, 0.12)
+                     : Qt.rgba(cSurfaceContainer.r, cSurfaceContainer.g, cSurfaceContainer.b, 0.4)
                 border.width: 1
-                border.color: network.ethernetConnected ? Qt.rgba(cPrimary.r, cPrimary.g, cPrimary.b, 0.25) : Qt.rgba(1, 1, 1, 0.05)
+                border.color: network.ethernetSharingActive ? Qt.rgba(pywal.success.r, pywal.success.g, pywal.success.b, 0.3)
+                            : network.ethernetConnected ? Qt.rgba(cPrimary.r, cPrimary.g, cPrimary.b, 0.25)
+                            : Qt.rgba(1, 1, 1, 0.05)
 
                 RowLayout {
                     anchors.fill: parent
@@ -128,8 +132,8 @@ FocusScope {
                     Text {
                         text: "󰈀"
                         font.family: "Material Design Icons"
-                        font.pixelSize: 20
-                        color: network.ethernetConnected ? cPrimary : cOnSurfaceVariant
+                        font.pixelSize: 22
+                        color: network.ethernetSharingActive ? pywal.success : (network.ethernetConnected ? cPrimary : cOnSurfaceVariant)
                     }
 
                     ColumnLayout {
@@ -137,7 +141,7 @@ FocusScope {
                         spacing: 1
 
                         Text {
-                            text: "Ethernet"
+                            text: "Ethernet (RJ45)"
                             font.family: "Inter"
                             font.pixelSize: 13
                             font.weight: Font.SemiBold
@@ -145,18 +149,35 @@ FocusScope {
                         }
 
                         Text {
-                            text: network.ethernetConnected ? (network.ethernetConnection || "Connected") : "Plugged in"
+                            text: network.ethernetSharingActive ? "Sharing Network" : (network.ethernetConnected ? (network.ethernetConnection || "Connected") : (network.ethernetPlugged ? "Plugged in" : "Disconnected"))
                             font.family: "Inter"
                             font.pixelSize: 11
-                            color: network.ethernetConnected ? cPrimary : cOnSurfaceVariant
+                            color: network.ethernetSharingActive ? pywal.success : (network.ethernetConnected ? cPrimary : cOnSurfaceVariant)
                         }
                     }
 
+                    // Share Toggle Button
                     Rectangle {
-                        width: 8
-                        height: 8
-                        radius: 4
-                        color: network.ethernetConnected ? cPrimary : Qt.rgba(cOnSurfaceVariant.r, cOnSurfaceVariant.g, cOnSurfaceVariant.b, 0.4)
+                        width: 72
+                        height: 28
+                        radius: 14
+                        color: network.ethernetSharingActive ? pywal.success : Qt.rgba(cOnSurface.r, cOnSurface.g, cOnSurface.b, 0.1)
+                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: network.ethernetSharingActive ? "Sharing" : "Share"
+                            font.family: "Inter"
+                            font.pixelSize: 11
+                            font.weight: Font.SemiBold
+                            color: network.ethernetSharingActive ? Qt.rgba(0, 0, 0, 0.9) : cOnSurface
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: network.toggleEthernetSharing()
+                        }
                     }
                 }
             }

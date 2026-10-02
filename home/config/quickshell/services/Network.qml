@@ -17,6 +17,7 @@ Singleton {
     property bool _hasEthernet: false
     property bool _ethernetPlugged: false
     property bool _ethernetConnected: false
+    property bool _ethernetSharingActive: false
     property string _ethernetDevice: ""
     property string _ethernetConnection: ""
     property bool _hasWifiDevice: true
@@ -24,6 +25,7 @@ Singleton {
     readonly property bool hasEthernet: _hasEthernet
     readonly property bool ethernetPlugged: _ethernetPlugged
     readonly property bool ethernetConnected: _ethernetConnected
+    readonly property bool ethernetSharingActive: _ethernetSharingActive
     readonly property string ethernetDevice: _ethernetDevice
     readonly property string ethernetConnection: _ethernetConnection
     readonly property bool hasWifiDevice: _hasWifiDevice
@@ -47,6 +49,28 @@ Singleton {
     function toggleWifi(): void {
         const cmd = wifiEnabled ? "off" : "on";
         enableWifiProc.exec(["nmcli", "radio", "wifi", cmd]);
+    }
+
+    function toggleEthernetSharing(): void {
+        if (_ethernetSharingActive) {
+            stopEthernetSharing();
+        } else {
+            startEthernetSharing();
+        }
+    }
+
+    function startEthernetSharing(): void {
+        QsServices.Logger.info("Network", "Starting Ethernet sharing...");
+        if (!savedNetworks.includes("Ethernet Sharing")) {
+            createAndStartSharingProc.running = true;
+        } else {
+            startSharingProc.running = true;
+        }
+    }
+
+    function stopEthernetSharing(): void {
+        QsServices.Logger.info("Network", "Stopping Ethernet sharing...");
+        stopSharingProc.running = true;
     }
 
     function rescanWifi(): void {
@@ -198,6 +222,7 @@ Singleton {
                 let ethFound = false;
                 let ethPlugged = false;
                 let ethConnected = false;
+                let ethSharing = false;
                 let ethDev = "";
                 let ethConn = "";
                 let wifiFound = false;
@@ -213,7 +238,10 @@ Singleton {
                     const state = parts[2];
                     const conn = parts.slice(3).join(":");
 
-                    if (type === "ethernet" || type === "wired") {
+                    // Filter out virtual/container interfaces
+                    if ((type === "ethernet" || type === "wired") &&
+                        !dev.startsWith("vmnet") && !dev.startsWith("veth") &&
+                        !dev.startsWith("virbr") && !dev.startsWith("docker") && !dev.startsWith("br-")) {
                         ethFound = true;
                         // In NetworkManager, 'unavailable' means carrier lost / unplugged.
                         // 'unmanaged' means NM is not managing it.
@@ -224,6 +252,9 @@ Singleton {
                             ethConn = conn || dev;
                             if (state.startsWith("connected")) {
                                 ethConnected = true;
+                                if (conn === "Ethernet Sharing" || conn.toLowerCase().includes("share")) {
+                                    ethSharing = true;
+                                }
                             }
                         } else if (!ethDev) {
                             ethDev = dev;
@@ -236,6 +267,7 @@ Singleton {
                 root._hasEthernet = ethFound;
                 root._ethernetPlugged = ethPlugged;
                 root._ethernetConnected = ethConnected;
+                root._ethernetSharingActive = ethSharing;
                 root._ethernetDevice = ethDev;
                 root._ethernetConnection = ethConn;
                 root._hasWifiDevice = wifiFound;
@@ -246,14 +278,29 @@ Singleton {
     Process {
         id: checkSavedProc
         
-        command: ["nmcli", "-g", "NAME", "connection", "show"]
+        command: ["nmcli", "-g", "NAME,ACTIVE", "connection", "show"]
         environment: ({
                 LANG: "C.UTF-8",
                 LC_ALL: "C.UTF-8"
             })
         stdout: StdioCollector {
             onStreamFinished: {
-                root.savedNetworks = text.trim().split('\n').filter(n => n.length > 0);
+                const lines = text.trim().split('\n').filter(n => n.length > 0);
+                const saved = [];
+                let sharingActive = false;
+                for (let i = 0; i < lines.length; i++) {
+                    const parts = lines[i].split(":");
+                    const name = parts[0];
+                    const active = parts.length > 1 && parts[parts.length - 1] === "yes";
+                    if (name) saved.push(name);
+                    if (active && (name === "Ethernet Sharing" || name.toLowerCase().includes("share"))) {
+                        sharingActive = true;
+                    }
+                }
+                root.savedNetworks = saved;
+                if (sharingActive) {
+                    root._ethernetSharingActive = true;
+                }
                 // Keep logs quiet during periodic refresh; only emit on actual changes.
                 const current = root.savedNetworks
                 const prev = root._prevSavedNetworks
@@ -271,6 +318,36 @@ Singleton {
                     QsServices.Logger.debug("Network", `Saved networks: ${root.savedNetworks.length}`)
                 }
             }
+        }
+    }
+
+    Process {
+        id: createAndStartSharingProc
+        command: ["sh", "-c", "nmcli connection add type ethernet con-name 'Ethernet Sharing' ifname '*' ipv4.method shared ipv6.method ignore autoconnect no && nmcli connection up 'Ethernet Sharing'"]
+        onExited: (code, status) => {
+            QsServices.Logger.info("Network", `Create & start Ethernet sharing exited code=${code}`)
+            root.refreshDevices();
+            root.refreshSavedNetworks();
+        }
+    }
+
+    Process {
+        id: startSharingProc
+        command: ["nmcli", "connection", "up", "Ethernet Sharing"]
+        onExited: (code, status) => {
+            QsServices.Logger.info("Network", `Start Ethernet sharing exited code=${code}`)
+            root.refreshDevices();
+            root.refreshSavedNetworks();
+        }
+    }
+
+    Process {
+        id: stopSharingProc
+        command: ["nmcli", "connection", "down", "Ethernet Sharing"]
+        onExited: (code, status) => {
+            QsServices.Logger.info("Network", `Stop Ethernet sharing exited code=${code}`)
+            root.refreshDevices();
+            root.refreshSavedNetworks();
         }
     }
 
@@ -377,3 +454,4 @@ Singleton {
         AccessPoint {}
     }
 }
+

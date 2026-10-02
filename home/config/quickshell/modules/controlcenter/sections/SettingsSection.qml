@@ -428,6 +428,74 @@ Item {
                 }
             }
             
+            // Ethernet Sharing Control (RJ45)
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 60
+                radius: 10
+                color: network.ethernetSharingActive ? 
+                       Qt.rgba(pywal.color2.r, pywal.color2.g, pywal.color2.b, 0.15) : 
+                       Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.05)
+                
+                Behavior on color {
+                    ColorAnimation { duration: 200; easing.type: Easing.OutCubic }
+                }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 12
+                    spacing: 12
+
+                    Rectangle {
+                        Layout.preferredWidth: 36
+                        Layout.preferredHeight: 36
+                        radius: 18
+                        color: network.ethernetSharingActive ? Qt.rgba(pywal.color2.r, pywal.color2.g, pywal.color2.b, 0.2) : "transparent"
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰈀"
+                            font.family: "Material Design Icons"
+                            font.pixelSize: 20
+                            color: network.ethernetSharingActive ? pywal.color2 : pywal.foreground
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 2
+
+                        Text {
+                            text: "RJ45 Ethernet Sharing"
+                            font.family: "Inter"
+                            font.pixelSize: 13
+                            font.weight: Font.Medium
+                            color: pywal.foreground
+                        }
+
+                        Text {
+                            text: network.ethernetSharingActive ? "Sharing active" : "Click to toggle network sharing"
+                            font.family: "Inter"
+                            font.pixelSize: 10
+                            color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.6)
+                        }
+                    }
+
+                    Text {
+                        text: network.ethernetSharingActive ? "󰄬" : "󰅂"
+                        font.family: "Material Design Icons"
+                        font.pixelSize: 18
+                        color: network.ethernetSharingActive ? pywal.color2 : Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.5)
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: network.toggleEthernetSharing()
+                }
+            }
+            
             // Bluetooth Control
             Rectangle {
                 Layout.fillWidth: true
