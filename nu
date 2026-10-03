@@ -11,7 +11,7 @@ usage() {
   printf 'Commands:\n'
   printf '  init                Bootstrap binary caches by running scripts/add-caches.sh\n'
   printf '  rebuild [hostname]  Rebuild and switch the system configuration\n'
-  printf '  update              Update Nix flake inputs\n'
+  printf '  update [input...]   Update Nix flake inputs (all, or only the named ones)\n'
   printf '  sync                Pull and rebase latest dotfiles from GitHub\n'
   printf '  sur [hostname]      Sync repo, update flake, and rebuild host\n'
   printf '  check               Verify system configurations compile cleanly\n'
@@ -68,7 +68,10 @@ case "$cmd" in
     fi
     host="${subargs[0]:-$(hostname)}"
     ;;
-  init|update|sync|export|clean|check|init-secrets|build-docs)
+  update)
+    # Optional: one or more input names, e.g. `./nu update nixpkgs home-manager`
+    ;;
+  init|sync|export|clean|check|init-secrets|build-docs)
     if [ "${#subargs[@]}" -ne 0 ]; then
       usage
       exit 1
@@ -126,8 +129,13 @@ case "$cmd" in
       echo "Error: Cannot update flake inputs when --no-flake (-n) is set." >&2
       exit 1
     fi
-    echo "Updating flake inputs..."
-    sudo nix flake update
+    if [ "${#subargs[@]}" -gt 0 ]; then
+      echo "Updating flake inputs: ${subargs[*]}"
+      nix flake update "${subargs[@]}"
+    else
+      echo "Updating all flake inputs..."
+      nix flake update
+    fi
     ;;
   sync)
     echo "Pulling latest dotfiles from GitHub..."
@@ -139,13 +147,13 @@ case "$cmd" in
     pull_repo
     if [ "$no_flake" = false ]; then
       echo "=== Updating flake inputs ==="
-      sudo nix flake update
+      nix flake update
     fi
     echo "=== Rebuilding system ==="
     rebuild
     ;;
   check)
-    sudo nix flake check --impure
+    nix flake check --impure
     ;;
   clean)
     sudo nix-collect-garbage -d

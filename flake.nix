@@ -13,8 +13,9 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
+    # Not pinned to our nixpkgs on purpose: both ship their own kernel/package
+    # sets built against a specific nixpkgs so their binary caches keep hitting.
     chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
-
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
 
     nixos-hardware = {
@@ -36,35 +37,26 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Savage (the only Jovian host) runs on nixpkgs-unstable.
     jovian = {
       url = "github:Jovian-Experiments/Jovian-NixOS";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, chaotic, home-manager, home-manager-unstable, nixos-hardware, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, home-manager-unstable, nixos-hardware, ... }@inputs:
     let
+      insecurePackages = import ./lib/insecure-packages.nix;
+
       sharedArgsFor = system:
         let
-          pkgs-unstable = import nixpkgs-unstable {
+          mkPkgs = src: import src {
             inherit system;
             config.allowUnfree = true;
-            config.permittedInsecurePackages = [
-              "pnpm-9.15.9"
-              "pnpm-10.29.2"
-              "electron-41.9.1"
-              "electron-41.10.7"
-            ];
+            config.permittedInsecurePackages = insecurePackages;
           };
-          pkgs-stable = import nixpkgs {
-            inherit system;
-            config.allowUnfree = true;
-            config.permittedInsecurePackages = [
-              "pnpm-9.15.9"
-              "pnpm-10.29.2"
-              "electron-41.9.1"
-              "electron-41.10.7"
-            ];
-          };
+          pkgs-unstable = mkPkgs nixpkgs-unstable;
+          pkgs-stable = mkPkgs nixpkgs;
         in {
           customPackages = {
             brave-origin = if inputs.custom-packages.packages ? ${system} && inputs.custom-packages.packages.${system} ? brave-origin
@@ -85,146 +77,120 @@
 
         #boot.kernelPackages = pkgs.linuxPackages_cachyos;
         boot.kernelPackages = lib.mkIf (config.networking.hostName != "Savage") pkgs.linuxPackages_latest;
-
-        # Binary cache
-        nix.settings.substituters = [
-          "https://attic.xuyh0120.win/lantian"
-          "https://cache.xinux.uz"
-        ];
-        nix.settings.trusted-public-keys = [
-          "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
-          "cache.xinux.uz:BXCrtqejFjWzWEB9YuGB7X2MV4ttBur1N8BkwQRdH+0="
-        ];
-        nix.settings.extra-substituters = [
-          "https://jovian.cachix.org"
-          "https://nyx-cache.chaotic.cx"
-        ];
-        nix.settings.extra-trusted-public-keys = [
-          "jovian.cachix.org-1:8Vq4Txku6VZIRhYrHYki3Ab9XHJRoWmdYqMqj4rB/Uc="
-          "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
-        ];
       };
+
+      # Build a NixOS host with Home-Manager wired in.
+      #   name         – host name (informational; the key in nixosConfigurations is what counts)
+      #   system       – target platform
+      #   nixpkgs'/hm  – channel and Home-Manager flavour (stable by default)
+      #   hostDir      – ./hosts/<dir>
+      #   homeFile     – ./home/<file>.nix
+      #   extraModules – modules inserted before the host directory
+      mkHost =
+        { name
+        , system ? "x86_64-linux"
+        , nixpkgs' ? nixpkgs
+        , hm ? home-manager
+        , hostDir
+        , homeFile
+        , extraModules ? [ ]
+        }:
+        let
+          sharedArgs = sharedArgsFor system;
+        in
+        nixpkgs'.lib.nixosSystem {
+          inherit system;
+          specialArgs = sharedArgs;
+          modules = extraModules ++ [
+            hostDir
+
+            # Home-Manager as NixOS module
+            hm.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "hm-bak";
+              home-manager.extraSpecialArgs = sharedArgs;
+              home-manager.users.niwatorichan = import homeFile;
+            }
+          ];
+        };
+
+      supportedSystems = [ "x86_64-linux" "aarch64-linux" ];
+      forAllSystems = f: nixpkgs.lib.genAttrs supportedSystems (system: f nixpkgs.legacyPackages.${system});
     in
     {
       nixosConfigurations = {
-
         # --- PotatoMonster — MangoWM Desktop ---
-        PotatoMonster = nixpkgs.lib.nixosSystem {
-          specialArgs = sharedArgsFor "x86_64-linux";
-          system = "x86_64-linux";
-          modules = [
-            sharedKernelAndCache
-            inputs.mangowm.nixosModules.mango
-            ./hosts/potatomonster
-
-            # Home-Manager as NixOS module
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "hm-bak";
-              home-manager.users.niwatorichan = import ./home/potatomonster.nix;
-            }
-          ];
+        PotatoMonster = mkHost {
+          name = "PotatoMonster";
+          hostDir = ./hosts/potatomonster;
+          homeFile = ./home/potatomonster.nix;
+          extraModules = [ sharedKernelAndCache inputs.mangowm.nixosModules.mango ];
         };
 
         # --- PetitOeuf — Laptop Configuration ---
-        PetitOeuf = nixpkgs.lib.nixosSystem {
-          specialArgs = sharedArgsFor "x86_64-linux";
-          system = "x86_64-linux";
-          modules = [
-            sharedKernelAndCache
-            inputs.mangowm.nixosModules.mango
-            ./hosts/petitoeuf
-
-            # Home-Manager as NixOS module
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "hm-bak";
-              home-manager.users.niwatorichan = import ./home/petitoeuf.nix;
-            }
-          ];
+        PetitOeuf = mkHost {
+          name = "PetitOeuf";
+          hostDir = ./hosts/petitoeuf;
+          homeFile = ./home/petitoeuf.nix;
+          extraModules = [ sharedKernelAndCache inputs.mangowm.nixosModules.mango ];
         };
 
         # --- PwPoulet — KDE Plasma 6 Desktop ---
-        PwPoulet = nixpkgs.lib.nixosSystem {
-          specialArgs = sharedArgsFor "x86_64-linux";
-          system = "x86_64-linux";
-          modules = [
-            sharedKernelAndCache
-            ./hosts/pwpoulet
-
-            # Home-Manager as NixOS module
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "hm-bak";
-
-              home-manager.users.niwatorichan = import ./home/pwpoulet.nix;
-            }
-          ];
+        PwPoulet = mkHost {
+          name = "PwPoulet";
+          hostDir = ./hosts/pwpoulet;
+          homeFile = ./home/pwpoulet.nix;
+          extraModules = [ sharedKernelAndCache ];
         };
 
         # --- Jeff — Headless ---
-        Jeff = nixpkgs.lib.nixosSystem {
-          specialArgs = sharedArgsFor "x86_64-linux";
-          system = "x86_64-linux";
-          modules = [
-            sharedKernelAndCache
-            ./hosts/jeff
-
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "hm-bak";
-              home-manager.users.niwatorichan = import ./home/jeff.nix;
-            }
-          ];
+        Jeff = mkHost {
+          name = "Jeff";
+          hostDir = ./hosts/jeff;
+          homeFile = ./home/jeff.nix;
+          extraModules = [ sharedKernelAndCache ];
         };
 
         # --- PetitePatate — Pinebook Pro ARM64 ---
-        PetitePatate = nixpkgs.lib.nixosSystem {
-          specialArgs = sharedArgsFor "aarch64-linux";
+        PetitePatate = mkHost {
+          name = "PetitePatate";
           system = "aarch64-linux";
-          modules = [
-            inputs.nixos-hardware.nixosModules.pine64-pinebook-pro
-            ./hosts/petitepatate
-
-            # Home-Manager as NixOS module
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "hm-bak";
-              home-manager.users.niwatorichan = import ./home/petitepatate.nix;
-            }
-          ];
+          hostDir = ./hosts/petitepatate;
+          homeFile = ./home/petitepatate.nix;
+          extraModules = [ inputs.nixos-hardware.nixosModules.pine64-pinebook-pro ];
         };
 
         # --- Savage — Steam Deck LCD ---
-        Savage = nixpkgs-unstable.lib.nixosSystem {
-          specialArgs = sharedArgsFor "x86_64-linux";
-          system = "x86_64-linux";
-          modules = [
-            sharedKernelAndCache
-            inputs.jovian.nixosModules.default
-            ./hosts/savage
+        Savage = mkHost {
+          name = "Savage";
+          nixpkgs' = nixpkgs-unstable;
+          hm = home-manager-unstable;
+          hostDir = ./hosts/savage;
+          homeFile = ./home/savage.nix;
+          extraModules = [ sharedKernelAndCache inputs.jovian.nixosModules.default ];
+        };
+      };
 
-            # Home-Manager as NixOS module
-            home-manager-unstable.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "hm-bak";
-              home-manager.users.niwatorichan = import ./home/savage.nix;
-            }
+      formatter = forAllSystems (pkgs: pkgs.nixfmt);
+
+      # `nix flake check` builds every host of the current platform.
+      # Use `nix flake check --no-build` for a fast evaluation-only pass.
+      checks = forAllSystems (pkgs:
+        nixpkgs.lib.mapAttrs' (n: c: nixpkgs.lib.nameValuePair "host-${n}" c.config.system.build.toplevel)
+          (nixpkgs.lib.filterAttrs (_: c: c.pkgs.stdenv.hostPlatform.system == pkgs.stdenv.hostPlatform.system) self.nixosConfigurations));
+
+      devShells = forAllSystems (pkgs: {
+        default = pkgs.mkShell {
+          packages = [
+            pkgs.nixfmt
+            pkgs.statix
+            pkgs.deadnix
+            pkgs.nixd
+            inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
           ];
         };
-
-      };
+      });
     };
 }

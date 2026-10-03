@@ -1,0 +1,16 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  flake-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: Format check
+        run: nix fmt -- --check flake.nix lib
+      - name: Evaluate every host (no build)
+        run: nix flake check --no-build --impure
