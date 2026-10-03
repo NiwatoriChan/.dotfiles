@@ -9,8 +9,10 @@
 # Ignore test desktop entries
 test.desktop
 
-# Exclude secrets directory from Git
-/secrets/
+# Secrets: commit only agenix-encrypted files and the recipient list, never plaintext
+/secrets/*
+!/secrets/*.age
+!/secrets/secrets.nix
 
 # Nix build outputs
 result

@@ -37,7 +37,10 @@ The system uses unified module blocks under `modules/` to manage target packages
 
 ```text
 .dotfiles/
-├── flake.nix             # Flake configurations and inputs entrypoint
+├── flake.nix             # Flake inputs + `mkHost` helper, formatter, checks, devShell
+├── lib/                  # Shared Nix values (e.g. insecure-packages.nix)
+├── secrets/              # agenix recipients (secrets.nix) and encrypted *.age files
+├── .github/workflows/    # CI: evaluates every host on push
 ├── scripts/              # Helper scripts (cache bootstrapping, etc.)
 │   └── add-caches.sh     # Bootstrap binary caches on fresh systems
 ├── modules/              # Unified system + user modules (Gaming, Jovian, Hyprland, KDE, Server)
@@ -61,8 +64,8 @@ The system uses unified module blocks under `modules/` to manage target packages
 
 Secrets are managed using **[Agenix](https://github.com/ryantm/agenix)**, which encrypts files using SSH public keys.
 
-### Excluded Secrets Directory
-The `/secrets` directory is excluded from Git to prevent tracking raw temporary files or unencrypted files. However, `.age` encrypted files within it are fully safe to commit to version control if you explicitly override/force add them, or you can manage secrets locally.
+### What is committed
+Only `secrets/secrets.nix` (public keys) and encrypted `*.age` files are tracked; any other file in `/secrets` is git-ignored. **Back up each host's `/etc/ssh/ssh_host_ed25519_key` (and your user key) somewhere safe** — losing it makes the secrets encrypted to it unrecoverable.
 
 ### Setup and Usage
 
@@ -99,9 +102,24 @@ To rebuild and switch your system configuration (defaults to the current hostnam
 ```
 
 ### Updating Flake Inputs
-To update your flake inputs:
+Update everything, or (safer) one input at a time, then build before switching:
 ```bash
-./nu update
+./nu update                 # all inputs
+./nu update nixpkgs         # just one (or several)
+nixos-rebuild build --flake .#<host>   # sanity-build before `switch`
+```
+`chaotic` and `nix-cachyos-kernel` deliberately do **not** follow our nixpkgs (their caches depend on it).
+
+### Adding a Host
+1. Create `hosts/<name>/default.nix` (import `../common` and the modules you need) and `home/<name>.nix`.
+2. Add an entry to `nixosConfigurations` in `flake.nix` using `mkHost { ... }`.
+3. Run `nix flake check --no-build` to confirm it evaluates.
+
+### Development Shell & Formatting
+```bash
+nix develop      # nixfmt, statix, deadnix, nixd, agenix
+nix fmt          # format Nix files
+nix flake check  # build every host of this platform (add --no-build for eval only)
 ```
 
 ### Syncing Config from GitHub

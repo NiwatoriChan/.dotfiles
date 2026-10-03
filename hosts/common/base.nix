@@ -1,13 +1,16 @@
 # Base system configuration — shared across all hosts (desktop and headless server)
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 {
   imports = [
     ../../modules/secrets.nix
+    ../../modules/nix-settings.nix
   ];
 
   # Bootloader
   boot.loader.systemd-boot.enable = true;
+  # Keep /boot from filling up; older generations remain reachable via the store until GC
+  boot.loader.systemd-boot.configurationLimit = lib.mkDefault 20;
   boot.loader.efi.canTouchEfiVariables = true;
 
   # Networking (hostname set per-host)
@@ -93,15 +96,7 @@
   nixpkgs.config.allowUnfree = true;
 
   # Permit insecure packages pulled as build dependencies
-  nixpkgs.config.permittedInsecurePackages = [
-    "pnpm-9.15.9"
-    "pnpm-10.29.2"
-    "electron-41.9.1"
-    "electron-41.10.7"
-  ];
-
-  # Nix settings
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nixpkgs.config.permittedInsecurePackages = import ../../lib/insecure-packages.nix;
 
   # System state version
   system.stateVersion = "26.05";
