@@ -11,8 +11,15 @@ let
     unset STEAM_COMPAT_CLIENT_INSTALL_PATH
     unset STEAM_COMPAT_DATA_PATH
 
-    if [ -x "${pkgs-stable.stremio-linux-shell}/bin/stremio" ]; then
-      exec "${pkgs-stable.stremio-linux-shell}/bin/stremio" "$@"
+    # Drop Steam-provided EGL/GL overrides so the host driver is used
+    unset __EGL_VENDOR_LIBRARY_FILENAMES
+    unset __EGL_VENDOR_LIBRARY_DIRS
+    unset LIBGL_DRIVERS_PATH
+    unset VK_ICD_FILENAMES
+    unset VK_DRIVER_FILES
+
+    if [ -x "${pkgs.stremio-linux-shell}/bin/stremio" ]; then
+      exec "${pkgs.stremio-linux-shell}/bin/stremio" "$@"
     elif command -v stremio >/dev/null 2>&1; then
       exec stremio "$@"
     elif command -v flatpak >/dev/null 2>&1 && flatpak info com.stremio.Stremio >/dev/null 2>&1; then
@@ -37,7 +44,7 @@ let
 in
 {
   environment.systemPackages = [
-    pkgs-stable.stremio-linux-shell
+    pkgs.stremio-linux-shell
     stremio-steam-launcher
     stremio-steam-desktop
     pkgs.vlc
