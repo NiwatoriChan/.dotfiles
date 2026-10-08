@@ -29,6 +29,7 @@
     binfmt = true;
     package = pkgs.appimage-run.override {
       extraPkgs = pkgs: with pkgs; [
+        curl
         icu
         zlib
         openssl

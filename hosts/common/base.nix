@@ -31,6 +31,7 @@
     stdenv.cc.cc.lib
     zlib
     glibc
+    curl
   ];
 
   # SSH daemon configuration
@@ -73,6 +74,9 @@
 
   # SSD TRIM (weekly via systemd timer)
   services.fstrim.enable = true;
+
+  # Envfs — dynamically populate /bin and /usr/bin with PATH binaries (e.g. /usr/bin/curl, /bin/bash)
+  services.envfs.enable = true;
 
   # Core command-line utilities
   environment.systemPackages = with pkgs; [
