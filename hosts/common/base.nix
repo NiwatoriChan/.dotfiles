@@ -13,6 +13,11 @@
   # Networking (hostname set per-host)
   networking.networkmanager.enable = true;
 
+  # Enable IPv4 packet forwarding for internet connection sharing (Ethernet sharing)
+  boot.kernel.sysctl = {
+    "net.ipv4.ip_forward" = 1;
+  };
+
   # Locale & Timezone
   time.timeZone = "America/Toronto";
   i18n.defaultLocale = "en_CA.UTF-8";

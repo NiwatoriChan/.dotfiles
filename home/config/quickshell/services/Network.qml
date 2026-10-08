@@ -298,9 +298,7 @@ Singleton {
                     }
                 }
                 root.savedNetworks = saved;
-                if (sharingActive) {
-                    root._ethernetSharingActive = true;
-                }
+                root._ethernetSharingActive = sharingActive;
                 // Keep logs quiet during periodic refresh; only emit on actual changes.
                 const current = root.savedNetworks
                 const prev = root._prevSavedNetworks
