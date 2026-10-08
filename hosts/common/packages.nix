@@ -20,6 +20,7 @@
     mpv
     gnome-disk-utility
     moonlight-qt
+    mediainfo-gui
     nextcloud-client
 
     # Theming
