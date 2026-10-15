@@ -241,6 +241,7 @@ PanelWindow {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 72
                         Layout.columnSpan: 2
+                        visible: root.network.ethernetSharingAvailable || root.network.ethernetSharingActive
                         icon: "󰈀"
                         label: "Ethernet Sharing (RJ45)"
                         subLabel: root.network.ethernetSharingActive ? (root.network.wifiConnected ? "Sharing " + root.network.ssid : "Active") : "Share network via Ethernet"

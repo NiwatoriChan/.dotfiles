@@ -432,6 +432,7 @@ Item {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 60
+                visible: network.ethernetSharingAvailable || network.ethernetSharingActive
                 radius: 10
                 color: network.ethernetSharingActive ? 
                        Qt.rgba(pywal.color2.r, pywal.color2.g, pywal.color2.b, 0.15) : 

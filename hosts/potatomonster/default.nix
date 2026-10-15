@@ -23,6 +23,7 @@
     ../../modules/developpement.nix
     ../../modules/multimedias.nix
     ../../modules/syncthing
+    ../../modules/ethernet-sharing.nix
   ];
 
   # Hostname

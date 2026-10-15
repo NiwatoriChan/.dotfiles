@@ -158,6 +158,7 @@ FocusScope {
 
                     // Share Toggle Button
                     Rectangle {
+                        visible: network.ethernetSharingAvailable || network.ethernetSharingActive
                         width: 72
                         height: 28
                         radius: 14

@@ -15,4 +15,8 @@
     # Avoid dropping forwarded packets via reverse path filter
     checkReversePath = "loose";
   };
+
+  # Tell Quickshell this host supports Ethernet sharing (shows the toggles in the UI)
+  home-manager.users.niwatorichan.xdg.configFile."quickshell-host.json".text =
+    builtins.toJSON { ethernetSharing = true; };
 }

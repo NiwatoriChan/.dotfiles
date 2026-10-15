@@ -41,12 +41,7 @@
   home-manager.users.niwatorichan.services.kdeconnect.enable = true;
 
   networking.firewall = rec {
-    # Allow DHCP and DNS for NetworkManager connection sharing (Ethernet sharing)
-    allowedUDPPorts = [ 53 67 68 ];
-    allowedTCPPorts = [ 53 ];
     allowedTCPPortRanges = [ { from = 1714; to = 1764; } ];
     allowedUDPPortRanges = allowedTCPPortRanges;
-    # Avoid dropping forwarded packets via reverse path filter
-    checkReversePath = "loose";
   };
 }

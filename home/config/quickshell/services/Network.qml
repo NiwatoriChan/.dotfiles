@@ -30,6 +30,31 @@ Singleton {
     readonly property string ethernetConnection: _ethernetConnection
     readonly property bool hasWifiDevice: _hasWifiDevice
 
+    // Host capability: true only on hosts importing modules/ethernet-sharing.nix,
+    // which writes ~/.config/quickshell-host.json via home-manager.
+    property bool _ethernetSharingAvailable: false
+    readonly property bool ethernetSharingAvailable: _ethernetSharingAvailable
+
+    FileView {
+        id: hostFeaturesFile
+        path: {
+            const home = Quickshell.env("HOME")
+            const xdg = Quickshell.env("XDG_CONFIG_HOME")
+            const cfgHome = (xdg && xdg.length > 0) ? xdg : `${home}/.config`
+            return `${cfgHome}/quickshell-host.json`
+        }
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: {
+            try {
+                root._ethernetSharingAvailable = JSON.parse(text())?.ethernetSharing === true
+            } catch (e) {
+                root._ethernetSharingAvailable = false
+            }
+        }
+        onLoadFailed: root._ethernetSharingAvailable = false
+    }
+
     // Convenience properties for UI
     readonly property bool wifiConnected: active !== null
     readonly property bool connected: wifiConnected || ethernetConnected
