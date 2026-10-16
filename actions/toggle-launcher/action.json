@@ -1,0 +1,14 @@
+{
+  "id": "toggle-launcher",
+  "name": "Toggle Launcher",
+  "description": "Show or hide the application launcher",
+  "icon": "󰕰",
+  "keywords": ["launcher", "menu", "apps", "search"],
+  "visible": false,
+  "closeLauncher": true,
+  "order": 22,
+  "ipc": {
+    "target": "launcher",
+    "function": "toggle"
+  }
+}

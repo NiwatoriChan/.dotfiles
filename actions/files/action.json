@@ -1,0 +1,11 @@
+{
+  "id": "files",
+  "name": "Open Files",
+  "description": "Browse home directory in file manager",
+  "icon": "󰉋",
+  "keywords": ["files", "thunar", "file manager", "directory", "home", "folder"],
+  "visible": true,
+  "closeLauncher": true,
+  "order": 2,
+  "exec": ["xdg-open", "${HOME}"]
+}

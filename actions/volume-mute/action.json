@@ -1,0 +1,12 @@
+{
+  "id": "volume-mute",
+  "name": "Toggle Mute",
+  "description": "Toggle mute for default audio output",
+  "icon": "󰝟",
+  "keywords": ["volume", "audio", "sound", "mute", "silence"],
+  "visible": true,
+  "requires": ["wpctl"],
+  "closeLauncher": false,
+  "order": 52,
+  "exec": ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"]
+}

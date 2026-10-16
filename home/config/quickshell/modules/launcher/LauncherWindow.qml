@@ -29,6 +29,7 @@ PanelWindow {
         const q = cleanLeft(query)
         return q.startsWith("t ") || q.startsWith("t.") || q.startsWith("t/") || q.startsWith(">")
     }
+    readonly property bool isActionMode: cleanLeft(query).startsWith("!")
 
     readonly property var config: QsConfig.Config
     readonly property var pywal: QsServices.Pywal
@@ -286,40 +287,21 @@ PanelWindow {
         }
     }
 
-    readonly property var actionEntries: [
-        {
-            id: "action-terminal",
-            name: "Open Terminal",
-            comment: "Launch configured terminal",
-            glyph: "󰆍",
+    // Actions come from ~/.dotfiles/actions (see services/Actions.qml)
+    function toLauncherAction(a) {
+        return {
+            id: `action-${a.id}`,
+            actionId: a.id,
+            name: QsServices.Actions.displayName(a),
+            comment: a.description || a.id,
+            glyph: QsServices.Actions.displayIcon(a),
             type: "action",
-            onTriggered: () => Quickshell.execDetached(terminalCommand)
-        },
-        {
-            id: "action-files",
-            name: "Open Files",
-            comment: "Open your home directory",
-            glyph: "󰉋",
-            type: "action",
-            onTriggered: () => Quickshell.execDetached(["xdg-open", Quickshell.env("HOME")])
-        },
-        {
-            id: "action-screenshots",
-            name: "Open Captures",
-            comment: "Browse screenshots and recordings",
-            glyph: "󰄄",
-            type: "action",
-            onTriggered: () => QsServices.Screenshot.openScreenshotsFolder()
-        },
-        {
-            id: "action-network",
-            name: "Network Settings",
-            comment: "Open nm-connection-editor",
-            glyph: "󰖩",
-            type: "action",
-            onTriggered: () => Quickshell.execDetached(["nm-connection-editor"])
+            closeLauncher: a.closeLauncher,
+            onTriggered: () => QsServices.Actions.run(a.id)
         }
-    ]
+    }
+
+    readonly property var actionEntries: QsServices.Actions.visibleActions.map(a => root.toLauncherAction(a))
 
     readonly property var visibleEntries: {
         const qStart = root.cleanLeft(root.query)
@@ -404,7 +386,23 @@ PanelWindow {
             return list
         }
 
-        // 2. Directory / File search mode ('d ', 'd/...', '~/...', '/...')
+        // 2. Actions-only mode ('!...')
+        if (root.isActionMode) {
+            const actionQuery = qStart.slice(1).trim()
+            const matched = QsServices.Actions.search(actionQuery).map(r => root.toLauncherAction(r.action))
+            if (matched.length === 0) {
+                return [{
+                    id: "empty-action-results",
+                    name: QsServices.Actions.loaded ? `No actions matching '${actionQuery}'` : "Loading actions...",
+                    comment: `Actions live in ${QsServices.Actions.actionsDir}`,
+                    glyph: "󰘳",
+                    type: "info"
+                }]
+            }
+            return matched
+        }
+
+        // 3. Directory / File search mode ('d ', 'd/...', '~/...', '/...')
         if (root.isFileMode) {
             let fileQuery = ""
             if (qStart.startsWith("d ")) {
@@ -466,6 +464,12 @@ PanelWindow {
             }
         }
 
+        // Mix in matching actions; slight penalty so equally-ranked apps win
+        const actionMatches = QsServices.Actions.search(q)
+        for (const r of actionMatches) {
+            results.push({ item: root.toLauncherAction(r.action), rank: r.rank - 25 })
+        }
+
         results.sort((a, b) => {
             if (b.rank !== a.rank) return b.rank - a.rank
             return a.item.name.localeCompare(b.item.name)
@@ -502,6 +506,7 @@ PanelWindow {
             const found = Quickshell.screens.find(s => s.name === mon.name)
             if (found) root.screen = found
         }
+        QsServices.Actions.refresh()
         shouldShow = true
         searchField.text = ""
         query = ""
@@ -518,8 +523,10 @@ PanelWindow {
         if (!item || item.type === "info") return
 
         if (item.type === "action" && typeof item.onTriggered === "function") {
+            // Close first so toggled panels can take focus; some actions
+            // (e.g. brightness/volume steps) keep the launcher open.
+            if (item.closeLauncher !== false) closeLauncher()
             item.onTriggered()
-            closeLauncher()
             return
         }
 
@@ -707,7 +714,7 @@ PanelWindow {
 
                         Text {
                             anchors.centerIn: parent
-                            text: root.isFileMode ? "󰉋" : (root.isTerminalMode ? "󰆍" : "󰕰")
+                            text: root.isActionMode ? "󰘳" : (root.isFileMode ? "󰉋" : (root.isTerminalMode ? "󰆍" : "󰕰"))
                             font.family: "Material Design Icons"
                             font.pixelSize: 24
                             color: root.cPrimary
@@ -739,11 +746,13 @@ PanelWindow {
                                 color: root.cText
                                 font.family: QsConfig.Config.appearance.fontFamily
                                 font.pixelSize: 15
-                                placeholderText: root.isFileMode
-                                    ? "Search files & folders... (Enter: Thunar, Shift+Enter: Kitty)"
-                                    : (root.isTerminalMode
-                                        ? "Run in terminal... (e.g. 't htop', 't .', 't ~/...')"
-                                        : "Search applications... (type 'd ' for files, 't ' for terminal)")
+                                placeholderText: root.isActionMode
+                                    ? "Run system action... (e.g. '!waydroid', '!calendar', '!volume')"
+                                    : (root.isFileMode
+                                        ? "Search files & folders... (Enter: Thunar, Shift+Enter: Kitty)"
+                                        : (root.isTerminalMode
+                                            ? "Run in terminal... (e.g. 't htop', 't .', 't ~/...')"
+                                            : "Search apps & actions... (type '!' for actions, 'd ' for files, 't ' for terminal)"))
                                 placeholderTextColor: root.cSubText
                                 background: Item {}
                                 selectByMouse: true
@@ -764,10 +773,17 @@ PanelWindow {
                                         searchField.text = "t "
                                         searchField.cursorPosition = 2
                                         event.accepted = true
+                                    } else if (searchField.text === "!") {
+                                        searchField.text = "! "
+                                        searchField.cursorPosition = 2
+                                        event.accepted = true
                                     } else if (searchField.text.startsWith("d ")) {
                                         searchField.text = "t " + searchField.text.slice(2)
                                         event.accepted = true
                                     } else if (searchField.text.startsWith("t ")) {
+                                        searchField.text = "! " + searchField.text.slice(2)
+                                        event.accepted = true
+                                    } else if (searchField.text.startsWith("! ")) {
                                         searchField.text = searchField.text.slice(2)
                                         event.accepted = true
                                     }
@@ -1201,10 +1217,10 @@ PanelWindow {
                     // Mode hints in footer
                     RowLayout {
                         spacing: 12
-                        visible: root.isFileMode || root.isTerminalMode
+                        visible: root.isFileMode || root.isTerminalMode || root.isActionMode
 
                         Text {
-                            text: root.isTerminalMode ? "↵ Run in Kitty" : "↵ Open in Thunar"
+                            text: root.isActionMode ? "↵ Run action" : (root.isTerminalMode ? "↵ Run in Kitty" : "↵ Open in Thunar")
                             font.family: QsConfig.Config.appearance.fontFamily
                             font.pixelSize: 11
                             color: root.cSubText

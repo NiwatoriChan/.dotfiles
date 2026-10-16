@@ -1,0 +1,11 @@
+{
+  "id": "screenshots",
+  "name": "Open Captures",
+  "description": "Browse screenshots and screen recordings",
+  "icon": "󰄄",
+  "keywords": ["screenshots", "captures", "recordings", "pictures", "images"],
+  "visible": true,
+  "closeLauncher": true,
+  "order": 3,
+  "exec": ["xdg-open", "${HOME}/Pictures/Screenshots"]
+}

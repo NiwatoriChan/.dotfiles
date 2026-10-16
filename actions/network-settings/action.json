@@ -1,0 +1,12 @@
+{
+  "id": "network-settings",
+  "name": "Network Settings",
+  "description": "Open NetworkManager connection editor",
+  "icon": "󰖩",
+  "keywords": ["network", "wifi", "ethernet", "connection", "settings", "internet"],
+  "visible": true,
+  "requires": ["nm-connection-editor"],
+  "closeLauncher": true,
+  "order": 4,
+  "exec": ["nm-connection-editor"]
+}

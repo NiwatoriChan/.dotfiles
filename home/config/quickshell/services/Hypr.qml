@@ -146,7 +146,7 @@ Singleton {
         repeat: true
         onTriggered: {
             Hyprland.refreshWorkspaces();
-            Hyprland.refreshToplevels();
+            // Hyprland.refreshToplevels();
             refreshClients();
         }
     }
@@ -171,7 +171,7 @@ Singleton {
         interval: 80
         repeat: false
         onTriggered: {
-            Hyprland.refreshToplevels();
+            // Hyprland.refreshToplevels();
             refreshClients();
         }
     }

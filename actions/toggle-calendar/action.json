@@ -1,0 +1,14 @@
+{
+  "id": "toggle-calendar",
+  "name": "Toggle Calendar",
+  "description": "Show or hide the calendar and clock dashboard",
+  "icon": "󰃭",
+  "keywords": ["calendar", "date", "clock", "time", "dashboard"],
+  "visible": true,
+  "closeLauncher": true,
+  "order": 20,
+  "ipc": {
+    "target": "dashboard",
+    "function": "toggle"
+  }
+}

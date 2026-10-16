@@ -1,0 +1,12 @@
+{
+  "id": "brightness-up",
+  "name": "Increase Brightness",
+  "description": "Increase display brightness by 5%",
+  "icon": "󰃠",
+  "keywords": ["brightness", "display", "screen", "light"],
+  "visible": true,
+  "requires": ["brightnessctl"],
+  "closeLauncher": false,
+  "order": 40,
+  "exec": ["brightnessctl", "set", "+5%"]
+}

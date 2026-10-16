@@ -1,0 +1,14 @@
+{
+  "id": "change-background",
+  "name": "Change Wallpaper",
+  "description": "Open interactive wallpaper picker",
+  "icon": "󰋩",
+  "keywords": ["wallpaper", "background", "image", "theme", "picture"],
+  "visible": true,
+  "closeLauncher": true,
+  "order": 30,
+  "ipc": {
+    "target": "wallpaper",
+    "function": "open"
+  }
+}
