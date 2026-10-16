@@ -1,0 +1,12 @@
+{
+  "id": "brightness-down",
+  "name": "Decrease Brightness",
+  "description": "Decrease display brightness by 5%",
+  "icon": "󰃟",
+  "keywords": ["brightness", "display", "screen", "dim"],
+  "visible": true,
+  "requires": ["brightnessctl"],
+  "closeLauncher": false,
+  "order": 41,
+  "exec": ["brightnessctl", "set", "5%-"]
+}

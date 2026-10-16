@@ -1,0 +1,20 @@
+{
+  "id": "waydroid-toggle",
+  "name": "Toggle Android Subsystem",
+  "description": "Start or stop the Waydroid Android session",
+  "icon": "󰀲",
+  "keywords": ["waydroid", "android", "subsystem", "mobile", "apps"],
+  "visible": true,
+  "requires": ["waydroid"],
+  "closeLauncher": true,
+  "order": 10,
+  "script": "toggle.sh",
+  "state": {
+    "exec": ["waydroid", "status"],
+    "match": "RUNNING",
+    "onName": "Stop Android Subsystem",
+    "offName": "Start Android Subsystem",
+    "onIcon": "󰀲",
+    "offIcon": "󰀲"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "terminal",
+  "name": "Open Terminal",
+  "description": "Launch configured terminal emulator",
+  "icon": "󰆍",
+  "keywords": ["terminal", "kitty", "shell", "bash", "console", "cli"],
+  "visible": true,
+  "closeLauncher": true,
+  "order": 1,
+  "exec": ["kitty"]
+}

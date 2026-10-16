@@ -1,0 +1,14 @@
+{
+  "id": "toggle-controlcenter",
+  "name": "Toggle Control Center",
+  "description": "Show or hide the quick settings and notification center",
+  "icon": "󰘳",
+  "keywords": ["control", "center", "settings", "panel", "sliders"],
+  "visible": true,
+  "closeLauncher": true,
+  "order": 21,
+  "ipc": {
+    "target": "controlcenter",
+    "function": "toggle"
+  }
+}

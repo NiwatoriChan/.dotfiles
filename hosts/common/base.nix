@@ -94,6 +94,7 @@
     gh
     htop
     btop
+    net-tools
   ];
 
   # Allow unfree packages

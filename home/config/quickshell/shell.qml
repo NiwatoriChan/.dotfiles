@@ -54,6 +54,11 @@ ShellRoot {
     }
 
     Loader {
+        id: actionHostLoader
+        source: "modules/actions/ActionHost.qml"
+    }
+
+    Loader {
         id: notificationPopupsLoader
         source: "modules/bar/components/NotificationPopups.qml"
         onStatusChanged: {

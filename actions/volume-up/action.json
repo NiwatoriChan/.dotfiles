@@ -1,0 +1,12 @@
+{
+  "id": "volume-up",
+  "name": "Increase Volume",
+  "description": "Increase audio volume by 5%",
+  "icon": "󰕾",
+  "keywords": ["volume", "audio", "sound", "louder"],
+  "visible": true,
+  "requires": ["wpctl"],
+  "closeLauncher": false,
+  "order": 50,
+  "exec": ["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SINK@", "5%+"]
+}
