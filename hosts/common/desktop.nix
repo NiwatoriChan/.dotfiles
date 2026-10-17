@@ -21,6 +21,24 @@
   # Firefox
   programs.firefox.enable = true;
 
+  # OBS Studio
+  programs.obs-studio = {
+    enable = true;
+    enableVirtualCamera = true;
+    plugins = with pkgs.obs-studio-plugins; [
+      wlrobs
+      obs-vaapi
+      obs-vkcapture
+      obs-pipewire-audio-capture
+    ];
+  };
+
+  # LocalSend (AirDrop alternative with firewall rules opened for port 53317)
+  programs.localsend = {
+    enable = true;
+    openFirewall = true;
+  };
+
   # Dconf — required for Home Manager GTK theme management
   programs.dconf.enable = true;
   # AppImage support

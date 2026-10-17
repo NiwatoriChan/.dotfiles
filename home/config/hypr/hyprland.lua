@@ -249,8 +249,31 @@ hl.config({
         touchpad = {
             natural_scroll = false,
         },
+        tablet = {
+            output = (hostname == "PwPoulet" or hostname == "") and "DP-1" or "",
+        },
     },
 })
+
+-----------------
+---- TABLETS ----
+-----------------
+
+-- On PwPoulet, bind Wacom tablet exclusively to the main display (DP-1)
+if hostname == "PwPoulet" or hostname == "" then
+    hl.device({
+        name   = "wacom-graphire-pen",
+        output = "DP-1",
+    })
+    hl.device({
+        name   = "wacom-graphire-eraser",
+        output = "DP-1",
+    })
+    hl.device({
+        name   = "wacom-graphire",
+        output = "DP-1",
+    })
+end
 
 hl.gesture({
     fingers = 3,

@@ -23,6 +23,7 @@ application/vnd.efi.img=gnome-disk-image-mounter.desktop;
 application/json=dev.zed.Zed.desktop;
 text/plain=dev.zed.Zed.desktop;
 application/x-shellscript=dev.zed.Zed.desktop;
+audio/mp4=mpv.desktop;
 
 [Default Applications]
 inode/directory=thunar.desktop
