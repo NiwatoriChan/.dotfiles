@@ -1,6 +1,9 @@
 # Shared system-level packages — installed on all desktop hosts
 { pkgs, lib, config, customPackages, ... }:
 
+let
+  rclone-manager = pkgs.callPackage ../../packages/rclone-manager.nix { };
+in
 {
   environment.systemPackages = with pkgs; [
     # Browser / Custom Packages
@@ -22,6 +25,8 @@
     moonlight-qt
     mediainfo-gui
     nextcloud-client
+    rclone
+    rclone-manager
 
     # Theming
     papirus-icon-theme
