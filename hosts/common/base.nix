@@ -1,5 +1,5 @@
 # Base system configuration — shared across all hosts (desktop and headless server)
-{ pkgs, lib, ... }:
+{ pkgs, pkgs-unstable, lib, ... }:
 
 {
   imports = [
@@ -95,6 +95,11 @@
     htop
     btop
     net-tools
+
+    # Antigravity 2.0 (Desktop app) & CLI
+    pkgs-unstable.antigravity-hub
+    pkgs-unstable.antigravity-ide
+    pkgs-unstable.antigravity-cli
   ];
 
   # Allow unfree packages
