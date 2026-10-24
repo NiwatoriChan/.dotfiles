@@ -12,7 +12,9 @@ import "../../services" as QsServices
 //   property var actions   // QsServices.Actions (run other actions, list, states)
 //   property var pywal     // QsServices.Pywal (theme colors)
 //   property var config    // QsConfig.Config
+//   property var args      // resolved param values { name: value }
 // The component sizes itself with implicitWidth / implicitHeight.
+// Actions with missing required "params" get the built-in ParamForm.qml first.
 PanelWindow {
     id: root
 
@@ -21,20 +23,31 @@ PanelWindow {
 
     readonly property var pywal: QsServices.Pywal
 
-    function openAction(action) {
+    property var currentArgs: ({})
+
+    function load(action, url, args) {
         const mon = QsServices.Hypr.focusedMonitor
         if (mon && mon.name) {
             const found = Quickshell.screens.find(s => s.name === mon.name)
             if (found) root.screen = found
         }
-        if (currentAction && currentAction.id === action.id && shouldShow) {
+        if (currentAction && currentAction.id === action.id && shouldShow && url === guiLoader.source.toString()) {
             close()
             return
         }
         currentAction = action
+        currentArgs = args || {}
         guiLoader.source = ""
-        guiLoader.source = action.guiUrl
+        guiLoader.source = url
         shouldShow = true
+    }
+
+    function openAction(action, args) {
+        load(action, action.guiUrl, args)
+    }
+
+    function openParams(action, values) {
+        load(action, Qt.resolvedUrl("ParamForm.qml"), values)
     }
 
     function close() {
@@ -43,8 +56,11 @@ PanelWindow {
 
     Connections {
         target: QsServices.Actions
-        function onGuiRequested(action) {
-            root.openAction(action)
+        function onGuiRequested(action, args) {
+            root.openAction(action, args)
+        }
+        function onParamsRequested(action, values) {
+            root.openParams(action, values)
         }
     }
 
@@ -107,6 +123,7 @@ PanelWindow {
             onLoaded: {
                 const inject = {
                     action: root.currentAction,
+                    args: root.currentArgs,
                     host: root,
                     actions: QsServices.Actions,
                     pywal: QsServices.Pywal,
@@ -120,7 +137,7 @@ PanelWindow {
 
             onStatusChanged: {
                 if (status === Loader.Error) {
-                    QsServices.Logger.error("ActionHost", `Failed to load GUI for '${root.currentAction?.id}': ${root.currentAction?.guiUrl}`)
+                    QsServices.Logger.error("ActionHost", `Failed to load GUI for '${root.currentAction?.id}': ${guiLoader.source}`)
                     root.close()
                 }
             }

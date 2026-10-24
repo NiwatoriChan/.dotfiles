@@ -288,16 +288,18 @@ PanelWindow {
     }
 
     // Actions come from ~/.dotfiles/actions (see services/Actions.qml)
-    function toLauncherAction(a) {
+    function toLauncherAction(a, argString) {
+        const hasArgs = !!argString && argString.length > 0
+        const sig = a.params && a.params.length ? `  ${QsServices.Actions.signature(a)}` : ""
         return {
             id: `action-${a.id}`,
             actionId: a.id,
             name: QsServices.Actions.displayName(a),
-            comment: a.description || a.id,
+            comment: (a.description || a.id) + (hasArgs ? `  \u2192 ${argString}` : sig),
             glyph: QsServices.Actions.displayIcon(a),
             type: "action",
             closeLauncher: a.closeLauncher,
-            onTriggered: () => QsServices.Actions.run(a.id)
+            onTriggered: () => hasArgs ? QsServices.Actions.runWith(a.id, argString) : QsServices.Actions.run(a.id)
         }
     }
 
@@ -389,7 +391,15 @@ PanelWindow {
         // 2. Actions-only mode ('!...')
         if (root.isActionMode) {
             const actionQuery = qStart.slice(1).trim()
-            const matched = QsServices.Actions.search(actionQuery).map(r => root.toLauncherAction(r.action))
+            let matched = QsServices.Actions.search(actionQuery).map(r => root.toLauncherAction(r.action))
+            // `!compress my.txt` / `!compress :file`: first word picks the action, rest are its args
+            const sp = actionQuery.search(/\s/)
+            if (matched.length === 0 && sp > 0) {
+                const argString = actionQuery.slice(sp + 1).trim()
+                matched = QsServices.Actions.search(actionQuery.slice(0, sp))
+                    .filter(r => r.action.params.length > 0)
+                    .map(r => root.toLauncherAction(r.action, argString))
+            }
             if (matched.length === 0) {
                 return [{
                     id: "empty-action-results",

@@ -1,0 +1,15 @@
+{
+  "id": "compress",
+  "name": "Compress",
+  "description": "Create an archive from a file or folder",
+  "icon": "󰗄",
+  "keywords": ["archive", "zip", "tar", "gz", "zstd"],
+  "order": 60,
+  "requires": ["tar"],
+  "params": [
+    { "name": "path", "label": "File or folder", "type": "file", "placeholder": "Pick what to compress" },
+    { "name": "format", "label": "Format", "type": "choice", "choices": ["gz", "zst", "xz"], "default": "gz" }
+  ],
+  "script": "compress.sh",
+  "args": ["{path}", "{format}"]
+}

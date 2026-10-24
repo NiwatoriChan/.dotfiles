@@ -18,7 +18,14 @@ import "." as QsServices
 //   steps  : ["id", { "id": "x", "delayMs": 200 }] run other actions in order
 //   gui    : "Gui.qml"                           load a QML component in ActionHost
 //
+// Params: an optional "params" array declares arguments, referenced as {name}
+// inside exec / script args / ipc args / gui. Missing required params open a
+// form (ActionHost) with pickers (file, directory, choice, text, number, bool).
+//   "params": [{ "name": "file", "type": "file", "label": "File" }]
+//   "exec":   ["tar", "czf", "{file}.tar.gz", "{file}"]
+//
 // IPC:  quickshell ipc call actions run <id>
+//       quickshell ipc call actions runWith <id> '<args>'   (positional / key=value)
 //       quickshell ipc call actions list
 //       quickshell ipc call actions reload
 Singleton {
@@ -36,7 +43,8 @@ Singleton {
     readonly property var availableActions: actions.filter(a => a.available)
     readonly property var visibleActions: availableActions.filter(a => a.visible)
 
-    signal guiRequested(var action)
+    signal guiRequested(var action, var args)
+    signal paramsRequested(var action, var values)
     signal actionRan(string id)
 
     // ---------------------------------------------------------------- lookup
@@ -96,7 +104,9 @@ Singleton {
 
     // ----------------------------------------------------------------- run
 
-    function run(id, _stack) {
+    // values: optional object { paramName: value } (or an array of positional values).
+    // If required params are missing the params form is opened instead of running.
+    function run(id, values, _stack) {
         const action = get(id)
         if (!action) {
             QsServices.Logger.warn("Actions", `Unknown action '${id}'`)
@@ -113,29 +123,36 @@ Singleton {
             return false
         }
 
+        const vals = resolveValues(action, values)
+        if (action.params.length && missingParams(action, vals).length) {
+            root.paramsRequested(action, vals)
+            return true
+        }
+
         QsServices.Logger.debug("Actions", `Running '${id}' (${action.kind})`)
+        const sub = arg => expand(arg, action, vals)
 
         switch (action.kind) {
         case "exec":
             Quickshell.execDetached({
-                command: action.exec.map(arg => expand(arg, action)),
+                command: action.exec.map(sub),
                 workingDirectory: action.dir
             })
             break
         case "script":
             Quickshell.execDetached({
-                command: [`${action.dir}/${action.script}`, ...action.args.map(arg => expand(arg, action))],
+                command: [`${action.dir}/${action.script}`, ...action.args.map(sub)],
                 workingDirectory: action.dir
             })
             break
         case "ipc":
-            Quickshell.execDetached(["quickshell", "ipc", "call", action.ipc.target, action.ipc.function, ...action.ipc.args])
+            Quickshell.execDetached(["quickshell", "ipc", "call", action.ipc.target, action.ipc.function, ...action.ipc.args.map(sub)])
             break
         case "steps":
-            runSteps(action, stack.concat([id]))
+            runSteps(action, stack.concat([id]), vals)
             break
         case "gui":
-            root.guiRequested(action)
+            root.guiRequested(action, vals)
             break
         }
 
@@ -144,16 +161,83 @@ Singleton {
         return true
     }
 
-    function runSteps(action, stack) {
+    // Run with a raw argument string: `file.txt`, `"my file" zstd`, `file=a.txt level=9`.
+    // A bare `:` or `:name` token means "leave unset, ask me in the form".
+    function runWith(id, argString) {
+        const action = get(id)
+        if (!action) return run(id)
+        return run(id, parseArgs(action, argString))
+    }
+
+    function runSteps(action, stack, vals) {
         let delay = 0
         for (const step of action.steps) {
             delay += step.delayMs
+            // Step args may reference this action's values via {name}
+            const stepArgs = {}
+            for (const k in step.args) stepArgs[k] = expand(step.args[k], action, vals)
             if (delay <= 0) {
-                run(step.id, stack)
+                run(step.id, stepArgs, stack)
             } else {
-                later(delay, () => run(step.id, stack))
+                later(delay, () => run(step.id, stepArgs, stack))
             }
         }
+    }
+
+    // ---------------------------------------------------------------- params
+
+    function resolveValues(action, values) {
+        const out = {}
+        for (const p of action.params) out[p.name] = p.default
+        if (Array.isArray(values)) {
+            action.params.forEach((p, i) => { if (values[i] !== undefined) out[p.name] = String(values[i]) })
+        } else if (values && typeof values === "object") {
+            for (const p of action.params) if (values[p.name] !== undefined) out[p.name] = String(values[p.name])
+        }
+        return out
+    }
+
+    function missingParams(action, vals) {
+        return action.params.filter(p => p.required && p.type !== "bool" && !String(vals[p.name] ?? "").length)
+    }
+
+    function tokenize(s) {
+        const out = []
+        const re = /"((?:[^"\\]|\\.)*)"|'([^']*)'|(\S+)/g
+        let m
+        while ((m = re.exec(s || "")) !== null)
+            out.push(m[1] !== undefined ? m[1].replace(/\\(.)/g, "$1") : (m[2] !== undefined ? m[2] : m[3]))
+        return out
+    }
+
+    function parseArgs(action, argString) {
+        const vals = {}
+        const names = action.params.map(p => p.name)
+        const tokens = tokenize(argString)
+        let pos = 0
+        for (let i = 0; i < tokens.length; ++i) {
+            const t = tokens[i]
+            const eq = t.indexOf("=")
+            if (eq > 0 && names.includes(t.slice(0, eq))) {
+                vals[t.slice(0, eq)] = t.slice(eq + 1)
+                continue
+            }
+            if (pos >= names.length) break
+            const name = names[pos++]
+            if (t === ":" || t === `:${name}`) continue          // ask in form
+            // last param swallows the remainder
+            if (pos === names.length) {
+                vals[name] = [t].concat(tokens.slice(i + 1).filter(x => !x.includes("=") || !names.includes(x.slice(0, x.indexOf("="))))).join(" ")
+                break
+            }
+            vals[name] = t
+        }
+        return vals
+    }
+
+    // Human readable signature, e.g. "<file> [level]"
+    function signature(action) {
+        return action.params.map(p => p.required ? `<${p.name}>` : `[${p.name}]`).join(" ")
     }
 
     function later(ms, fn) {
@@ -163,8 +247,19 @@ Singleton {
         t.start()
     }
 
-    function expand(arg, action) {
+    function expand(arg, action, vals) {
         let s = String(arg)
+        if (vals && action.params) {
+            // whole-arg `:name` shorthand
+            if (s.startsWith(":") && s.slice(1) in vals) s = `{${s.slice(1)}}`
+            s = s.replace(/\{(\w+)\}/g, (m, n) => {
+                if (!(n in vals)) return m
+                let v = String(vals[n] ?? "")
+                if (v === "~") v = root.home
+                else if (v.startsWith("~/")) v = `${root.home}/${v.slice(2)}`
+                return v
+            })
+        }
         if (s === "~") s = root.home
         else if (s.startsWith("~/")) s = `${root.home}/${s.slice(2)}`
         return s.replace(/\$\{?HOME\}?/g, root.home)
@@ -182,6 +277,31 @@ Singleton {
     // Rescan manifests + refresh toggle states (called when the launcher opens).
     function refresh() {
         reload()
+    }
+
+    readonly property var paramTypes: ["text", "file", "directory", "choice", "number", "bool"]
+
+    function normalizeParams(raw) {
+        if (!Array.isArray(raw)) return []
+        return raw.map(p => {
+            if (typeof p === "string") p = { name: p }
+            if (!p || !/^\w+$/.test(String(p.name || "")))
+                throw new Error("each param needs a 'name' (letters, digits, _)")
+            const type = paramTypes.includes(p.type) ? p.type : "text"
+            const choices = Array.isArray(p.choices) ? p.choices.map(String) : []
+            if (type === "choice" && !choices.length) throw new Error(`param '${p.name}': 'choice' needs 'choices'`)
+            return {
+                name: String(p.name),
+                label: String(p.label || p.name),
+                type: type,
+                default: p.default !== undefined ? String(p.default) : (type === "choice" ? choices[0] : (type === "bool" ? "false" : "")),
+                required: p.required !== false,
+                choices: choices,
+                placeholder: String(p.placeholder || ""),
+                startDir: String(p.startDir || "~"),
+                filter: Array.isArray(p.filter) ? p.filter.map(f => String(f).toLowerCase().replace(/^\./, "")) : []
+            }
+        })
     }
 
     function normalize(raw, dir) {
@@ -208,7 +328,8 @@ Singleton {
             kind: kind,
             dir: dir,
             state: null,
-            available: true
+            available: true,
+            params: normalizeParams(raw.params)
         }
 
         switch (kind) {
@@ -236,8 +357,8 @@ Singleton {
             if (!Array.isArray(raw.steps) || raw.steps.length === 0)
                 throw new Error("'steps' must be a non-empty array")
             a.steps = raw.steps.map(s => typeof s === "string"
-                ? { id: s, delayMs: 0 }
-                : { id: String(s.id), delayMs: Number(s.delayMs ?? 0) })
+                ? { id: s, delayMs: 0, args: {} }
+                : { id: String(s.id), delayMs: Number(s.delayMs ?? 0), args: (s.args && typeof s.args === "object") ? s.args : {} })
             break
         case "gui":
             if (typeof raw.gui !== "string" || !raw.gui.length)
@@ -390,6 +511,10 @@ Singleton {
 
         function run(id: string): string {
             return root.run(id) ? "ok" : `failed: ${id}`
+        }
+
+        function runWith(id: string, args: string): string {
+            return root.runWith(id, args) ? "ok" : `failed: ${id}`
         }
 
         function list(): string {

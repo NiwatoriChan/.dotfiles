@@ -95,6 +95,47 @@ Opens an interactive QML component loaded dynamically into Quickshell's `ActionH
 
 ---
 
+## Parameters (custom actions with arguments)
+
+Declare `params` and reference them as `{name}` in `exec`, `script` `args`,
+`ipc.args`, or a step's `args`. If a required param is missing, a GUI form opens
+(with a file/folder browser) before the action runs.
+
+```json
+{
+  "id": "compress",
+  "name": "Compress",
+  "params": [
+    { "name": "path", "type": "file" },
+    { "name": "format", "type": "choice", "choices": ["gz", "zst", "xz"] }
+  ],
+  "script": "compress.sh",
+  "args": ["{path}", "{format}"]
+}
+```
+
+| Param field | Default | Description |
+|---|---|---|
+| `name` | required | Identifier used as `{name}` |
+| `label` | name | Form label |
+| `type` | `text` | `text`, `file`, `directory`, `choice`, `number`, `bool` (`"true"`/`"false"`) |
+| `default` | `""` | Initial value (first choice for `choice`) |
+| `required` | `true` | Show the form if empty |
+| `choices` | `[]` | Options for `choice` |
+| `placeholder` | `""` | Hint text |
+| `startDir` | `~` | Folder the browser opens in |
+| `filter` | `[]` | Extensions shown for `file` (e.g. `["png","jpg"]`) |
+
+GUI actions (`gui`) receive the values as the `args` property.
+
+**Passing arguments**
+- Launcher: `!compress ~/notes.txt zst` (positional; last param takes the rest),
+  `!compress format=xz`, or `!compress :file` to pick that one in the GUI.
+- IPC: `quickshell ipc call actions runWith compress '~/notes.txt zst'`
+- Steps: `{ "id": "compress", "args": { "path": "{path}" } }`
+
+---
+
 ## Dynamic State (Toggle Actions)
 
 Actions can define a `state` block to reflect current status (e.g. Android running/stopped):
