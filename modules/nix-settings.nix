@@ -4,6 +4,7 @@
 {
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
+    trusted-users = [ "root" "@wheel" ];
 
     # Use extra-* so the default cache.nixos.org entry is never replaced.
     extra-substituters = [

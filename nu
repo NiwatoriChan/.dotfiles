@@ -93,7 +93,7 @@ if [ "$force" = true ]; then
 fi
 
 rebuild() {
-  sudo nixos-rebuild switch --flake ".#${host}" --impure
+  sudo nixos-rebuild switch --flake ".#${host}" --impure --accept-flake-config
 }
 
 pull_repo() {
