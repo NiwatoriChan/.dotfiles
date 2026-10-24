@@ -7,13 +7,13 @@
 
     # Use extra-* so the default cache.nixos.org entry is never replaced.
     extra-substituters = [
-      # "https://attic.xuyh0120.win/lantian"  # Down (DNS resolves to private IP)
+      "https://cache.lantian.pub/lantian"
       "https://cache.xinux.uz"
       "https://jovian.cachix.org"
       "https://nyx-cache.chaotic.cx"
     ];
     extra-trusted-public-keys = [
-      # "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
+      "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
       "cache.xinux.uz:BXCrtqejFjWzWEB9YuGB7X2MV4ttBur1N8BkwQRdH+0="
       "jovian.cachix.org-1:8Vq4Txku6VZIRhYrHYki3Ab9XHJRoWmdYqMqj4rB/Uc="
       "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="

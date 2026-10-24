@@ -51,11 +51,11 @@ cat << EOF > "$TEMP_DIR/flake.nix"
 
   nixConfig = {
     substituters = [
-      # "https://attic.xuyh0120.win/lantian"
+      "https://cache.lantian.pub/lantian"
       "https://cache.xinux.uz"
     ];
     trusted-public-keys = [
-      # "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
+      "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
       "cache.xinux.uz:BXCrtqejFjWzWEB9YuGB7X2MV4ttBur1N8BkwQRdH+0="
     ];
     extra-substituters = [
@@ -86,11 +86,11 @@ cat << EOF > "$TEMP_DIR/flake.nix"
 
           # Declare cache settings
           nix.settings.substituters = [
-            # "https://attic.xuyh0120.win/lantian"
+            "https://cache.lantian.pub/lantian"
             "https://cache.xinux.uz"
           ];
           nix.settings.trusted-public-keys = [
-            # "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
+            "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
             "cache.xinux.uz:BXCrtqejFjWzWEB9YuGB7X2MV4ttBur1N8BkwQRdH+0="
           ];
           nix.settings.extra-substituters = [
