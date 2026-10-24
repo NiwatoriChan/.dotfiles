@@ -88,8 +88,8 @@ case "$cmd" in
 esac
 
 if [ "$force" = true ]; then
-  echo "Removing any staging..."
-  git reset
+  echo "Discarding local changes and un-staging..."
+  git reset --hard HEAD
 fi
 
 rebuild() {
@@ -105,8 +105,20 @@ pull_repo() {
     has_bak=true
   fi
 
+  # Temporarily reset skip-worktree and restore any runtime-modified Thunar accels file
+  local has_accels=false
+  if [ -f home/config/Thunar/accels.scm ]; then
+    has_accels=true
+    git update-index --no-skip-worktree home/config/Thunar/accels.scm 2>/dev/null || true
+    git checkout -- home/config/Thunar/accels.scm 2>/dev/null || true
+  fi
+
   local err=0
-  git pull --rebase || err=$?
+  git pull --rebase origin main || err=$?
+
+  if [ "$has_accels" = true ] && [ -f home/config/Thunar/accels.scm ]; then
+    git update-index --skip-worktree home/config/Thunar/accels.scm 2>/dev/null || true
+  fi
 
   if [ "$has_bak" = true ]; then
     if [ -f flake.lock.bak ]; then
