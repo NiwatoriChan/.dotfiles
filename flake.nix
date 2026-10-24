@@ -59,40 +59,65 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, home-manager-unstable, nixos-hardware, ... }@inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      nixpkgs-unstable,
+      home-manager,
+      home-manager-unstable,
+      nixos-hardware,
+      ...
+    }@inputs:
     let
       insecurePackages = import ./lib/insecure-packages.nix;
 
-      sharedArgsFor = system:
+      sharedArgsFor =
+        system:
         let
-          mkPkgs = src: import src {
-            inherit system;
-            config.allowUnfree = true;
-            config.permittedInsecurePackages = insecurePackages;
-          };
+          mkPkgs =
+            src:
+            import src {
+              inherit system;
+              config.allowUnfree = true;
+              config.permittedInsecurePackages = insecurePackages;
+            };
           pkgs-unstable = mkPkgs nixpkgs-unstable;
           pkgs-stable = mkPkgs nixpkgs;
-        in {
+        in
+        {
           customPackages = {
-            brave-origin = if inputs.custom-packages.packages ? ${system} && inputs.custom-packages.packages.${system} ? brave-origin
-                           then inputs.custom-packages.packages.${system}.brave-origin
-                           else pkgs-unstable.writeShellScriptBin "brave-origin" "echo 'brave-origin is not supported on ${system}'";
+            brave-origin =
+              if
+                inputs.custom-packages.packages ? ${system}
+                && inputs.custom-packages.packages.${system} ? brave-origin
+              then
+                inputs.custom-packages.packages.${system}.brave-origin
+              else
+                pkgs-unstable.writeShellScriptBin "brave-origin" "echo 'brave-origin is not supported on ${system}'";
           };
           inherit inputs pkgs-unstable pkgs-stable;
         };
 
-      sharedKernelAndCache = { config, pkgs, lib, ... }: {
-        imports = [
-          inputs.chaotic.nixosModules.default
-        ];
+      sharedKernelAndCache =
+        {
+          config,
+          pkgs,
+          lib,
+          ...
+        }:
+        {
+          imports = [
+            inputs.chaotic.nixosModules.default
+          ];
 
-        nixpkgs.overlays = [
-          inputs.nix-cachyos-kernel.overlays.pinned
-        ];
+          nixpkgs.overlays = [
+            inputs.nix-cachyos-kernel.overlays.pinned
+          ];
 
-        #boot.kernelPackages = pkgs.linuxPackages_cachyos;
-        boot.kernelPackages = lib.mkIf (config.networking.hostName != "Savage") pkgs.linuxPackages_latest;
-      };
+          #boot.kernelPackages = pkgs.linuxPackages_cachyos;
+          boot.kernelPackages = lib.mkIf (config.networking.hostName != "Savage") pkgs.linuxPackages_latest;
+        };
 
       # Build a NixOS host with Home-Manager wired in.
       #   name         – host name (informational; the key in nixosConfigurations is what counts)
@@ -102,13 +127,14 @@
       #   homeFile     – ./home/<file>.nix
       #   extraModules – modules inserted before the host directory
       mkHost =
-        { name
-        , system ? "x86_64-linux"
-        , nixpkgs' ? nixpkgs
-        , hm ? home-manager
-        , hostDir
-        , homeFile
-        , extraModules ? [ ]
+        {
+          name,
+          system ? "x86_64-linux",
+          nixpkgs' ? nixpkgs,
+          hm ? home-manager,
+          hostDir,
+          homeFile,
+          extraModules ? [ ],
         }:
         let
           sharedArgs = sharedArgsFor system;
@@ -131,8 +157,12 @@
           ];
         };
 
-      supportedSystems = [ "x86_64-linux" "aarch64-linux" ];
-      forAllSystems = f: nixpkgs.lib.genAttrs supportedSystems (system: f nixpkgs.legacyPackages.${system});
+      supportedSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
+      forAllSystems =
+        f: nixpkgs.lib.genAttrs supportedSystems (system: f nixpkgs.legacyPackages.${system});
     in
     {
       nixosConfigurations = {
@@ -141,7 +171,10 @@
           name = "PotatoMonster";
           hostDir = ./hosts/potatomonster;
           homeFile = ./home/potatomonster.nix;
-          extraModules = [ sharedKernelAndCache inputs.mangowm.nixosModules.mango ];
+          extraModules = [
+            sharedKernelAndCache
+            inputs.mangowm.nixosModules.mango
+          ];
         };
 
         # --- PetitOeuf — Laptop Configuration ---
@@ -149,7 +182,10 @@
           name = "PetitOeuf";
           hostDir = ./hosts/petitoeuf;
           homeFile = ./home/petitoeuf.nix;
-          extraModules = [ sharedKernelAndCache inputs.mangowm.nixosModules.mango ];
+          extraModules = [
+            sharedKernelAndCache
+            inputs.mangowm.nixosModules.mango
+          ];
         };
 
         # --- PwPoulet — KDE Plasma 6 Desktop ---
@@ -184,7 +220,10 @@
           hm = home-manager-unstable;
           hostDir = ./hosts/savage;
           homeFile = ./home/savage.nix;
-          extraModules = [ sharedKernelAndCache inputs.jovian.nixosModules.default ];
+          extraModules = [
+            sharedKernelAndCache
+            inputs.jovian.nixosModules.default
+          ];
         };
       };
 
@@ -192,9 +231,14 @@
 
       # `nix flake check` builds every host of the current platform.
       # Use `nix flake check --no-build` for a fast evaluation-only pass.
-      checks = forAllSystems (pkgs:
-        nixpkgs.lib.mapAttrs' (n: c: nixpkgs.lib.nameValuePair "host-${n}" c.config.system.build.toplevel)
-          (nixpkgs.lib.filterAttrs (_: c: c.pkgs.stdenv.hostPlatform.system == pkgs.stdenv.hostPlatform.system) self.nixosConfigurations));
+      checks = forAllSystems (
+        pkgs:
+        nixpkgs.lib.mapAttrs' (n: c: nixpkgs.lib.nameValuePair "host-${n}" c.config.system.build.toplevel) (
+          nixpkgs.lib.filterAttrs (
+            _: c: c.pkgs.stdenv.hostPlatform.system == pkgs.stdenv.hostPlatform.system
+          ) self.nixosConfigurations
+        )
+      );
 
       devShells = forAllSystems (pkgs: {
         default = pkgs.mkShell {
