@@ -25,4 +25,9 @@
 
   # Hostname
   networking.hostName = "PwPoulet";
+
+  # Sunshine game streaming: target main desktop screen (DP-1)
+  services.sunshine.settings = {
+    output_name = "DP-1";
+  };
 }
