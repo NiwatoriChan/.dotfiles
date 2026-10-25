@@ -3,7 +3,7 @@
 
 {
   services.syncthing = {
-    enable = true;
+    enable = false;
     user = "niwatorichan";
     dataDir = "/home/niwatorichan";
     configDir = "/home/niwatorichan/.config/syncthing";

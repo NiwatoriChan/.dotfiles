@@ -1,5 +1,5 @@
 # Syncthing desktop profile — base service + web GUI config + desktop tray app
-{ pkgs, ... }:
+{ pkgs, config, lib, ... }:
 
 {
   imports = [
@@ -10,7 +10,7 @@
     guiAddress = "127.0.0.1:8384"; # Web GUI listening locally
   };
 
-  environment.systemPackages = with pkgs; [
-    syncthingtray
+  environment.systemPackages = lib.mkIf config.services.syncthing.enable [
+    pkgs.syncthingtray
   ];
 }
