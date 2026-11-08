@@ -37,11 +37,30 @@
     "amd_iommu=off"
     "processor.max_cstate=1"
     "idle=nomwait"
+    "rcu_nocbs=0-11"
   ];
+
+  # Ryzen 1st Gen (Zen 1) C6 idle freeze fix:
+  # Hardware C6 states autonomously drop core voltage below stability threshold
+  # during idle transitions (e.g. after background jobs finish).
+  boot.kernelModules = [ "msr" ];
+
+  systemd.services.zenstates-c6-disable = {
+    description = "Disable AMD Ryzen C6 states to prevent idle freezes";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "systemd-modules-load.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.zenstates}/bin/zenstates --c6-disable";
+    };
+  };
 
   # Terminal and Browser
   programs.firefox.enable = true;
   environment.systemPackages = with pkgs; [
     kitty
+    zenstates
+    msr-tools
   ];
 }

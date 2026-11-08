@@ -12,7 +12,7 @@ Managed in `home/config/mango/config.conf`, MangoWM handles tiling layout struct
 - **Border Radius**: Curved corners set to `12px` to fit modern aesthetics.
 - **Inner Gaps**: `4px` horizontal and vertical spacing between adjacent windows.
 - **Outer Gaps**: `6px` padding between windows and screen borders.
-- **Smart Gaps**: Disabled (`smartgaps=0`), keeping gaps even when only a single window is open on a workspace.
+- **Smart Gaps**: Disabled (`smart_gaps=0`), keeping gaps even when only a single window is open on a workspace.
 - **Window Blur**: High-quality frosted glass background blur enabled with optimized caching:
   - Radius: `6`
   - Passes: `2`
