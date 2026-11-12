@@ -216,7 +216,7 @@ hl.config({
             vibrancy       = 0.1696,
             popups         = false,
             ignore_opacity = true,
-            xray           = true, -- Optimized blur layering: blurs desktop directly, reducing multi-pass redraws
+            xray           = false, -- Allows blur to render over other windows underneath
         },
     },
 
