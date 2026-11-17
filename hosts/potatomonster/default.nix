@@ -11,9 +11,10 @@
      else {})
     ../common
     ./hardware.nix
-    #../../modules/hyprland.nix
+    ../../modules/hyprland.nix
     #../../modules/kde.nix
-    ../../modules/gnome.nix
+    #../../modules/gnome.nix
+    #../../modules/cinnamon.nix
     #../../modules/server
     ../../modules/gaming.nix
     ../../modules/sunshine.nix

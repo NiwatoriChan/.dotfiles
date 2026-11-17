@@ -147,13 +147,18 @@
 
             # Home-Manager as NixOS module
             hm.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "hm-bak";
-              home-manager.extraSpecialArgs = sharedArgs;
-              home-manager.users.niwatorichan = import homeFile;
-            }
+            (
+              { pkgs, ... }:
+              {
+                home-manager.useGlobalPkgs = true;
+                home-manager.useUserPackages = true;
+                home-manager.backupCommand = "${pkgs.writeShellScript "hm-backup" ''
+                  mv -f "$1" "$1.hm-bak"
+                ''}";
+                home-manager.extraSpecialArgs = sharedArgs;
+                home-manager.users.niwatorichan = import homeFile;
+              }
+            )
           ];
         };
 
