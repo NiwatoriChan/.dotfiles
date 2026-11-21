@@ -13,6 +13,12 @@
     remotePlay.openFirewall = true;
   };
 
+  # Recompia multiplayer (TCP/UDP 47600) and mDNS/DNS-SD discovery (UDP 5353)
+  networking.firewall = {
+    allowedTCPPorts = [ 47600 ];
+    allowedUDPPorts = [ 47600 5353 ];
+  };
+
   programs.gamescope = {
     enable = true;
     capSysNice = false;
