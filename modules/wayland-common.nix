@@ -17,7 +17,6 @@
     awww
     kdePackages.gwenview
     wlsunset
-    opencode-desktop
     pavucontrol
     pwvucontrol
     playerctl

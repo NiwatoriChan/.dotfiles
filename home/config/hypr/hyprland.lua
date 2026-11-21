@@ -580,20 +580,6 @@ hl.window_rule({
 })
 
 hl.window_rule({
-    name = "opencode-blur-1",
-    match = { class = "opencode-desktop" },
-    no_blur = false,
-    opacity = "0.85 0.75",
-})
-
-hl.window_rule({
-    name = "opencode-blur-2",
-    match = { class = "OpenCode" },
-    no_blur = false,
-    opacity = "0.85 0.75",
-})
-
-hl.window_rule({
     name = "wofi-blur",
     match = { class = "wofi" },
     no_blur = false,
