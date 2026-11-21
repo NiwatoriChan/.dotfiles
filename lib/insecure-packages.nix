@@ -6,4 +6,5 @@
   "pnpm-10.29.2"
   "electron-41.9.1"
   "electron-41.10.7"
+  "electron-42.11.18"
 ]

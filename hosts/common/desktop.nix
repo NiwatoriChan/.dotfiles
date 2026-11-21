@@ -1,5 +1,5 @@
 # Desktop environment configuration — imported by graphical desktop/laptop hosts
-{ pkgs, ... }:
+{ pkgs, pkgs-unstable, ... }:
 
 {
   imports = [
@@ -45,7 +45,7 @@
   programs.appimage = {
     enable = true;
     binfmt = true;
-    package = pkgs.appimage-run.override {
+    package = pkgs-unstable.appimage-run.override {
       extraPkgs = pkgs: with pkgs; [
         curl
         icu
