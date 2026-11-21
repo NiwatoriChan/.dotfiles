@@ -49,6 +49,7 @@
       extraPkgs = pkgs: with pkgs; [
         curl
         icu
+        libgpg-error
         zlib
         openssl
       ];
