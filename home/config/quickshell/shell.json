@@ -23,7 +23,7 @@
     "enabled": true,
     "width": 640,
     "maxResults": 10,
-    "terminalCommand": ["kitty"],
+    "terminalCommand": ["kitty", "-1"],
     "favorites": [],
     "favoritePaths": [
       "~/.dotfiles",

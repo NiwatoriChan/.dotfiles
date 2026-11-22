@@ -1,5 +1,5 @@
 # Base system configuration — shared across all hosts (desktop and headless server)
-{ pkgs, pkgs-unstable, lib, ... }:
+{ pkgs, pkgs-unstable, lib, options, ... }:
 
 {
   imports = [
@@ -12,6 +12,9 @@
   # Keep /boot from filling up; older generations remain reachable via the store until GC
   boot.loader.systemd-boot.configurationLimit = lib.mkDefault 20;
   boot.loader.efi.canTouchEfiVariables = true;
+
+  # Avoid inflating small anonymous allocations with 2 MiB hugepages while keeping explicit madvise() hugepages
+  boot.kernelParams = [ "transparent_hugepage=madvise" ];
 
   # Networking (hostname set per-host)
   networking.networkmanager.enable = true;
@@ -75,6 +78,27 @@
 
   # Envfs — dynamically populate /bin and /usr/bin with PATH binaries (e.g. /usr/bin/curl, /bin/bash)
   services.envfs.enable = true;
+
+  # Bound systemd journal and coredump disk/cache usage
+  services.journald =
+    if options.services.journald ? settings then
+      {
+        settings.Journal = {
+          SystemMaxUse = "100M";
+          RuntimeMaxUse = "50M";
+        };
+      }
+    else
+      {
+        extraConfig = ''
+          SystemMaxUse=100M
+          RuntimeMaxUse=50M
+        '';
+      };
+
+  systemd.coredump.settings.Coredump = {
+    MaxUse = "256M";
+  };
 
   # Core command-line utilities
   environment.systemPackages = with pkgs; [

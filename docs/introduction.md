@@ -22,23 +22,21 @@ The configuration files are organized as follows:
 │   ├── petitoeuf/        # Config for PetitOeuf (Hyprland laptop without gaming)
 │   ├── pwpoulet/         # Config for PwPoulet (KDE Plasma 6 system)
 │   ├── savage/           # Config for Savage (Steam Deck LCD system)
-│   ├── jeff/             # Config for Jeff (headless server profile)
-│   └── petitepatate/     # Config for PetitePatate (Pinebook Pro ARM64 system)
+│   └── jeff/             # Config for Jeff (headless server profile)
 ├── home/                 # User-specific Home Manager configurations
 │   ├── common/           # Shared user packages, shell (zsh/p10k), and git
 │   ├── config/           # User configuration files (waybar, hypr, mango, etc.)
 │   ├── potatomonster.nix # User environment for PotatoMonster (MangoWM configs)
 │   ├── petitoeuf.nix     # User environment for PetitOeuf (Hyprland configs)
 │   ├── pwpoulet.nix      # User environment for PwPoulet (KDE wrapper)
-│   ├── savage.nix        # User environment for Savage (Steam Deck common configs)
-│   └── petitepatate.nix  # User environment for PetitePatate (ARM64 configs)
+│   └── savage.nix        # User environment for Savage (Steam Deck common configs)
 ```
 
 ---
 
 ## 🖥️ System Profiles
 
-The configurations define five target machines and one headless server:
+The configurations define four target machines and one headless server:
 
 | Machine Name | Device Type | Window Manager / DE | NixOS Host Config | Home Manager Profile |
 | :--- | :--- | :--- | :--- | :--- |
@@ -46,7 +44,6 @@ The configurations define five target machines and one headless server:
 | **PetitOeuf** | Laptop (x86_64) | Hyprland | `hosts/petitoeuf` | `home/petitoeuf.nix` |
 | **PwPoulet** | Desktop (x86_64) | KDE Plasma 6 (Unstable) | `hosts/pwpoulet` | `home/pwpoulet.nix` |
 | **Savage** *BETA* | Steam Deck (x86_64) | Steam Deck Game Mode / KDE Plasma | `hosts/savage` | `home/savage.nix` |
-| **PetitePatate** | Pinebook Pro (aarch64) | Hyprland | `hosts/petitepatate` | `home/petitepatate.nix` |
 | **Jeff** | Headless Server (x86_64) | *None (CLI)* | `hosts/jeff` | `home/jeff.nix` |
 
 ---

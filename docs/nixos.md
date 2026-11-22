@@ -90,16 +90,11 @@ Specific system host modules override or add system services:
 - **Packages**: Dolphin (\`kdePackages.dolphin\`) and Qt Multimedia support (\`kdePackages.qtmultimedia\`).
 - **Hardware**: Configured with standard desktop x86_64 hardware modules.
 
-### 4. PetitePatate (`hosts/petitepatate`)
-- **Device/Architecture**: Pinebook Pro (aarch64 ARM64).
-- **Kernel/Hardware**: Integrates custom NixOS hardware modules alongside device tree overlay overrides for CPU/GPU overclocking (up to 2.08GHz) and stable undervolting.
-- **Graphical Environment**: Enables and configures Hyprland (`modules/hyprland.nix`).
-
-### 5. Jeff (`hosts/jeff`)
+### 4. Jeff (`hosts/jeff`)
 - **Type**: Headless Server.
 - **Services**: Imports core server modules (`modules/server/default.nix`) enabling declarative Samba storage sharing, Jellyfin media streaming server, Transmission BitTorrent daemon, OpenVPN tunneling, local DNS resolution, Nginx reverse proxy, and the Homepage portal.
 
-### 6. Savage (*BETA*) (`hosts/savage`)
+### 5. Savage (*BETA*) (`hosts/savage`)
 - **Status**: Beta.
 - **Device/Architecture**: Steam Deck LCD (x86_64).
 - **Steam Deck Integration (Jovian-NixOS)**: Configured using the Jovian-NixOS module system, enabling Steam Deck hardware profiles, performance optimizations, and controller driver layers.

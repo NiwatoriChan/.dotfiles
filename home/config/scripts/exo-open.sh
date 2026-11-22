@@ -36,7 +36,7 @@ if [ "$launch_term" = true ] || [ -n "$dir" ]; then
     elif [ -x "$HOME/.local/bin/thunar-open-terminal" ]; then
         exec "$HOME/.local/bin/thunar-open-terminal" "$dir"
     else
-        exec kitty ${dir:+--directory "$dir"}
+        exec kitty -1 ${dir:+--directory "$dir"}
     fi
 else
     if command -v xdg-open >/dev/null 2>&1; then

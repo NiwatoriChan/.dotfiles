@@ -43,27 +43,7 @@ PanelWindow {
 
     readonly property var terminalCommand: Array.isArray(config.launcher.terminalCommand) && config.launcher.terminalCommand.length > 0
         ? config.launcher.terminalCommand
-        : ["kitty"]
-
-    IpcHandler {
-        target: "launcher"
-
-        function toggle(): void {
-            if (root.shouldShow) {
-                root.closeLauncher()
-            } else {
-                root.openLauncher()
-            }
-        }
-
-        function open(): void {
-            root.openLauncher()
-        }
-
-        function close(): void {
-            root.closeLauncher()
-        }
-    }
+        : ["kitty", "-1"]
 
     readonly property var iconCache: ({})
 

@@ -5,7 +5,6 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import Quickshell.Widgets
-import Quickshell.Io
 import "../../config" as QsConfig
 import "../../services" as QsServices
 import "../../components/effects"
@@ -47,51 +46,6 @@ PanelWindow {
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: shouldShow ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-
-    IpcHandler {
-        target: "switcher"
-
-        function toggle(): void {
-            if (root.shouldShow) {
-                root.selectNext()
-            } else {
-                root.openSwitcher()
-            }
-        }
-
-        function open(): void {
-            root.openSwitcher()
-        }
-
-        function close(): void {
-            root.closeSwitcher()
-        }
-
-        function next(): void {
-            if (!root.shouldShow) {
-                root.openSwitcher()
-            } else {
-                root.selectNext()
-            }
-        }
-
-        function prev(): void {
-            if (!root.shouldShow) {
-                root.openSwitcher()
-                if (root.visibleWindows.length > 1) {
-                    root.selectedIndex = root.visibleWindows.length - 1
-                }
-            } else {
-                root.selectPrev()
-            }
-        }
-
-        function release(): void {
-            if (root.shouldShow) {
-                root.confirmAndSwitch()
-            }
-        }
-    }
 
     // User home path for local icon discovery
     readonly property string userHome: Quickshell.env("HOME") || "/home/niwatorichan"

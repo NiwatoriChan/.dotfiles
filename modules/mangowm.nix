@@ -19,6 +19,21 @@
     # MangoWM configuration symlinks
     home.file.".config/mango/config.conf".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home/config/mango/config.conf";
 
+    # Mako Notification Daemon (standalone use on MangoWM without Quickshell)
+    home.packages = [ pkgs.mako ];
+    services.mako.enable = false;
+    xdg.configFile."mako/config".text = ''
+      font=Inter Variable 10
+      background-color=#121212cc
+      text-color=#e0e0e0ff
+      border-color=#ffffff20
+      border-size=2
+      border-radius=12
+      default-timeout=5000
+      margin=10
+      padding=15
+    '';
+
     # Waybar Status Bar — MangoWM workspace module
     programs.waybar.custom = {
       modules-left = [ "ext/workspaces" ];

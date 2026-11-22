@@ -30,4 +30,4 @@ if [ ! -d "$working_dir" ]; then
     working_dir="$HOME"
 fi
 
-exec kitty --directory "$working_dir"
+exec kitty -1 --directory "$working_dir"

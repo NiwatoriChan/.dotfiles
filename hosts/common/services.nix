@@ -43,9 +43,11 @@
     };
   };
 
-  # Printing
+  # Printing (socket-activated on demand; no persistent LAN printer discovery daemon)
   services.printing = {
     enable = true;
+    startWhenNeeded = true;
+    browsed.enable = false;
     drivers = with pkgs; [
       samsung-unified-linux-driver
       splix

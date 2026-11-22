@@ -59,14 +59,36 @@ Singleton {
 
     function updateLiveClients(clientsList: var): void {
         const map = {};
+        let nextCount = 0;
         if (Array.isArray(clientsList)) {
             for (let i = 0; i < clientsList.length; ++i) {
                 const c = clientsList[i];
                 if (!c || !c.address) continue;
                 const a = normalizeAddress(c.address);
-                if (a) map[a] = true;
+                if (a && !map[a]) {
+                    map[a] = true;
+                    nextCount++;
+                }
             }
         }
+
+        let changed = !hasCompletedInitialSync;
+        if (!changed) {
+            const prevKeys = Object.keys(liveAddresses);
+            if (prevKeys.length !== nextCount) {
+                changed = true;
+            } else {
+                for (let k = 0; k < prevKeys.length; ++k) {
+                    if (map[prevKeys[k]] !== true) {
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!changed) return;
+
         liveAddresses = map;
         hasCompletedInitialSync = true;
         liveAddressesVersion++;

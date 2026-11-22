@@ -2,7 +2,6 @@ import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Io
 import "../../config" as QsConfig
 import "../../services" as QsServices
 import "../../components"
@@ -84,22 +83,6 @@ PanelWindow {
 
     function closeDashboard() {
         shouldShow = false
-    }
-
-    IpcHandler {
-        target: "dashboard"
-
-        function toggle(): void {
-            root.toggleDashboard()
-        }
-
-        function open(): void {
-            root.openDashboard()
-        }
-
-        function close(): void {
-            root.closeDashboard()
-        }
     }
 
     screen: Quickshell.screens[0]

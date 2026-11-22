@@ -88,10 +88,19 @@ Singleton {
         
         onTriggered: {
             const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000)
-            const oldCount = root.notifications.length
-            root.notifications = root.notifications.filter(n => n && n.timestamp && n.timestamp.getTime() > oneDayAgo)
-            const cleaned = oldCount - root.notifications.length
+            const keep = []
+            let cleaned = 0
+            for (let i = 0; i < root.notifications.length; ++i) {
+                const n = root.notifications[i]
+                if (n && n.timestamp && n.timestamp.getTime() > oneDayAgo) {
+                    keep.push(n)
+                } else {
+                    cleaned++
+                    if (n) n.destroy()
+                }
+            }
             if (cleaned > 0) {
+                root.notifications = keep
                 QsServices.Logger.debug("Notifs", `Cleaned up ${cleaned} old notifications`)
             }
         }

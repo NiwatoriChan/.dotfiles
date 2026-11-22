@@ -28,26 +28,6 @@ PanelWindow {
     readonly property color cSubText: pywal.onSurfaceMuted
     readonly property color cBorder: Qt.rgba(1, 1, 1, 0.08)
 
-    IpcHandler {
-        target: "wallpaper"
-
-        function toggle(): void {
-            if (root.shouldShow) {
-                root.closeMenu()
-            } else {
-                root.openMenu()
-            }
-        }
-
-        function open(): void {
-            root.openMenu()
-        }
-
-        function close(): void {
-            root.closeMenu()
-        }
-    }
-
     // Process to scan wallpapers directory
     Process {
         id: scanProc
@@ -102,6 +82,7 @@ PanelWindow {
         searchField.text = ""
         query = ""
         selectedIndex = 0
+        wallpapers = []
     }
 
     readonly property var filteredWallpapers: {
@@ -508,7 +489,7 @@ PanelWindow {
                         cellHeight: 140
                         model: root.filteredWallpapers
                         boundsBehavior: Flickable.StopAtBounds
-                        cacheBuffer: 600
+                        cacheBuffer: 280
 
                         QQC.ScrollBar.vertical: QQC.ScrollBar {
                             policy: QQC.ScrollBar.AsNeeded

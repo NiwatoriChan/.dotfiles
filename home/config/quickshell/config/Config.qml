@@ -46,7 +46,7 @@ Singleton {
         enabled: data.launcher?.enabled ?? true,
         width: data.launcher?.width ?? 720,
         maxResults: data.launcher?.maxResults ?? 8,
-        terminalCommand: data.launcher?.terminalCommand ?? ["kitty"],
+        terminalCommand: data.launcher?.terminalCommand ?? ["kitty", "-1"],
         favorites: data.launcher?.favorites ?? [
             "org.wezfurlong.wezterm",
             "kitty",

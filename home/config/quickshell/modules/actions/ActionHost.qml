@@ -1,7 +1,6 @@
 import QtQuick 6.10
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Io
 import "../../config" as QsConfig
 import "../../services" as QsServices
 
@@ -52,21 +51,6 @@ PanelWindow {
 
     function close() {
         shouldShow = false
-    }
-
-    Connections {
-        target: QsServices.Actions
-        function onGuiRequested(action, args) {
-            root.openAction(action, args)
-        }
-        function onParamsRequested(action, values) {
-            root.openParams(action, values)
-        }
-    }
-
-    IpcHandler {
-        target: "actionhost"
-        function close(): void { root.close() }
     }
 
     screen: Quickshell.screens[0]

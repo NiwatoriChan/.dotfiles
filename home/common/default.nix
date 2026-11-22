@@ -29,10 +29,10 @@
   # Enable CEF remote debugging for Steam (required for Decky Loader to inject)
   home.file.".steam/steam/.cef-enable-remote-debugging".text = "";
 
-  # KDE Connect service and system tray indicator applet
+  # KDE Connect background daemon (launch kdeconnect-app on demand; skip persistent tray applet)
   services.kdeconnect = {
     enable = true;
-    indicator = true;
+    indicator = false;
   };
 
   home.stateVersion = "26.05";

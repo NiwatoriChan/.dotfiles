@@ -26,7 +26,7 @@ Item {
         cursorShape: Qt.PointingHandCursor
         onClicked: (mouse) => {
             if (mouse.button === Qt.RightButton) {
-                Quickshell.execDetached(["kitty"])
+                Quickshell.execDetached(["kitty", "-1"])
             } else {
                 Quickshell.execDetached(["quickshell", "ipc", "call", "launcher", "toggle"])
             }

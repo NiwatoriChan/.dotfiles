@@ -33,10 +33,6 @@
     chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
 
-    nixos-hardware = {
-      url = "github:NixOS/nixos-hardware/master";
-    };
-
     mangowm = {
       url = "github:mangowm/mango";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -66,7 +62,6 @@
       nixpkgs-unstable,
       home-manager,
       home-manager-unstable,
-      nixos-hardware,
       ...
     }@inputs:
     let
@@ -207,15 +202,6 @@
           hostDir = ./hosts/jeff;
           homeFile = ./home/jeff.nix;
           extraModules = [ sharedKernelAndCache ];
-        };
-
-        # --- PetitePatate — Pinebook Pro ARM64 ---
-        PetitePatate = mkHost {
-          name = "PetitePatate";
-          system = "aarch64-linux";
-          hostDir = ./hosts/petitepatate;
-          homeFile = ./home/petitepatate.nix;
-          extraModules = [ inputs.nixos-hardware.nixosModules.pine64-pinebook-pro ];
         };
 
         # --- Savage — Steam Deck LCD ---

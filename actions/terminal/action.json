@@ -7,5 +7,5 @@
   "visible": true,
   "closeLauncher": true,
   "order": 1,
-  "exec": ["kitty"]
+  "exec": ["kitty", "-1"]
 }

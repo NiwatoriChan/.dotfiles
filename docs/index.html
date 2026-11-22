@@ -737,23 +737,21 @@ The configuration files are organized as follows:
 │   ├── petitoeuf/        # Config for PetitOeuf (Hyprland laptop without gaming)
 │   ├── pwpoulet/         # Config for PwPoulet (KDE Plasma 6 system)
 │   ├── savage/           # Config for Savage (Steam Deck LCD system)
-│   ├── jeff/             # Config for Jeff (headless server profile)
-│   └── petitepatate/     # Config for PetitePatate (Pinebook Pro ARM64 system)
+│   └── jeff/             # Config for Jeff (headless server profile)
 ├── home/                 # User-specific Home Manager configurations
 │   ├── common/           # Shared user packages, shell (zsh/p10k), and git
 │   ├── config/           # User configuration files (waybar, hypr, mango, etc.)
 │   ├── potatomonster.nix # User environment for PotatoMonster (MangoWM configs)
 │   ├── petitoeuf.nix     # User environment for PetitOeuf (Hyprland configs)
 │   ├── pwpoulet.nix      # User environment for PwPoulet (KDE wrapper)
-│   ├── savage.nix        # User environment for Savage (Steam Deck common configs)
-│   └── petitepatate.nix  # User environment for PetitePatate (ARM64 configs)
+│   └── savage.nix        # User environment for Savage (Steam Deck common configs)
 \`\`\`
 
 ---
 
 ## 🖥️ System Profiles
 
-The configurations define five target machines and one headless server:
+The configurations define four target machines and one headless server:
 
 | Machine Name | Device Type | Window Manager / DE | NixOS Host Config | Home Manager Profile |
 | :--- | :--- | :--- | :--- | :--- |
@@ -761,7 +759,6 @@ The configurations define five target machines and one headless server:
 | **PetitOeuf** | Laptop (x86_64) | Hyprland | \`hosts/petitoeuf\` | \`home/petitoeuf.nix\` |
 | **PwPoulet** | Desktop (x86_64) | KDE Plasma 6 (Unstable) | \`hosts/pwpoulet\` | \`home/pwpoulet.nix\` |
 | **Savage** *BETA* | Steam Deck (x86_64) | Steam Deck Game Mode / KDE Plasma | \`hosts/savage\` | \`home/savage.nix\` |
-| **PetitePatate** | Pinebook Pro (aarch64) | Hyprland | \`hosts/petitepatate\` | \`home/petitepatate.nix\` |
 | **Jeff** | Headless Server (x86_64) | *None (CLI)* | \`hosts/jeff\` | \`home/jeff.nix\` |
 
 ---
@@ -974,16 +971,11 @@ Specific system host modules override or add system services:
 - **Packages**: Dolphin (\\\`kdePackages.dolphin\\\`) and Qt Multimedia support (\\\`kdePackages.qtmultimedia\\\`).
 - **Hardware**: Configured with standard desktop x86_64 hardware modules.
 
-### 4. PetitePatate (\`hosts/petitepatate\`)
-- **Device/Architecture**: Pinebook Pro (aarch64 ARM64).
-- **Kernel/Hardware**: Integrates custom NixOS hardware modules alongside device tree overlay overrides for CPU/GPU overclocking (up to 2.08GHz) and stable undervolting.
-- **Graphical Environment**: Enables and configures Hyprland (\`modules/hyprland.nix\`).
-
-### 5. Jeff (\`hosts/jeff\`)
+### 4. Jeff (\`hosts/jeff\`)
 - **Type**: Headless Server.
 - **Services**: Imports core server modules (\`modules/server/default.nix\`) enabling declarative Samba storage sharing, Jellyfin media streaming server, Transmission BitTorrent daemon, OpenVPN tunneling, local DNS resolution, Nginx reverse proxy, and the Homepage portal.
 
-### 6. Savage (*BETA*) (\`hosts/savage\`)
+### 5. Savage (*BETA*) (\`hosts/savage\`)
 - **Status**: Beta.
 - **Device/Architecture**: Steam Deck LCD (x86_64).
 - **Steam Deck Integration (Jovian-NixOS)**: Configured using the Jovian-NixOS module system, enabling Steam Deck hardware profiles, performance optimizations, and controller driver layers.

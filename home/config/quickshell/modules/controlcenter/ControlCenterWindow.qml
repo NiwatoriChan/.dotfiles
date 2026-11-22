@@ -3,7 +3,6 @@ import QtQuick.Layouts 6.10
 import QtQuick.Controls 6.10
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Io
 import "../../services" as QsServices
 import "../../config" as QsConfig
 import "../../components"
@@ -54,30 +53,6 @@ PanelWindow {
 
     function closeMenu(): void {
         root.shouldShow = false
-    }
-
-    IpcHandler {
-        target: "controlcenter"
-
-        function toggle(): void {
-            root.toggleMenu()
-        }
-
-        function open(): void {
-            root.openMenu()
-        }
-
-        function close(): void {
-            root.closeMenu()
-        }
-
-        function toggleCaffeine(): void {
-            root.idleInhibitor.inhibited = !root.idleInhibitor.inhibited
-        }
-
-        function toggleEthernetSharing(): void {
-            root.network.toggleEthernetSharing()
-        }
     }
 
     // M3 Solid Color Tokens
