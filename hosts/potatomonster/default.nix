@@ -31,6 +31,10 @@
   # Hostname
   networking.hostName = "PotatoMonster";
 
+  environment.systemPackages = with pkgs; [
+    blender
+  ];
+
   # Overlay: remove password view toggle icon from SDDM Astronaut theme (PotatoMonster only)
   nixpkgs.overlays = [
     (final: prev: {
