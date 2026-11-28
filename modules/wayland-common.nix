@@ -114,7 +114,7 @@
       };
       iconTheme = {
         name = "Papirus-Dark";
-        package = pkgs.papirus-icon-theme;
+        package = pkgs.papirus-icon-theme.override { color = "grey"; };
       };
       gtk3.extraConfig = {
         gtk-application-prefer-dark-theme = 1;

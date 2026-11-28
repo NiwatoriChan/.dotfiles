@@ -4,11 +4,7 @@
 
 {
   imports = [
-    (if builtins.pathExists ./hardware-configuration.nix
-     then ./hardware-configuration.nix
-     else if builtins.pathExists /etc/nixos/hardware-configuration.nix
-     then /etc/nixos/hardware-configuration.nix
-     else {})
+    ./hardware-configuration.nix
     ../common
     ../../modules/hyprland.nix   # ← swap to change DE
     #../../modules/kde.nix

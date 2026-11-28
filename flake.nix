@@ -2,15 +2,13 @@
   nixConfig = {
     extra-substituters = [
       "https://cache.lantian.pub/lantian"
-      "https://cache.xinux.uz"
       "https://jovian.cachix.org"
-      "https://nyx-cache.chaotic.cx"
+      "https://noctalia.cachix.org"
     ];
     extra-trusted-public-keys = [
       "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
-      "cache.xinux.uz:BXCrtqejFjWzWEB9YuGB7X2MV4ttBur1N8BkwQRdH+0="
       "jovian.cachix.org-1:8Vq4Txku6VZIRhYrHYki3Ab9XHJRoWmdYqMqj4rB/Uc="
-      "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
+      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
     ];
   };
 
@@ -28,10 +26,10 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
-    # Not pinned to our nixpkgs on purpose: both ship their own kernel/package
-    # sets built against a specific nixpkgs so their binary caches keep hitting.
-    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
+    # Not pinned to our nixpkgs on purpose: these ship packages built against
+    # their own nixpkgs so their binary caches keep hitting.
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
+    luciole.url = "github:noctalia-dev/luciole/cachix";
 
     mangowm = {
       url = "github:mangowm/mango";
@@ -102,15 +100,10 @@
           ...
         }:
         {
-          imports = [
-            inputs.chaotic.nixosModules.default
-          ];
-
           nixpkgs.overlays = [
             inputs.nix-cachyos-kernel.overlays.pinned
           ];
 
-          #boot.kernelPackages = pkgs.linuxPackages_cachyos;
           boot.kernelPackages = lib.mkIf (config.networking.hostName != "Savage") pkgs.linuxPackages_latest;
         };
 

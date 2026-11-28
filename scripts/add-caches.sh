@@ -45,35 +45,27 @@ cat << EOF > "$TEMP_DIR/flake.nix"
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
-    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
   };
 
   nixConfig = {
-    substituters = [
-      "https://cache.lantian.pub/lantian"
-      "https://cache.xinux.uz"
-    ];
-    trusted-public-keys = [
-      "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
-      "cache.xinux.uz:BXCrtqejFjWzWEB9YuGB7X2MV4ttBur1N8BkwQRdH+0="
-    ];
     extra-substituters = [
+      "https://cache.lantian.pub/lantian"
       "https://jovian.cachix.org"
-      "https://nyx-cache.chaotic.cx"
+      "https://noctalia.cachix.org"
     ];
     extra-trusted-public-keys = [
+      "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
       "jovian.cachix.org-1:8Vq4Txku6VZIRhYrHYki3Ab9XHJRoWmdYqMqj4rB/Uc="
-      "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
+      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
     ];
   };
 
-  outputs = { self, nixpkgs, chaotic, nix-cachyos-kernel }: {
+  outputs = { self, nixpkgs, nix-cachyos-kernel }: {
     nixosConfigurations.minimal = nixpkgs.lib.nixosSystem {
       system = "$system";
       modules = [
         $IMPORT_HW
-        chaotic.nixosModules.default
         ({ pkgs, ... }: {
           nixpkgs.overlays = [
             nix-cachyos-kernel.overlays.pinned
@@ -84,22 +76,16 @@ cat << EOF > "$TEMP_DIR/flake.nix"
 
           nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-          # Declare cache settings
-          nix.settings.substituters = [
-            "https://cache.lantian.pub/lantian"
-            "https://cache.xinux.uz"
-          ];
-          nix.settings.trusted-public-keys = [
-            "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
-            "cache.xinux.uz:BXCrtqejFjWzWEB9YuGB7X2MV4ttBur1N8BkwQRdH+0="
-          ];
+          # Declare extra cache settings (keeps cache.nixos.org first)
           nix.settings.extra-substituters = [
+            "https://cache.lantian.pub/lantian"
             "https://jovian.cachix.org"
-            "https://nyx-cache.chaotic.cx"
+            "https://noctalia.cachix.org"
           ];
           nix.settings.extra-trusted-public-keys = [
+            "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
             "jovian.cachix.org-1:8Vq4Txku6VZIRhYrHYki3Ab9XHJRoWmdYqMqj4rB/Uc="
-            "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
+            "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
           ];
 
           system.stateVersion = "26.05";

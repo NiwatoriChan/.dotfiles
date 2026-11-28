@@ -1,0 +1,72 @@
+# Neutral dark palette matching Kitty (#121212 background, #e0e0e0 foreground)
+# Hot-reloaded automatically by Luciole on save.
+
+[colors]
+surface = "#121212"
+on_surface = "#e0e0e0"
+on_surface_variant = "#a0a0a0"
+surface_container_low = "#171717"
+surface_container = "#1c1c1c"
+surface_container_high = "#242424"
+surface_container_highest = "#2c2c2c"
+outline_variant = "#333333"
+shadow = "#000000"
+scrim = "#000000"
+
+primary = "#e0e0e0"
+on_primary = "#121212"
+primary_container = "#2c2c2c"
+on_primary_container = "#ffffff"
+
+secondary = "#b8b8b8"
+on_secondary = "#121212"
+secondary_container = "#262626"
+on_secondary_container = "#e0e0e0"
+
+tertiary = "#8ecae6"
+on_tertiary = "#121212"
+tertiary_container = "#1f323d"
+on_tertiary_container = "#cde9f6"
+
+hover = "#2c2c2c"
+on_hover = "#ffffff"
+
+error = "#f28b82"
+on_error = "#121212"
+error_container = "#4a2320"
+on_error_container = "#f8b4ae"
+
+[dark]
+surface = "#121212"
+on_surface = "#e0e0e0"
+on_surface_variant = "#a0a0a0"
+surface_container_low = "#171717"
+surface_container = "#1c1c1c"
+surface_container_high = "#242424"
+surface_container_highest = "#2c2c2c"
+outline_variant = "#333333"
+shadow = "#000000"
+scrim = "#000000"
+
+primary = "#e0e0e0"
+on_primary = "#121212"
+primary_container = "#2c2c2c"
+on_primary_container = "#ffffff"
+
+secondary = "#b8b8b8"
+on_secondary = "#121212"
+secondary_container = "#262626"
+on_secondary_container = "#e0e0e0"
+
+tertiary = "#8ecae6"
+on_tertiary = "#121212"
+tertiary_container = "#1f323d"
+on_tertiary_container = "#cde9f6"
+
+hover = "#2c2c2c"
+on_hover = "#ffffff"
+
+error = "#f28b82"
+on_error = "#121212"
+error_container = "#4a2320"
+on_error_container = "#f8b4ae"

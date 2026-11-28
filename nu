@@ -92,8 +92,27 @@ if [ "$force" = true ]; then
   git reset --hard HEAD
 fi
 
+check_pure_hardware_config() {
+  local host_dir="hosts/${host,,}"
+  local hw_file="${host_dir}/hardware-configuration.nix"
+  if [ ! -f "$hw_file" ]; then
+    echo "Error: ${hw_file} is missing (not pure)." >&2
+    echo "Pure flake evaluation requires hardware-configuration.nix inside the repo so Nix's eval-cache stays enabled." >&2
+    echo "To fix on this machine:" >&2
+    echo "  cp /etc/nixos/hardware-configuration.nix ${hw_file}" >&2
+    echo "  git add ${hw_file}" >&2
+    exit 1
+  fi
+  if ! git ls-files --error-unmatch "$hw_file" >/dev/null 2>&1; then
+    echo "Error: ${hw_file} exists but is not tracked by git (invisible to pure flake evaluation)." >&2
+    echo "Run: git add ${hw_file}" >&2
+    exit 1
+  fi
+}
+
 rebuild() {
-  sudo nixos-rebuild switch --flake ".#${host}" --impure --accept-flake-config
+  check_pure_hardware_config
+  sudo nixos-rebuild switch --flake ".#${host}" --accept-flake-config
 }
 
 pull_repo() {

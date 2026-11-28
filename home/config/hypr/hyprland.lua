@@ -120,7 +120,7 @@ end
 ---------------------
 
 local terminal    = "kitty -1"
-local fileManager = "thunar"
+local fileManager = "luciole"
 local menu        = "quickshell ipc call launcher toggle"
 
 -------------------
@@ -538,8 +538,22 @@ hl.window_rule({
 })
 
 hl.window_rule({
+    name = "luciole-blur",
+    match = { class = "^(dev\\.noctalia\\.luciole(-chooser)?)$" },
+    no_blur = false,
+    opacity = "0.85 0.75",
+})
+
+hl.window_rule({
     name = "zed-blur",
     match = { class = "dev.zed.Zed" },
+    no_blur = false,
+    opacity = "0.90 0.80",
+})
+
+hl.window_rule({
+    name = "antigravity-blur",
+    match = { class = "antigravity" },
     no_blur = false,
     opacity = "0.90 0.80",
 })

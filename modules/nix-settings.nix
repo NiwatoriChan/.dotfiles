@@ -6,18 +6,22 @@
     experimental-features = [ "nix-command" "flakes" ];
     trusted-users = [ "root" "@wheel" ];
 
-    # Use extra-* so the default cache.nixos.org entry is never replaced.
+    # Download & substitution throughput
+    download-buffer-size = 268435456; # 256 MiB (default 1 MiB throttles large NARs)
+    http-connections = 50;
+    max-substitution-jobs = 32;
+    connect-timeout = 5;
+    fallback = true;
+    builders-use-substitutes = true;
+    auto-optimise-store = true;
+
+    # Use extra-* so the default cache.nixos.org entry is always queried first.
+    # Module-specific caches (noctalia, jovian) are declared in their own modules.
     extra-substituters = [
       "https://cache.lantian.pub/lantian"
-      "https://cache.xinux.uz"
-      "https://jovian.cachix.org"
-      "https://nyx-cache.chaotic.cx"
     ];
     extra-trusted-public-keys = [
       "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
-      "cache.xinux.uz:BXCrtqejFjWzWEB9YuGB7X2MV4ttBur1N8BkwQRdH+0="
-      "jovian.cachix.org-1:8Vq4Txku6VZIRhYrHYki3Ab9XHJRoWmdYqMqj4rB/Uc="
-      "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
     ];
   };
 
